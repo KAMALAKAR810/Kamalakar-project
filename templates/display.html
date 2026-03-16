@@ -1,0 +1,70 @@
+<!-- <h2 class="heading white-text">Live Matka Results</h2>
+<div class="table-responsive" style="background: white; padding: 10px; border-radius: 8px;">
+    <table class="table table-bordered text-center">
+        <thead style="background: #1a55a4; color: white;">
+            <tr>
+                <th>Matka Name</th>
+                <th>Open</th>
+                <th>Close</th>
+                <th>Num 1</th>
+                <th>Num 2</th>
+                <th>Num 3</th>
+            </tr>
+        </thead>
+        <tbody>
+           
+            <tr>
+                <td><strong></strong></td>
+                <td></td>
+                <td></td>
+                <td style="color: #d32f2f; font-weight: bold;"></td>
+                <td style="font-size: 1.2em; font-weight: bold;"></td>
+                <td style="color: #d32f2f; font-weight: bold;">{{ matka.m_number_3 }}</td>
+            </tr>
+            
+            <tr>
+                <td colspan="6">No results available at the moment.</td>
+            </tr>
+            
+        </tbody>
+    </table>
+</div> -->
+
+ <!-- {% for matka in matka_numbers %}
+        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+          <div class="single-result">
+            <h2>
+              <span class="left-time">
+                {{ matka.m_time_1 }}
+              </span>{{ matka.m_name }}
+                >{{ matka.m_time_2 }}</span
+              >
+            </h2>
+            <ul>
+              <li><p>{{ matka.m_number_1 }}</p></li>
+              <li><p class="bold-sec">{{ matka.m_number_2 }}</p></li>
+              <li><p>{{ matka.m_number_3 }}</p></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %} -->
+
+    
+{% for matka in matka_numbers %}
+<div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+    <div class="single-result">
+        <h2>
+            <span class="left-time">{{ matka.m_time_1 }}</span>
+            {{ matka.m_name }}
+            <span class="right-time">{{ matka.m_time_2 }}</span>
+        </h2>
+        <ul>
+            <li><p>{{ matka.m_number_1 }}</p></li>
+            <li><p class="bold-sec">{{ matka.m_number_2 }}{{ matka.m_number_3 }}</p></li>
+            <li><p>{{ matka.m_number_4 }}</p></li>
+        </ul>
+    </div>
+</div>
+{% endfor %}
