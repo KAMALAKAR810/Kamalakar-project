@@ -128,25 +128,43 @@ USE_TZ = True
 
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
+# # Static files (CSS, JavaScript, Images)
+# # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+# # Default primary key field type
+# # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATICFILES_DIRS = [BASE_DIR/"static",]
+# STATICFILES_DIRS = [BASE_DIR/"static",]
 
-MEDIA_URL = 'media/'
-STATIC_ROOT = BASE_DIR/'staticfiles'
-MEDIA_ROOT = BASE_DIR/'mediafiles'
+# MEDIA_URL = 'media/'
+# STATIC_ROOT = BASE_DIR/'staticfiles'
+# MEDIA_ROOT = BASE_DIR/'mediafiles'
 
-LOGIN_REDIRECT_URL = "index"
-LOGOUT_REDIRECT_URL = "index"
+# LOGIN_REDIRECT_URL = "index"
+# LOGOUT_REDIRECT_URL = "index"
 
 # Optimize static file serving
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# settings.py
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# This tells Django where to look for your custom static files
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# The "Simplified" WhiteNoise backend. 
+# It won't crash your build if a CSS file has a tiny error.
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
