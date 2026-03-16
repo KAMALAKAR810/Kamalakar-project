@@ -2,8 +2,8 @@
 # from django.http import HttpResponse
 
 # # Create your views here.
-# def home(request):
-#     return render(request, 'home.html')
+# def index(request):
+#     return render(request, 'index.html')
 
 # def error(request):
 #     return render(request, 'error.html')
@@ -18,8 +18,8 @@
 # from django.http import HttpResponse
 # from .models import MatkaNumber # Standard import location
 
-# def home(request):
-#     return render(request, 'home.html')
+# def index(request):
+#     return render(request, 'index.html')
 
 # def error(request):
 #     return render(request, 'error.html')
@@ -32,17 +32,17 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import MatkaNumber
 
-def home(request):
+def index(request):
     """
-    Main home page view. 
+    Main index page view. 
     Fetches matka_numbers so that the {% include 'display.html' %} 
-    tag inside home.html has data to display.
+    tag inside index.html has data to display.
     """
     matka_numbers = MatkaNumber.objects.all()
     context = {
         'matka_numbers': matka_numbers,
     }
-    return render(request, 'home.html', context)
+    return render(request, 'index.html', context)
 
 def display(request):
     """
