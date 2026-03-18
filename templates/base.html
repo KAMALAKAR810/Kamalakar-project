@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+    
+    <noscript>
+        <meta http-equiv="refresh" content="0;url=/enable-js?js=0" />
+    </noscript>
+
+    <title>Online Matka Play | Kalyan Matka | Matka Results | Indian Matka</title>
+    
+    <meta name="description" content="Matkaplay Net - Premium online matka play website." />
+    <link rel="stylesheet" href="https://matkaplay.net/assets/front/css/sattamatkaplay.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        body { 
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important; 
+            margin:0; padding:0; 
+            transition: background-color 0.4s ease, color 0.4s ease; 
+        }
+        .white-text { color: #fff !important; }
+        .blue-background { background: #1a55a4; }
+        .text-center { text-align: center; }
+        
+        /* SETTINGS PANEL */
+        #custom-settings {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            z-index: 10001;
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .gear-btn { cursor: pointer; font-size: 20px; color: white; }
+        .reset-btn { cursor: pointer; color: #ff4d4d; font-weight: bold; font-size: 18px; margin-left: 5px; }
+        
+        .gold-top-hed { transition: background-color 0.4s ease; }
+        .heading { text-align: center; font-size: 20px; background: rgba(1, 67, 154, 0.9); color: #fff; padding: 12px 0; border-radius: 4px; margin: 0 0 11px 0; }
+        .gold-menu ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; background: #01439A; }
+        .gold-menu li a { color: #fff; padding: 15px 20px; display: block; text-decoration: none; font-weight: bold; }
+
+        /* FLOATING BUTTONS */
+        #chat-btns { position: fixed; bottom: 15px; right: 15px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+        #chat-btns a { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+        .btn-tg { background: #0088cc; width: 56px !important; height: 56px !important; }
+        .btn-tg svg { width: 32px; height: 32px; fill: #fff; }
+
+        #call-btn { position: fixed; bottom: 15px; left: 15px; z-index: 9999; width: 48px; height: 48px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+        #call-btn svg { width: 26px; height: 26px; fill: #fff; }
+    
+    /* Navbar List Reset */
+.nav-item {
+    list-style: none;
+    display: inline-block;
+    margin-left: 15px;
+    vertical-align: middle;
+}
+
+/* Base Button Style */
+.btn-nav {
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 8px 20px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Login Button (Elegant Outline) */
+.btn-login {
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: transparent;
+}
+
+.btn-login:hover {
+    background: rgba(255, 255, 204, 0.1);
+    border-color: #ffcc00;
+    color: #ffcc00;
+    transform: translateY(-2px);
+}
+
+/* Register Button (Solid Gold / "The Money Color") */
+.btn-register {
+    background: linear-gradient(145deg, #ffcc00, #d4ac00);
+    color: #000;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-register:hover {
+    background: linear-gradient(145deg, #ffe066, #ffcc00);
+    box-shadow: 0 6px 20px rgba(255, 204, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Active State click effect */
+.btn-nav:active {
+    transform: translateY(0);
+}
+    
+    </style>
+</head>
+
+<body>
+
+ <div id="custom-settings">
+    <label for="bg-picker" class="gear-btn" title="Change Background">⚙️</label>
+    <input type="color" id="bg-picker" style="display: none;" onchange="applyTheme(this.value)">
+    <span class="reset-btn" onclick="resetTheme()" title="Reset to Default">✕</span>
+</div>
+
+<div class="container-fluid">
+    <div class="row gold-top-hed" id="header-container" style="padding: 10px 0; display: flex; align-items: center;">
+        
+        <div class="col-xs-4">
+            <div class="gold-logo">
+                <a href="/">
+                    <img src="https://matkaplay.net/assets/front/images/m-logo2.png" alt="logo" style="width: 35px; height: 35px" />
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xs-8">
+            <div class="gold-login-area text-right">
+                <ul style="list-style:none; display:flex; justify-content:flex-end; align-items:center; gap:15px; margin:0; padding:0;">
+                    
+                    <!-- This is a template comment - replace with actual Django code if needed -->
+                    <!-- User authentication section - will be processed by Django -->
+ {% if user.is_authenticated %}
+    <li style="display: flex; align-items: center; gap: 8px;">
+        {% if user.profile.profile_pic %}
+            <img src="{{ user.profile.profile_pic.url }}" 
+                 style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #ffcc00; display: block;">
+        {% else %}
+            <i class="fa fa-user-circle" style="color: #fff; font-size: 24px;"></i>
+        {% endif %}
+        <span style="color: #fff; font-weight: bold; font-size: 13px;">{{ user.username|upper }}</span>
+    </li>
+    
+    <li>
+        <form action="{% url 'logout' %}" method="post" style="margin: 0; display: inline-block;">
+            {% csrf_token %}
+            <button type="submit" style="background: #d9534f; border: none; color: #fff; cursor: pointer; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; line-height: 1;">
+                <i class="fa fa-sign-out"></i> LOGOUT
+            </button>
+        </form>
+    </li>
+{% else %}
+<li class="nav-item">
+    <a href="{% url 'login' %}" class="btn-nav btn-login">LOGIN</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'register' %}" class="btn-nav btn-register">REGISTER</a>
+</li>
+    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <nav class="gold-menu">
+        <ul style="display: flex; list-style: none; padding: 10px 0; margin: 0; justify-content: space-around; background: #333;">
+            <li class="active"><a href="/" style="color: gold; text-decoration: none;">HOME</a></li>
+            <li><a href="/single" style="color: #fff; text-decoration: none;">SINGLE</a></li>
+            <li><a href="/jodi" style="color: #fff; text-decoration: none;">JODI</a></li>
+            <li><a href="/jodi-chart-list" style="color: #fff; text-decoration: none;">JODI CHART</a></li>
+            <li><a href="/panel-chart-list" style="color: #fff; text-decoration: none;">PANEL CHART</a></li>
+        </ul>
+    </nav>
+</div>
+
+    <!-- Content block for Django templates -->
+    {% block content %}
+    {% endblock %}
+
+    <div class="container-fluid" style="background: #111; padding: 40px 0;">
+        <div class="container">
+            <div class="row text-center white-text">
+                <div class="col-md-12">
+                    <div class="foot-social-n">
+                        <ul style="list-style:none; display:flex; justify-content:center; gap:20px; padding:0;">
+                            <li><a href="https://facebook.com/ematkaplay" class="white-text"><i class="fa fa-facebook-square"></i> Facebook</a></li>
+                            <li><a href="https://twitter.com/MatkaPlay" class="white-text"><i class="fa fa-twitter-square"></i> Twitter</a></li>
+                            <li><a href="https://www.instagram.com/onlinematkaplay/" class="white-text"><i class="fa fa-instagram"></i> Instagram</a></li>
+                        </ul>
+                    </div>
+                    <div class="foot-one-link" style="margin: 20px 0;">
+                        <ul style="list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:15px; padding:0;">
+                            <li><a href="/online-matka-play" class="white-text">Online Matka Play</a></li>
+                            <li><a href="/satta-matka-online" class="white-text">Satta Matka Online</a></li>
+                            <li><a href="/kalyan-matka" class="white-text">Kalyan Matka</a></li>
+                            <li><a href="/matka-result" class="white-text">Matka Result</a></li>
+                        </ul>
+                    </div>
+                    <p style="font-size: 11px; opacity: 0.6;">
+                        Disclaimer: Purchase of online lottery using this website is prohibited in territories where lotteries are banned.
+                        Playing online matka below 18 years is strictly prohibited.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a id="call-btn" href="tel:+918217228766" aria-label="Call Support">
+        <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+    </a>
+
+    <div id="chat-btns">
+        <a href="https://t.me/matkaplaynet" target="_blank" class="btn-tg" aria-label="Telegram Chat">
+            <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+        </a>
+    </div>
+
+    <script>
+        const header = document.getElementById('header-container');
+        const body = document.body;
+
+        function applyTheme(color) {
+            header.style.backgroundColor = color;
+            body.style.backgroundColor = color;
+            const textColor = getContrastYIQ(color);
+            body.style.color = textColor;
+            localStorage.setItem('matkaBg', color);
+            localStorage.setItem('matkaText', textColor);
+        }
+
+        function resetTheme() {
+            localStorage.removeItem('matkaBg');
+            localStorage.removeItem('matkaText');
+            header.style.backgroundColor = "";
+            body.style.backgroundColor = "";
+            body.style.color = "";
+        }
+
+        function getContrastYIQ(hexcolor){
+            hexcolor = hexcolor.replace("#", "");
+            if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(s => s+s).join('');
+            const r = parseInt(hexcolor.substr(0,2),16);
+            const g = parseInt(hexcolor.substr(2,2),16);
+            const b = parseInt(hexcolor.substr(4,2),16);
+            const yiq = ((r*299)+(g*587)+(b*114))/1000;
+            return (yiq >= 128) ? 'black' : 'white';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedBg = localStorage.getItem('matkaBg');
+            const savedText = localStorage.getItem('matkaText');
+            if (savedBg) {
+                header.style.backgroundColor = savedBg;
+                body.style.backgroundColor = savedBg;
+                body.style.color = savedText;
+                document.getElementById('bg-picker').value = savedBg;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,163 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-    
-    <noscript>
-        <meta http-equiv="refresh" content="0;url=/enable-js?js=0" />
-    </noscript>
+{% extends "base.html" %}
 
-    <title>Online Matka Play | Kalyan Matka | Matka Results | Indian Matka</title>
-    
-    <meta name="description" content="Matkaplay Net - Premium online matka play website. Play online matka with us for secure gaming, instant satta matka results & more." />
-    <meta name="keywords" content="online matka, matka online, online matka play, matka play, online satta matka, satta matka online, satta online play" />
-    <meta name="msvalidate.01" content="AFC5FAA75339993D84026C1109052FA7" />
-    
-    <meta name="rating" content="general" />
-    <meta name="robots" content="INDEX, FOLLOW, ARCHIVE" />
-    <meta name="google" content="notranslate" />
-    <meta name="theme-color" content="#01439A" />
-    <meta property="og:locale" content="en_IN" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Online Matka Play | Matka Result | Kalyan Matka | Satta Matka Online - MatkaPlay.Net" />
-    <meta property="og:description" content="Trusted Website to Play Matka Online. Register for Free to Online Matka Play, Kalyan Matka, Mumbai Matka and More." />
-    <meta property="og:url" content="https://matkaplay.net/" />
-    <meta property="og:site_name" content="MatkaPlay" />
-    <meta property="og:image" content="https://matkaplay.net/assets/front/images/banner.webp" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    
-    <link rel="canonical" href="https://matkaplay.net/" />
-    <link rel="icon" type="image/x-icon" href="https://matkaplay.net/assets/front/images/favicon.ico" />
-    <link rel="stylesheet" href="https://matkaplay.net/assets/front/css/sattamatkaplay.css" />
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-    <script type="application/ld+json">
-    {
-        "@context": "http://schema.org",
-        "@type": "LocalBusiness",
-        "name": "Matka Play",
-        "image": "https://matkaplay.net/assets/front/images/banner.webp",
-        "telephone": "09172036467",
-        "url": "https://matkaplay.net/",
-        "email": "matkaplaydotnet@gmail.com",
-        "priceRange": "500-10000",
-        "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Bhopal",
-            "addressCountry": "India"
-        },
-        "review": {
-            "@type": "Review",
-            "author": {
-                "@type": "Person",
-                "name": "Matka Play"
-            },
-            "reviewRating": {
-                "@type": "Rating",
-                "ratingValue": "10",
-                "bestRating": "10",
-                "worstRating": "06"
-            },
-            "reviewBody": "Welcome to Matka Play Website. Best Online Matka Play Website in the Industry."
-        }
-    }
-    </script>
-
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131343480-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'UA-131343480-1');
-    </script>
-
-    <style>
-        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important; margin:0; padding:0; }
-        .white-text { color: #fff !important; }
-        .blue-background { background: #1a55a4; }
-        .text-center { text-align: center; }
-        .heading { text-align: center; font-size: 20px; background: rgba(1, 67, 154, 0.9); color: #fff; padding: 12px 0; border-radius: 4px; margin: 0 0 11px 0; }
-        .content-link p a { color: black !important; text-decoration: underline; }
-        
-        /* Navigation Styles */
-        .gold-menu ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; background: #01439A; }
-        .gold-menu li a { color: #fff; padding: 15px 20px; display: block; text-decoration: none; font-weight: bold; }
-        .gold-menu li.active { background: #002e6b; }
-
-        /* Floating Buttons */
-        #chat-btns { position: fixed; bottom: 15px; right: 15px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-        #chat-btns a { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
-        .btn-tg { background: #0088cc; width: 56px !important; height: 56px !important; }
-        .btn-tg svg { width: 32px; height: 32px; fill: #fff; }
-
-        #call-btn { position: fixed; bottom: 15px; left: 15px; z-index: 9999; width: 48px; height: 48px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
-        #call-btn svg { width: 26px; height: 26px; fill: #fff; }
-
-        /* Banner */
-        #wa-banner { background: #d32f2f; color: #fff; text-align: center; padding: 8px 10px; font-size: 13px; position: relative; }
-        #wa-banner a { color: #fff; text-decoration: underline; font-weight: bold; }
-        .close-banner { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
-        
-        .h4-heading { font-size: 17px; text-align: left; padding-left: 6px; }
-        .how-play-area { padding: 30px 0; background: #f9f9f9; }
-    </style>
-</head>
-
-<body>
-    <div class="container-fluid">
-        <div class="row gold-top-hed" style="padding: 10px 0;">
-            <div class="col-xs-4">
-                <div class="gold-logo">
-                    <a href="https://matkaplay.net/">
-                        <img src="https://matkaplay.net/assets/front/images/m-logo2.png" alt="satta matka online logo" style="width: 35px; height: 35px" />
-                    </a>
-                </div>
-            </div>
-            <div class="col-xs-8">
-                <div class="gold-login-area text-right">
-                    <ul style="list-style:none; display:inline-flex; gap:10px;">
-                        <li><a class="log-inn" href="https://matkaplay.net/login"><i class="fa fa-lock"></i> Login</a></li>
-                        <li><a href="https://matkaplay.net/registration"><i class="fa fa-user"></i> Register</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container-fluid">
-        <nav class="gold-menu">
-            <ul>
-                <li class="active"><a href="https://matkaplay.net/">HOME</a></li>
-                <li><a href="https://matkaplay.net/single">SINGLE</a></li>
-                <li><a href="https://matkaplay.net/jodi">JODI</a></li>
-                <li><a href="https://matkaplay.net/single-patti">SINGLE PATTI</a></li>
-                <li><a href="https://matkaplay.net/double-patti">DOUBLE PATTI</a></li>
-                <li><a href="https://matkaplay.net/jodi-chart-list">JODI CHART</a></li>
-                <li><a href="https://matkaplay.net/panel-chart-list">PANEL CHART</a></li>
-                <li><a href="https://matkaplay.net/how-to-play-matka">HOW TO PLAY</a></li>
-            </ul>
-        </nav>
-    </div>
-
-    <div id="wa-banner">
-        <button class="close-banner" onclick="this.parentElement.style.display='none'">&times;</button>
-        WhatsApp message not received? Contact on Telegram 👉 
-        <a href="https://t.me/matkaplaynet" target="_blank">@Kamalakar</a>
-        <br />
-        <span style="font-size: 12px">व्हाट्सएप पर जवाब नहीं आया? टेलीग्राम पर संपर्क करें 👉 
-            <a href="https://t.me/matkaplaynet" target="_blank">@Kamalakar</a>
-        </span>
-    </div>
-
+{% block content %}
     <div class="container-fluid" style="background: rgba(1, 144, 154, 0.9); padding: 40px 0;">
         <div class="container text-center">
             <h2 class="white-text"><b>Play Online Matka</b></h2>
             <h2 class="white-text"><b>#1 Most Trusted Matka Play Website</b></h2>
-            <a href="tel:09172036467" style="color: yellow; font-size: 20px; font-weight: bold;">Call Us: 8217228766</a>
+            <a href="tel:8217228766" style="color: yellow; font-size: 20px; font-weight: bold;">Call Us: 8217228766</a>
             <hr style="border-color: rgba(255,255,255,0.2)" />
             <p class="white-text">
                 MatkaPlay.net is the best preferred platform to play online satta matka. We provide the best interface to guess and win. 
@@ -194,7 +42,6 @@
             </div>
         </div>
     </div>
-    
 
     <div class="container-fluid" style="padding: 30px 0;">
         <div class="container">
@@ -204,23 +51,6 @@
             </div>
         </div>
     </div>
-
-
-
-<!-- start here -->
-<script>
-    setInterval(function() {
-        location.reload();
-    }, 5000); // 5000 milliseconds = 5 seconds
-</script>
-
-<!-- end here -->
-
-
-
-
-
-
 
     <div class="container-fluid blue-background" style="padding: 40px 0;">
         <div class="container text-center white-text">
@@ -239,14 +69,13 @@
                 <p>Live results on all the online matka play markets, every day on Matka Play. We cover Rajdhani, Kalyan, Main Ratan, and Navratna.</p>
                 
                 <h3 class="heading">Why Choose Us</h3>
-                <p>MatkaPlay.net stands out with a mobile-friendly platform and user-friendly navigation. Our app works seamlessly on Android and iOS.</p>
+                <p>MatkaPlay.net stands out with a mobile-friendly platform and user-friendly navigation.</p>
                 
                 <h3 class="heading">How to Win?</h3>
                 <ul>
                     <li><b>Understand the Game:</b> Learn the regulations and bet types.</li>
                     <li><b>Research:</b> Check past results and charts for patterns.</li>
                     <li><b>Manage Funds:</b> Set a budget and stick to it.</li>
-                    <li><b>Know When to Stop:</b> Play responsibly for entertainment.</li>
                 </ul>
             </div>
         </div>
@@ -260,53 +89,14 @@
             
             <h5><b><i class="fa fa-hand-o-right"></i> Can I play on mobile?</b></h5>
             <p>Yes, our website is fully optimized for all smartphones and tablets.</p>
-            
-            <h5><b><i class="fa fa-hand-o-right"></i> How to deposit/withdraw?</b></h5>
-            <p>Send a request to our WhatsApp number with your username and amount. Our support team will guide you.</p>
         </div>
     </div>
 
-    <div class="container-fluid" style="background: #111; padding: 40px 0;">
-        <div class="container">
-            <div class="row text-center white-text">
-                <div class="col-md-12">
-                    <div class="foot-social-n">
-                        <ul style="list-style:none; display:flex; justify-content:center; gap:20px; padding:0;">
-                            <li><a href="https://facebook.com/ematkaplay" class="white-text"><i class="fa fa-facebook-square"></i> Facebook</a></li>
-                            <li><a href="https://twitter.com/MatkaPlay" class="white-text"><i class="fa fa-twitter-square"></i> Twitter</a></li>
-                            <li><a href="https://www.instagram.com/onlinematkaplay/" class="white-text"><i class="fa fa-instagram"></i> Instagram</a></li>
-                        </ul>
-                    </div>
-                    <div class="foot-one-link" style="margin: 20px 0;">
-                        <ul style="list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:15px; padding:0;">
-                            <li><a href="/online-matka-play" class="white-text">Online Matka Play</a></li>
-                            <li><a href="/satta-matka-online" class="white-text">Satta Matka Online</a></li>
-                            <li><a href="/kalyan-matka" class="white-text">Kalyan Matka</a></li>
-                            <li><a href="/matka-result" class="white-text">Matka Result</a></li>
-                        </ul>
-                    </div>
-                    <p style="font-size: 11px; opacity: 0.6;">
-                        Disclaimer: Purchase of online lottery using this website is prohibited in territories where lotteries are banned. 
-                        Playing online matka below 18 years is strictly prohibited.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <a id="call-btn" href="tel:+918217228766" aria-label="Call Support">
-        <svg viewBox="0 0 24 24">
-            <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
-        </svg>
-    </a>
-
-    <div id="chat-btns">
-        <a href="https://t.me/matkaplaynet" target="_blank" class="btn-tg" aria-label="Telegram Chat">
-            <svg viewBox="0 0 24 24">
-                <path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-            </svg>
-        </a>
-    </div>
-
-</body>
-</html>
+    <script>
+        /* NOTE: Automatic refresh is disabled for better user experience 
+           while using the color settings. If you need it, increase the 
+           time to 30000 (30 seconds).
+        */
+        // setInterval(function() { location.reload(); }, 30000); 
+    </script>
+{% endblock %}

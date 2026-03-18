@@ -1,0 +1,195 @@
+{% block content %}
+<style>
+    /* Match the dark background from your screenshot */
+    body {
+        background-color: #222222; 
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+
+        /* Navigation bar */
+        .navbar {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--primary-gold);
+        }
+
+        .navbar a {
+            color: #fff;
+            text-align: center;
+            padding: 12px 18px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .navbar a:hover {
+            color: var(--primary-gold);
+        }
+
+
+
+
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 90vh;
+        padding: 20px;
+    }
+
+    .register-card {
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        text-align: center;
+    }
+
+    .register-card h2 {
+        color: #000;
+        font-size: 22px;
+        margin-bottom: 25px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        position: relative;
+        display: inline-block;
+    }
+
+    /* The yellow underline under REGISTER */
+    .register-card h2::after {
+        content: '';
+        display: block;
+        width: 60%;
+        height: 4px;
+        background: #ffcc00;
+        margin: 8px auto 0;
+    }
+
+    .register-card input[type="text"],
+    .register-card input[type="password"],
+    .register-card input[type="tel"] {
+        width: 100%;
+        padding: 14px 15px;
+        margin: 10px 0;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        box-sizing: border-box;
+        outline-color: #ffcc00;
+    }
+
+    .file-input-group {
+        text-align: left;
+        margin: 15px 0;
+    }
+
+    .file-input-group label {
+        font-size: 12px;
+        color: #777;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .terms-area {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 15px 0;
+        font-size: 13px;
+        color: #444;
+        justify-content: center;
+    }
+
+    /* Match your specific gold button */
+    .gold-btn {
+        width: 100%;
+        background-color: #ffcc00;
+        color: #000;
+        border: none;
+        padding: 15px;
+        font-size: 14px;
+        font-weight: 800;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+        text-transform: uppercase;
+        margin-top: 10px;
+    }
+
+    .gold-btn:hover {
+        background-color: #e6b800;
+    }
+
+    .error-msg {
+        color: #d32f2f;
+        font-size: 13px;
+        background: #ffebee;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .footer-link {
+        margin-top: 20px;
+        font-size: 13px;
+        color: #666;
+    }
+
+    .footer-link a {
+        color: #000;
+        text-decoration: none;
+        font-weight: 700;
+    }
+</style>
+    <nav class="navbar">
+
+        <a href="#">Welcome To Matkaplay</a>
+
+    </nav>
+
+<div class="register-container">
+    <div class="register-card">
+        <h2>REGISTER</h2>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <p class="error-msg">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="tel" name="mobile" placeholder="Mobile Number" required>
+            
+            <div class="file-input-group">
+                <label>Upload Profile Picture:</label>
+                <input type="file" name="profile_pic" accept="image/*">
+            </div>
+            
+            <div class="terms-area">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">I Agree Terms and Conditions</label>
+            </div>
+            
+            <button type="submit" class="gold-btn">REGISTER NOW</button>
+        </form>
+
+        <div class="footer-link">
+            Already a User? <a href="{% url 'login' %}">Login Now!</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
