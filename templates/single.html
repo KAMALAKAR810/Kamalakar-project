@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="game-container">
+    <div class="game-header">SINGLE (10 KA 95)</div>
+    
+    <div class="input-row">
+        <select id="market-select">
+            <option value="">---- Select Market ----</option>
+            {% for market in markets %}
+                <option value="{{ market.m_name }}">{{ market.m_name }}</option>
+            {% endfor %}
+        </select>
+       <input type="text" id="todayDate" readonly>
+    </div>
+
+    <div class="grid-layout" style="grid-template-columns: repeat(2, 1fr); display: grid; gap: 10px; padding: 10px;">
+        {% for i in "0123456789" %}
+        <div class="cell" style="border: 1px solid #ccc; padding: 10px; display: flex; justify-content: space-between;">
+            <label>{{ i }}</label>
+            <input type="number" class="bet-input" data-num="{{ i }}" placeholder="Points" style="width: 60px;">
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="total-points" style="padding: 20px; font-weight: bold;">
+        Total Point : <span id="total">0</span>
+    </div>
+    
+    <button class="submit-btn" onclick="submitGame()" style="width: 100%; padding: 15px; background: #28a745; color: white; border: none;">Submit Game</button>
+</div>
+
+<script>
+    // Local script to handle the total calculation
+    document.querySelectorAll('.bet-input').forEach(input => {
+        input.addEventListener('input', () => {
+            let total = 0;
+            document.querySelectorAll('.bet-input').forEach(i => {
+                total += Number(i.value) || 0;
+            });
+            document.getElementById('total').innerText = total;
+        });
+    });
+
+    const dateOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+  const today = new Date().toLocaleDateString('en-GB', dateOptions);
+  
+  // Set the value of the input field
+  document.getElementById('todayDate').value = today;
+
+  
+</script>
+{% endblock %}

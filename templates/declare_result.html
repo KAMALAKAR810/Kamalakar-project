@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding: 20px; max-width: 500px; margin: auto;">
+    <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+        <h2 style="color: #d9534f; text-align: center; margin-bottom: 20px;">Declare Result</h2>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Select Market:</label>
+                <select name="market" required style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
+                    <option value="">-- Choose Market --</option>
+                    {% for m in markets %}
+                        <option value="{{ m }}">{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px;">Winning Number:</label>
+                <input type="text" name="winning_number" placeholder="e.g. 5 or 55" required 
+                       style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 18px; text-align: center; font-weight: bold;">
+            </div>
+
+            <button type="submit" onclick="return confirm('Are you sure? This will pay out money to winners and mark others as Loss.')" 
+                    style="width: 100%; background: #28a745; color: white; border: none; padding: 15px; font-weight: bold; border-radius: 5px; cursor: pointer;">
+                DECLARE & PAY WINNERS
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

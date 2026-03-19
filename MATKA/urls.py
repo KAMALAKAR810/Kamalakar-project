@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('MATKAAPP.urls')),
+
 ] 
 
 # This line is the "magic" that serves your profile pictures during development

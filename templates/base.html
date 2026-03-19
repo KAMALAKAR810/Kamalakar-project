@@ -4,270 +4,356 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-    
-    <noscript>
-        <meta http-equiv="refresh" content="0;url=/enable-js?js=0" />
-    </noscript>
+    <noscript><meta http-equiv="refresh" content="0;url=/enable-js?js=0" /></noscript>
 
-    <title>Online Matka Play | Kalyan Matka | Matka Results | Indian Matka</title>
+    <title>Online Matka Play | Kalyan Matka | Matka Results</title>
     
-    <meta name="description" content="Matkaplay Net - Premium online matka play website." />
     <link rel="stylesheet" href="https://matkaplay.net/assets/front/css/sattamatkaplay.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <style>
-        body { 
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important; 
-            margin:0; padding:0; 
-            transition: background-color 0.4s ease, color 0.4s ease; 
-        }
+        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important; margin:0; padding:0; transition: background-color 0.4s ease; }
         .white-text { color: #fff !important; }
-        .blue-background { background: #1a55a4; }
         .text-center { text-align: center; }
         
         /* SETTINGS PANEL */
-        #custom-settings {
-            position: fixed;
-            top: 70px;
-            right: 15px;
-            z-index: 10001;
-            display: flex;
-            gap: 8px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+        #custom-settings { position: fixed; top: 70px; right: 15px; z-index: 10001; display: flex; gap: 8px; background: rgba(0, 0, 0, 0.5); padding: 5px 10px; border-radius: 30px; backdrop-filter: blur(5px); align-items: center; border: 1px solid rgba(255,255,255,0.2); }
         .gear-btn { cursor: pointer; font-size: 20px; color: white; }
         .reset-btn { cursor: pointer; color: #ff4d4d; font-weight: bold; font-size: 18px; margin-left: 5px; }
         
-        .gold-top-hed { transition: background-color 0.4s ease; }
-        .heading { text-align: center; font-size: 20px; background: rgba(1, 67, 154, 0.9); color: #fff; padding: 12px 0; border-radius: 4px; margin: 0 0 11px 0; }
-        .gold-menu ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; background: #01439A; }
-        .gold-menu li a { color: #fff; padding: 15px 20px; display: block; text-decoration: none; font-weight: bold; }
+        /* HEADER & NAV */
+        .gold-top-hed { background: #01439A; transition: background-color 0.4s ease; z-index: 1000; position: relative; }
+        .gold-menu { background: #333; overflow: hidden; border-bottom: 2px solid #ffcc00; }
+        .gold-menu ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .gold-menu li { flex: 0 0 auto; }
+        .gold-menu li a { color: #fff; padding: 15px 20px; display: block; text-decoration: none; font-weight: bold; font-size: 13px; white-space: nowrap; transition: 0.3s; }
+        .gold-menu li a:hover { background: rgba(255,255,255,0.1); color: #ffcc00; }
+        .gold-menu li.active a { color: #ffcc00; border-bottom: 3px solid #ffcc00; }
+
+        /* AUTH BUTTONS */
+        .btn-nav { text-decoration: none; font-weight: bold; font-size: 11px; padding: 6px 15px; border-radius: 4px; transition: 0.3s; display: inline-block; text-transform: uppercase; }
+        .btn-login { color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.5); }
+        .btn-register { background: linear-gradient(145deg, #ffcc00, #d4ac00); color: #000; border: none; }
 
         /* FLOATING BUTTONS */
-        #chat-btns { position: fixed; bottom: 15px; right: 15px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-        #chat-btns a { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
-        .btn-tg { background: #0088cc; width: 56px !important; height: 56px !important; }
-        .btn-tg svg { width: 32px; height: 32px; fill: #fff; }
-
-        #call-btn { position: fixed; bottom: 15px; left: 15px; z-index: 9999; width: 48px; height: 48px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+        #chat-btns, #call-btn { position: fixed; bottom: 15px; z-index: 9999; }
+        #chat-btns { right: 15px; }
+        #call-btn { left: 15px; width: 48px; height: 48px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; }
         #call-btn svg { width: 26px; height: 26px; fill: #fff; }
-    
-    /* Navbar List Reset */
-.nav-item {
-    list-style: none;
-    display: inline-block;
-    margin-left: 15px;
-    vertical-align: middle;
+        .btn-tg { background: #0088cc; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .btn-tg svg { width: 28px; height: 28px; fill: #fff; }
+
+
+
+        /* Navigation Styles */
+.top-nav {
+    background: #01439A;
+    padding: 10px 15px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
-/* Base Button Style */
-.btn-nav {
+.nav-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    font-weight: bold;
-    font-size: 13px;
-    padding: 8px 20px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    display: inline-block;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    gap: 8px;
 }
 
-/* Login Button (Elegant Outline) */
-.btn-login {
-    color: #ffffff;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    background: transparent;
-}
+.logo-area img { width: 35px; height: 35px; }
+.logo-text { color: white; font-weight: 800; font-size: 18px; letter-spacing: 1px; }
 
-.btn-login:hover {
-    background: rgba(255, 255, 204, 0.1);
-    border-color: #ffcc00;
+.user-actions { display: flex; align-items: center; gap: 12px; }
+
+.wallet-badge {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #ffcc00;
     color: #ffcc00;
-    transform: translateY(-2px);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
 }
 
-/* Register Button (Solid Gold / "The Money Color") */
-.btn-register {
-    background: linear-gradient(145deg, #ffcc00, #d4ac00);
-    color: #000;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+.main-navigation {
+    background: #222;
+    border-bottom: 3px solid #ffcc00;
+    overflow-x: auto;
 }
 
-.btn-register:hover {
-    background: linear-gradient(145deg, #ffe066, #ffcc00);
-    box-shadow: 0 6px 20px rgba(255, 204, 0, 0.4);
-    transform: translateY(-2px);
+.menu-container {
+    display: flex;
+    justify-content: center;
+    max-width: 1200px;
+    margin: auto;
 }
 
-/* Active State click effect */
-.btn-nav:active {
-    transform: translateY(0);
+.nav-item {
+    color: #bbb;
+    text-decoration: none;
+    padding: 15px 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: 0.3s;
+    min-width: 80px;
 }
-    
+
+.nav-item i { font-size: 18px; }
+.nav-item:hover, .nav-item.active {
+    color: #ffcc00;
+    background: rgba(255,255,255,0.05);
+}
+
+.nav-item.active {
+    border-bottom: 3px solid #ffcc00;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+    .menu-container { justify-content: flex-start; }
+    .nav-item { padding: 10px 15px; flex: 1; }
+}
+
+
+
     </style>
 </head>
 
 <body>
 
- <div id="custom-settings">
-    <label for="bg-picker" class="gear-btn" title="Change Background">⚙️</label>
+<div id="custom-settings">
+    <label for="bg-picker" class="gear-btn">⚙️</label>
     <input type="color" id="bg-picker" style="display: none;" onchange="applyTheme(this.value)">
-    <span class="reset-btn" onclick="resetTheme()" title="Reset to Default">✕</span>
+    <span class="reset-btn" onclick="resetTheme()">✕</span>
 </div>
 
-<div class="container-fluid">
-    <div class="row gold-top-hed" id="header-container" style="padding: 10px 0; display: flex; align-items: center;">
-        
-        <div class="col-xs-4">
-            <div class="gold-logo">
-                <a href="/">
-                    <img src="https://matkaplay.net/assets/front/images/m-logo2.png" alt="logo" style="width: 35px; height: 35px" />
-                </a>
+<div class="container-fluid gold-top-hed" id="header-container">
+    <div class="container">
+        <div class="row" style="padding: 10px 0; display: flex; align-items: center; flex-wrap: nowrap;">
+            <div class="col-xs-3">
+                <a href="/" class="logo-area">
+            <img src="https://cdn-icons-png.flaticon.com/512/10433/10433048.png" alt="Logo">
+            <span class="logo-text">MATKA<span style="color: #ffcc00;">PRO</span></span>
+        </a>
             </div>
-        </div>
 
-        <div class="col-xs-8">
-            <div class="gold-login-area text-right">
-                <ul style="list-style:none; display:flex; justify-content:flex-end; align-items:center; gap:15px; margin:0; padding:0;">
-                    
-                    <!-- This is a template comment - replace with actual Django code if needed -->
-                    <!-- User authentication section - will be processed by Django -->
- {% if user.is_authenticated %}
-    <li style="display: flex; align-items: center; gap: 8px;">
-        {% if user.profile.profile_pic %}
-            <img src="{{ user.profile.profile_pic.url }}" 
-                 style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #ffcc00; display: block;">
-        {% else %}
-            <i class="fa fa-user-circle" style="color: #fff; font-size: 24px;"></i>
-        {% endif %}
-        <span style="color: #fff; font-weight: bold; font-size: 13px;">{{ user.username|upper }}</span>
-    </li>
-    
-    <li>
-        <form action="{% url 'logout' %}" method="post" style="margin: 0; display: inline-block;">
-            {% csrf_token %}
-            <button type="submit" style="background: #d9534f; border: none; color: #fff; cursor: pointer; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; line-height: 1;">
-                <i class="fa fa-sign-out"></i> LOGOUT
-            </button>
-        </form>
-    </li>
-{% else %}
-<li class="nav-item">
-    <a href="{% url 'login' %}" class="btn-nav btn-login">LOGIN</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'register' %}" class="btn-nav btn-register">REGISTER</a>
-</li>
-    {% endif %}
-
+            <div class="col-xs-9 text-right" style="display: flex; justify-content: flex-end; align-items: center;">
+                <ul style="list-style:none; display:flex; gap:10px; margin:0; padding:0;">
+                    {% if user.is_authenticated %}
+                        <li>
+                            <div id="wallet-box" style="background: rgba(0,0,0,0.4); color: #ffcc00; padding: 4px 10px; border-radius: 20px; border: 1px solid #ffcc00; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa fa-money"></i>
+                                <span style="font-size: 14px; font-weight: bold;">₹<span id="user-balance">0.00</span></span>
+                            </div>
+                        </li>
+                        <li style="display: flex; align-items: center; gap: 5px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 10px;">
+                            {% if user.profile.profile_pic %}
+                                <img src="{{ user.profile.profile_pic.url }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid #ffcc00;">
+                            {% else %}
+                                <i class="fa fa-user-circle" style="color: #fff; font-size: 20px;"></i>
+                            {% endif %}
+                            <span style="color: #fff; font-weight: bold; font-size: 11px;">{{ user.username|upper }}</span>
+                        </li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: #d9534f; border: none; color: #fff; padding: 5px 8px; border-radius: 4px; font-size: 10px;">
+                                    <i class="fa fa-sign-out"></i>
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}" class="btn-nav btn-login">LOGIN</a></li>
+                        <li><a href="{% url 'register' %}" class="btn-nav btn-register">REGISTER</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container-fluid">
-    <nav class="gold-menu">
-        <ul style="display: flex; list-style: none; padding: 10px 0; margin: 0; justify-content: space-around; background: #333;">
-            <li class="active"><a href="/" style="color: gold; text-decoration: none;">HOME</a></li>
-            <li><a href="/single" style="color: #fff; text-decoration: none;">SINGLE</a></li>
-            <li><a href="/jodi" style="color: #fff; text-decoration: none;">JODI</a></li>
-            <li><a href="/jodi-chart-list" style="color: #fff; text-decoration: none;">JODI CHART</a></li>
-            <li><a href="/panel-chart-list" style="color: #fff; text-decoration: none;">PANEL CHART</a></li>
-        </ul>
-    </nav>
-</div>
 
-    <!-- Content block for Django templates -->
-    {% block content %}
-    {% endblock %}
 
-    <div class="container-fluid" style="background: #111; padding: 40px 0;">
-        <div class="container">
-            <div class="row text-center white-text">
-                <div class="col-md-12">
-                    <div class="foot-social-n">
-                        <ul style="list-style:none; display:flex; justify-content:center; gap:20px; padding:0;">
-                            <li><a href="https://facebook.com/ematkaplay" class="white-text"><i class="fa fa-facebook-square"></i> Facebook</a></li>
-                            <li><a href="https://twitter.com/MatkaPlay" class="white-text"><i class="fa fa-twitter-square"></i> Twitter</a></li>
-                            <li><a href="https://www.instagram.com/onlinematkaplay/" class="white-text"><i class="fa fa-instagram"></i> Instagram</a></li>
-                        </ul>
-                    </div>
-                    <div class="foot-one-link" style="margin: 20px 0;">
-                        <ul style="list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:15px; padding:0;">
-                            <li><a href="/online-matka-play" class="white-text">Online Matka Play</a></li>
-                            <li><a href="/satta-matka-online" class="white-text">Satta Matka Online</a></li>
-                            <li><a href="/kalyan-matka" class="white-text">Kalyan Matka</a></li>
-                            <li><a href="/matka-result" class="white-text">Matka Result</a></li>
-                        </ul>
-                    </div>
-                    <p style="font-size: 11px; opacity: 0.6;">
-                        Disclaimer: Purchase of online lottery using this website is prohibited in territories where lotteries are banned.
-                        Playing online matka below 18 years is strictly prohibited.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <a id="call-btn" href="tel:+918217228766" aria-label="Call Support">
-        <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-    </a>
-
-    <div id="chat-btns">
-        <a href="https://t.me/matkaplaynet" target="_blank" class="btn-tg" aria-label="Telegram Chat">
-            <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+<nav class="main-navigation">
+    <div class="menu-container">
+        <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+            <i class="fa fa-home"></i> <span>HOME</span>
         </a>
+
+        <a href="/single" class="nav-item {% if request.path == '/single' %}active{% endif %}">
+            <i class="fa fa-th"></i> <span>SINGLE</span>
+        </a>
+        
+        <a href="/jodi" class="nav-item {% if request.path == '/jodi' %}active{% endif %}">
+            <i class="fa fa-clone"></i> <span>JODI</span>
+        </a>
+
+        <a href="/single_pathi" class="nav-item {% if request.path == '/single_pathi' %}active{% endif %}">
+            <i class="fa fa-th"></i> <span>SINGLE PATHI</span>
+        </a>
+
+        <a href="/double_pathi" class="nav-item {% if request.path == '/double_pathi' %}active{% endif %}">
+            <i class="fa fa-th-large"></i> <span>DOUBLE</span>
+        </a>
+
+        <a href="/tripple_pathi" class="nav-item {% if request.path == '/tripple_pathi' %}active{% endif %}">
+            <i class="fa fa-star"></i> <span>TRIPLE</span>
+        </a>
+
+        <a href="/bet-history" class="nav-item {% if request.path == '/bet-history' %}active{% endif %}">
+            <i class="fa fa-history"></i> <span>HISTORY</span>
+        </a>
+        
+        {% if user.is_staff %}
+        <a href="/admin-summary" class="nav-item {% if request.path == '/admin-summary' %}active{% endif %}">
+            <i class="fa fa-dashboard"></i> <span>ADMIN</span>
+        </a>
+        {% endif %}
     </div>
+</nav>
 
-    <script>
-        const header = document.getElementById('header-container');
-        const body = document.body;
+{% block content %}{% endblock %}
 
-        function applyTheme(color) {
-            header.style.backgroundColor = color;
-            body.style.backgroundColor = color;
-            const textColor = getContrastYIQ(color);
-            body.style.color = textColor;
-            localStorage.setItem('matkaBg', color);
-            localStorage.setItem('matkaText', textColor);
+<footer style="background: #111; padding: 30px 0; color: white; text-align: center;">
+    <div class="container">
+        <ul style="list-style:none; display:flex; justify-content:center; gap:20px; padding:0;">
+            <li><a href="#" class="white-text"><i class="fa fa-facebook"></i></a></li>
+            <li><a href="#" class="white-text"><i class="fa fa-twitter"></i></a></li>
+            <li><a href="#" class="white-text"><i class="fa fa-instagram"></i></a></li>
+        </ul>
+        <p style="font-size: 10px; opacity: 0.6; margin-top: 20px;">Disclaimer: 18+ Only. Play responsibly.</p>
+    </div>
+</footer>
+
+<script>
+    const header = document.getElementById('header-container');
+    const body = document.body;
+
+    // Theme Management
+    function applyTheme(color) {
+        if(header) header.style.backgroundColor = color;
+        if(body) body.style.backgroundColor = color;
+        localStorage.setItem('matkaBg', color);
+    }
+
+    function resetTheme() {
+        localStorage.removeItem('matkaBg');
+        location.reload();
+    }
+
+
+
+    // Game Submission Logic
+    function submitGame() {
+        let bets = {};
+        let total = 0;
+        let market = document.getElementById('market-select')?.value;
+        let hasDecimal = false;
+
+        if (!market || market.includes("Select Market") || market === "") {
+            return alert("Please select a valid market!");
         }
 
-        function resetTheme() {
-            localStorage.removeItem('matkaBg');
-            localStorage.removeItem('matkaText');
-            header.style.backgroundColor = "";
-            body.style.backgroundColor = "";
-            body.style.color = "";
-        }
-
-        function getContrastYIQ(hexcolor){
-            hexcolor = hexcolor.replace("#", "");
-            if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(s => s+s).join('');
-            const r = parseInt(hexcolor.substr(0,2),16);
-            const g = parseInt(hexcolor.substr(2,2),16);
-            const b = parseInt(hexcolor.substr(4,2),16);
-            const yiq = ((r*299)+(g*587)+(b*114))/1000;
-            return (yiq >= 128) ? 'black' : 'white';
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedBg = localStorage.getItem('matkaBg');
-            const savedText = localStorage.getItem('matkaText');
-            if (savedBg) {
-                header.style.backgroundColor = savedBg;
-                body.style.backgroundColor = savedBg;
-                body.style.color = savedText;
-                document.getElementById('bg-picker').value = savedBg;
+        document.querySelectorAll('.cell input').forEach(input => {
+            let valStr = input.value.trim();
+            if (valStr !== "") {
+                let val = Number(valStr);
+                
+                if (!Number.isInteger(val)) {
+                    hasDecimal = true;
+                    input.style.border = "2px solid red";
+                } else if (val > 0) {
+                    let label = input.closest('.cell').querySelector('label').innerText;
+                    bets[label] = val;
+                    total += val;
+                    input.style.border = "1px solid #ccc";
+                }
             }
         });
-    </script>
+
+        if (hasDecimal) {
+            return alert("Decimals are not allowed! Use whole numbers only.");
+        }
+
+        if (total === 0) return alert("Enter points first!");
+
+        let formData = new FormData();
+        formData.append('market', market);
+        
+// In base.html update:
+let gType = "SINGLE";
+if(window.location.pathname.includes('jodi')) gType = "JODI";
+else if(window.location.pathname.includes('single_pathi')) gType = "SINGLE_PATTI";
+        
+        formData.append('game_type', gType); 
+        formData.append('bets_json', JSON.stringify(bets));
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("/api/place-bet/", {
+            method: "POST",
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === "success") {
+                alert("Bet Placed Successfully!");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+    }
+// Optimized Part 3
+document.body.addEventListener('input', (e) => {
+    if (e.target.matches('.cell input')) {
+        // Strip decimals
+        if (e.target.value.includes('.')) {
+            e.target.value = e.target.value.split('.')[0];
+        }
+
+        let total = 0;
+        // Only select inputs that actually have a value to speed up the loop
+        document.querySelectorAll('.cell input').forEach(i => {
+            if (i.value) {
+                total += parseInt(i.value) || 0;
+            }
+        });
+
+        const totalSpan = document.getElementById('total');
+        if (totalSpan) totalSpan.innerText = total;
+    }
+});
+
+    function updateBalance() {
+        fetch('/api/wallet/balance/')
+            .then(response => response.json())
+            .then(data => {
+                const balanceElement = document.getElementById('user-balance');
+                if (balanceElement) {
+                    balanceElement.innerText = data.balance.toFixed(2);
+                }
+            })
+            .catch(error => console.error('Error fetching balance:', error));
+    }
+
+    // Run when the page loads
+    document.addEventListener('DOMContentLoaded', updateBalance);
+
+
+</script>
 </body>
 </html>

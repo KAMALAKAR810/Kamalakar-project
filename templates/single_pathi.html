@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .game-container { max-width: 600px; margin: 20px auto; background: #eee; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .game-header { text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; color: #01439A; }
+    .input-row { display: flex; gap: 10px; margin-bottom: 20px; }
+    .input-row select, .input-row input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    
+    .group-header { background: #f1d966; width: fit-content; min-width: 50px; text-align: center; padding: 5px 15px; margin: 15px 0 10px 0; font-weight: bold; border-radius: 4px; border: 1px solid #d4ac00; }
+    
+    /* Responsive Grid */
+    .patti-grid { 
+        display: grid; 
+        grid-template-columns: repeat(5, 1fr); 
+        gap: 5px; 
+        margin-bottom: 20px; 
+    }
+
+    @media (max-width: 500px) {
+        .patti-grid { 
+            grid-template-columns: repeat(3, 1fr); 
+        }
+    }
+
+    .cell { display: flex; align-items: center; background: #fff; border: 1px solid #01439A; border-radius: 4px; overflow: hidden; }
+    .cell label { background: #01439A; color: white; padding: 8px 4px; font-size: 11px; min-width: 35px; text-align: center; font-weight: bold; }
+    .cell input { width: 100%; border: none; padding: 5px; outline: none; font-size: 14px; -moz-appearance: textfield; }
+    
+    /* Remove arrows from number input */
+    .cell input::-webkit-outer-spin-button, .cell input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .footer-actions { position: sticky; bottom: 0; background: #fff; padding: 15px; border-top: 2px solid #01439A; z-index: 100; border-radius: 0 0 8px 8px; }
+    .submit-btn { background: #28a745; color: white; width: 100%; padding: 12px; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+    .submit-btn:hover { background: #218838; }
+</style>
+
+<div class="game-container">
+    <div class="game-header">{{ game_title }}</div>
+    
+    <div class="text-center" style="margin-bottom: 15px; font-weight: bold; color: #555;">Select Your Market & Points</div>
+
+    <div class="input-row">
+        <select id="market-select">
+            <option value="">------ Select Market ------</option>
+            {% for market in markets %}
+                <option value="{{ market.m_name }}">{{ market.m_name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" value="{{ today_date }}" readonly style="background: #f9f9f9; text-align: center;">
+    </div>
+
+    {% for main_digit, patti_list in patti_groups.items %}
+        {% if main_digit != "All" %}
+            <div class="group-header">Digit: {{ main_digit }}</div>
+        {% endif %}
+        
+        <div class="patti-grid">
+            {% for patti in patti_list %}
+            <div class="cell">
+                <label>{{ patti }}</label>
+                <input type="number" class="bet-input" data-patti="{{ patti }}" placeholder="0">
+            </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    <div class="footer-actions">
+        <div style="margin-bottom: 10px; font-size: 18px; font-weight: bold; color: #333; display: flex; justify-content: space-between;">
+            <span>Total Points:</span>
+            <span id="total" style="color: #d9534f;">0</span>
+        </div>
+        <button class="submit-btn" onclick="submitGame()">SUBMIT GAME</button>
+    </div>
+</div>
+
+<script>
+    // Update Total Points in real-time
+    document.body.addEventListener('input', (e) => {
+        if (e.target.classList.contains('bet-input')) {
+            // Auto-fix decimals if someone tries to paste/type them
+            if (e.target.value.includes('.')) {
+                e.target.value = Math.floor(e.target.value);
+            }
+            
+            let total = 0;
+            document.querySelectorAll('.bet-input').forEach(input => {
+                total += Math.floor(Number(input.value)) || 0;
+            });
+            document.getElementById('total').innerText = total;
+        }
+    });
+
+    function submitGame() {
+        const market = document.getElementById('market-select').value;
+        if (!market) return alert("Please Select a Market!");
+
+        let bets = {};
+        let total = 0;
+
+        document.querySelectorAll('.bet-input').forEach(input => {
+            let val = Math.floor(Number(input.value));
+            if (val > 0) {
+                let label = input.closest('.cell').querySelector('label').innerText;
+                bets[label] = val;
+                total += val;
+            }
+        });
+
+        if (total === 0) return alert("Please enter points for at least one number!");
+
+        // Use the dynamic game_type variable passed from Django
+        const gameType = "{{ game_type }}";
+
+        let formData = new FormData();
+        formData.append('market', market);
+        formData.append('game_type', 'SINGLE_PATTI');
+        formData.append('bets_json', JSON.stringify(bets));
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("/api/place-bet/", {
+            method: "POST",
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === "success") {
+                alert("Bet Placed Successfully! Your new balance is ₹" + data.new_balance);
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Something went wrong. Please try again.");
+        });
+    }
+</script>
+{% endblock %}
