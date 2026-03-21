@@ -1,55 +1,54 @@
 {% block content %}
 <style>
-    /* Match the dark background from your screenshot */
-    body {
-        background-color: #222222; 
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    :root {
+        --primary-gold: #ffcc00;
     }
 
+    body {
+        background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+    }
 
-        /* Navigation bar */
-        .navbar {
-            background: rgba(0, 0, 0, 0.9);
-            padding: 10px 0;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            border-bottom: 2px solid var(--primary-gold);
-        }
+    .navbar {
+        background: rgba(0, 0, 0, 0.9);
+        padding: 10px 0;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        border-bottom: 2px solid var(--primary-gold);
+    }
 
-        .navbar a {
-            color: #fff;
-            text-align: center;
-            padding: 12px 18px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            transition: 0.3s;
-            text-transform: uppercase;
-        }
+    .navbar a {
+        color: #fff;
+        text-align: center;
+        padding: 12px 18px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: 0.3s;
+        text-transform: uppercase;
+    }
 
-        .navbar a:hover {
-            color: var(--primary-gold);
-        }
-
-
-
+    .navbar a:hover {
+        color: var(--primary-gold);
+    }
 
     .register-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 90vh;
+        min-height: calc(90vh - 60px);
         padding: 20px;
     }
 
     .register-card {
         background: #ffffff;
-        padding: 40px;
+        padding: 36px 32px;
         border-radius: 12px;
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
         text-align: center;
     }
@@ -57,14 +56,13 @@
     .register-card h2 {
         color: #000;
         font-size: 22px;
-        margin-bottom: 25px;
+        margin-bottom: 8px;
         font-weight: 800;
         letter-spacing: 1px;
         position: relative;
         display: inline-block;
     }
 
-    /* The yellow underline under REGISTER */
     .register-card h2::after {
         content: '';
         display: block;
@@ -74,12 +72,24 @@
         margin: 8px auto 0;
     }
 
+    .pwd-rules {
+        text-align: left;
+        font-size: 11px;
+        color: #555;
+        line-height: 1.5;
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        background: #f8f8f8;
+        border-radius: 8px;
+        border-left: 3px solid var(--primary-gold);
+    }
+
     .register-card input[type="text"],
     .register-card input[type="password"],
     .register-card input[type="tel"] {
         width: 100%;
         padding: 14px 15px;
-        margin: 10px 0;
+        margin: 8px 0;
         border: 1px solid #e0e0e0;
         border-radius: 6px;
         font-size: 14px;
@@ -87,9 +97,23 @@
         outline-color: #ffcc00;
     }
 
+    .register-card input:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.2);
+    }
+
+    .hp-field {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
     .file-input-group {
         text-align: left;
-        margin: 15px 0;
+        margin: 12px 0;
     }
 
     .file-input-group label {
@@ -103,13 +127,12 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        margin: 15px 0;
+        margin: 14px 0;
         font-size: 13px;
         color: #444;
         justify-content: center;
     }
 
-    /* Match your specific gold button */
     .gold-btn {
         width: 100%;
         background-color: #ffcc00;
@@ -129,13 +152,25 @@
         background-color: #e6b800;
     }
 
-    .error-msg {
-        color: #d32f2f;
+    .error-msg,
+    .success-msg {
         font-size: 13px;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        text-align: left;
+    }
+
+    .error-msg {
+        color: #b71c1c;
         background: #ffebee;
-        padding: 8px;
-        border-radius: 4px;
-        margin-bottom: 15px;
+        border: 1px solid #ffcdd2;
+    }
+
+    .success-msg {
+        color: #1b5e20;
+        background: #e8f5e9;
+        border: 1px solid #c8e6c9;
     }
 
     .footer-link {
@@ -150,45 +185,53 @@
         font-weight: 700;
     }
 </style>
-    <nav class="navbar">
 
-        <a href="#">Welcome To Matkaplay</a>
-
-    </nav>
+<nav class="navbar">
+    <a href="{% url 'index' %}">Welcome To Matkaplay</a>
+</nav>
 
 <div class="register-container">
     <div class="register-card">
         <h2>REGISTER</h2>
-        
-        <form method="POST" enctype="multipart/form-data">
+
+        <form method="POST" enctype="multipart/form-data" autocomplete="on">
             {% csrf_token %}
-            
+
+            <div class="pwd-rules">
+                <strong>Password rules:</strong> at least 10 characters, uppercase &amp; lowercase letter, one digit, one special character (!@#$…). Not a common password.
+            </div>
+
             {% if messages %}
                 {% for message in messages %}
-                    <p class="error-msg">{{ message }}</p>
+                    <p class="{% if message.tags == 'success' %}success-msg{% else %}error-msg{% endif %}">{{ message }}</p>
                 {% endfor %}
             {% endif %}
 
-            <input type="text" name="name" placeholder="Full Name" required>
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="tel" name="mobile" placeholder="Mobile Number" required>
-            
+            <!-- Honeypot: leave empty (blocks simple bots) -->
+            <label class="hp-field" for="reg-website">Website</label>
+            <input class="hp-field" type="text" name="website" id="reg-website" tabindex="-1" autocomplete="off">
+
+            <input type="text" name="name" placeholder="Full name" required maxlength="150" autocomplete="name">
+            <input type="text" name="username" placeholder="Username" required maxlength="150" autocomplete="username">
+            <input type="password" name="password" id="reg-password" placeholder="Password" required minlength="10" autocomplete="new-password">
+            <input type="password" name="password2" placeholder="Confirm password" required minlength="10" autocomplete="new-password">
+            <input type="tel" name="mobile" placeholder="10-digit mobile (e.g. 9876543210)" required inputmode="numeric" autocomplete="tel" maxlength="15">
+
             <div class="file-input-group">
-                <label>Upload Profile Picture:</label>
+                <label>Upload profile picture (optional):</label>
                 <input type="file" name="profile_pic" accept="image/*">
             </div>
-            
+
             <div class="terms-area">
                 <input type="checkbox" id="terms" name="terms" required>
-                <label for="terms">I Agree Terms and Conditions</label>
+                <label for="terms">I agree to the terms and conditions</label>
             </div>
-            
-            <button type="submit" class="gold-btn">REGISTER NOW</button>
+
+            <button type="submit" class="gold-btn">Register now</button>
         </form>
 
         <div class="footer-link">
-            Already a User? <a href="{% url 'login' %}">Login Now!</a>
+            Already a user? <a href="{% url 'login' %}">Login</a>
         </div>
     </div>
 </div>

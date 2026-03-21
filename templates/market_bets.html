@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-shell">
+    <h2 class="page-title">Market Bets Overview</h2>
+    <p class="page-sub">All placed bets across markets</p>
+
+    {% if bets %}
+    <div class="data-panel">
+        <table class="app-table table table-bordered">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Market</th>
+                    <th>Session</th>
+                    <th>Number</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Placed At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bet in bets %}
+                <tr>
+                    <td>{{ bet.user.username }}</td>
+                    <td>{{ bet.market.name }}</td>
+                    <td>{{ bet.session }}</td>
+                    <td><strong style="color:#b8860b;">{{ bet.number }}</strong></td>
+                    <td>₹{{ bet.amount }}</td>
+                    <td>
+                        {% if bet.status == "PENDING" %}
+                            <span class="bet-status bet-status--pending">Pending</span>
+                        {% elif bet.status == "WIN" %}
+                            <span class="bet-status bet-status--win">Winner</span>
+                        {% else %}
+                            <span class="bet-status bet-status--loss">Loss</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ bet.created_at|date:"d-m-Y h:i A" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="data-panel" style="text-align:center; padding: 48px 20px;">
+        <i class="fa fa-info-circle" style="font-size:40px; color:#ccc;"></i>
+        <p style="margin-top:15px; color:#666;">No bets have been placed yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

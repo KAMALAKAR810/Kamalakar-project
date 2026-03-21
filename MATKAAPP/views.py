@@ -1,336 +1,366 @@
 import json
+import re
+from datetime import timedelta
+
 from django.shortcuts import render, redirect
-from django.contrib import messages, auth
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.http import HttpResponse, JsonResponse
-from django.db import transaction
-from django.utils import timezone
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.http import JsonResponse
+# FIX: Renamed import to 'db_transaction' to avoid name collision with the
+# local variable 'transaction' used inside place_bet and the Transaction model.
+from django.db import transaction as db_transaction
 from django.db.models import Sum
+from django.utils import timezone
 
-# Local App Imports
-from .models import MatkaNumber, Profile, Wallet, Transaction, Bet
-
-# If you are using Django Rest Framework (DRF)
 from rest_framework import generics, permissions
-from .serializers import WalletSerializer, TransactionSerializer # Removed the '..'
-# Ensure your models are imported
+from .models import Bet, Transaction, Market, Wallet, Profile, RegistrationCounter
+from .serializers import WalletSerializer, TransactionSerializer
+
+def _markets_betting_payload():
+    """Per-market OPEN/CLOSE windows for UI locks (matches Market.is_betting_allowed)."""
+    return [
+        {
+            "id": m.id,
+            "open": m.is_betting_allowed("OPEN"),
+            "close": m.is_betting_allowed("CLOSE"),
+        }
+        for m in Market.objects.all()
+    ]
+
+
+# --- PATTI NUMBER GROUPS ---
+
+SINGLE_PATTI_GROUPS = {
+    "1": ["128","137","146","236","245","290","380","470","489","560","678","579"],
+    "2": ["129","138","147","156","237","246","345","390","480","570","679","589"],
+    "3": ["120","139","148","157","238","247","256","346","490","580","670","689"],
+    "4": ["130","149","158","167","239","248","257","347","356","590","680","789"],
+    "5": ["140","159","168","230","249","258","267","348","357","456","690","780"],
+    "6": ["123","150","169","178","240","259","268","349","358","457","367","790"],
+    "7": ["124","160","179","250","269","278","340","359","368","458","467","890"],
+    "8": ["125","134","170","189","260","279","350","369","378","459","567","468"],
+    "9": ["126","135","180","234","270","289","360","379","450","469","478","568"],
+    "0": ["127","136","145","190","235","280","370","479","460","569","389","578"],
+}
+
+DOUBLE_PATTI_GROUPS = {
+    "1": ["100","119","155","227","335","344","399","588","669"],
+    "2": ["200","110","228","255","336","499","660","688","778"],
+    "3": ["300","166","229","337","355","445","599","779","788"],
+    "4": ["400","112","220","266","338","446","455","699","770"],
+    "5": ["500","113","122","177","339","366","447","799","889"],
+    "6": ["600","114","277","330","448","466","556","880","899"],
+    "7": ["700","115","133","188","223","377","449","557","566"],
+    "8": ["800","116","224","233","288","440","477","558","990"],
+    "9": ["900","117","144","199","225","388","559","577","667"],
+    "0": ["550","668","244","299","226","488","677","118","334"],
+}
+
+TRIPPLE_PATTI_GROUPS = {
+    "1": ["777"], "2": ["444"], "3": ["111"], "4": ["888"], "5": ["555"],
+    "6": ["222"], "7": ["999"], "8": ["666"], "9": ["333"], "0": ["000"],
+}
+
+# --- AUTH VIEWS ---
 
 def login_view(request):
-    # If user is already logged in, don't show the login page    
     if request.user.is_authenticated:
         return redirect('index')
-    
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
+        u = request.POST.get('username')
+        p = request.POST.get('password')
+        user = authenticate(request, username=u, password=p)
+        if user:
             login(request, user)
             return redirect('index')
-        else:
-            messages.error(request, "Invalid username or password.")
-            return redirect('login')
-
+        messages.error(request, "Invalid username or password.")
     return render(request, 'login.html')
+
 
 def logout_view(request):
     logout(request)
-    messages.info(request, "You have successfully logged out.")
-    return redirect('index')
+    return redirect('login')
+
+
+def _normalize_indian_mobile(raw):
+    """Return (10-digit string, None) or (None, error_message)."""
+    if not raw or not str(raw).strip():
+        return None, "Mobile number is required."
+    digits = re.sub(r"\D", "", str(raw).strip())
+    if len(digits) == 12 and digits.startswith("91"):
+        digits = digits[2:]
+    elif len(digits) == 11 and digits.startswith("0"):
+        digits = digits[1:]
+    if len(digits) != 10:
+        return None, "Enter a valid 10-digit Indian mobile number."
+    if digits[0] not in "6789":
+        return None, "Mobile must be a valid Indian number (starts with 6–9)."
+    return digits, None
+
 
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('index')
-
     if request.method == 'POST':
-        name = request.POST.get('name')
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        mobile = request.POST.get('mobile')
-        profile_pic = request.FILES.get('profile_pic')
-
-        # Check if username already exists
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already taken!")
+        # Honeypot — bots often fill hidden fields
+        if request.POST.get("website", "").strip():
+            messages.error(request, "Registration could not be completed.")
             return render(request, 'register.html')
 
-        # 1. Create User (This triggers the signal in models.py)
-        user = User.objects.create_user(
-            username=username, 
-            password=password,
-            first_name=name
+        name = (request.POST.get('name') or '').strip()
+        user_n = (request.POST.get('username') or '').strip()
+        psw = request.POST.get('password') or ''
+        psw2 = request.POST.get('password2') or ''
+        mob = request.POST.get('mobile') or ''
+
+        if not name or not user_n:
+            messages.error(request, "Full name and username are required.")
+            return render(request, 'register.html')
+
+        if psw != psw2:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'register.html')
+
+        mobile_digits, mobile_err = _normalize_indian_mobile(mob)
+        if mobile_err:
+            messages.error(request, mobile_err)
+            return render(request, 'register.html')
+
+        if User.objects.filter(username__iexact=user_n).exists():
+            messages.error(request, "Username already taken.")
+            return render(request, 'register.html')
+
+        if Profile.objects.filter(mobile=mobile_digits).exists():
+            messages.error(request, "This mobile number is already registered.")
+            return render(request, 'register.html')
+
+        candidate = User(username=user_n, first_name=name)
+        try:
+            validate_password(psw, user=candidate)
+        except ValidationError as e:
+            for msg in e.messages:
+                messages.error(request, msg)
+            return render(request, 'register.html')
+
+        try:
+            with db_transaction.atomic():
+                user = User.objects.create_user(username=user_n, password=psw, first_name=name)
+                user_code = RegistrationCounter.next_user_code()
+                profile = Profile.objects.select_for_update().get(user=user)
+                profile.mobile = mobile_digits
+                profile.user_code = user_code
+                pic = request.FILES.get("profile_pic")
+                if pic:
+                    profile.profile_pic = pic
+                profile.save()
+                Wallet.objects.get_or_create(user=user)
+        except IntegrityError:
+            messages.error(request, "Username or mobile is already in use. Please try again.")
+            return render(request, 'register.html')
+
+        messages.success(
+            request,
+            f"Registration successful! Welcome To AstroWebsite {user_n}. You can log in now.",
         )
-
-        # 2. Update the profile automatically created by the signal
-        # Use hasattr check just in case the signal failed
-        if hasattr(user, 'profile'):
-            profile = user.profile
-            profile.mobile = mobile
-            if profile_pic:
-                profile.profile_pic = profile_pic
-            profile.save()
-
-        messages.success(request, "Registration successful! Please login.")
         return redirect('login')
-
     return render(request, 'register.html')
 
+
+# --- BASIC PAGES ---
+
 def index(request):
-    """
-    Main index page view. 
-    Fetches matka_numbers so that the template has data to display.
-    """
-    matka_numbers = MatkaNumber.objects.all()
-    context = {
-        'matka_numbers': matka_numbers,
-    }
-    return render(request, 'index.html', context)
+    return render(request, 'index.html', {'markets': Market.objects.all()})
+
 
 def display(request):
-    """
-    Standalone display page view.
-    Useful if you want to view just the table at /display/
-    """
-    matka_numbers = MatkaNumber.objects.all()
-    context = {
-        'matka_numbers': matka_numbers,
-    }
-    return render(request, 'display.html', context)
+    return render(request, 'display_page.html', {'markets': Market.objects.all()})
+
 
 def error(request):
-    """
-    Error page view.
-    """
     return render(request, 'error.html')
 
 
-@login_required
-def wallet_balance_api(request):
-    # This safely gets the wallet or creates it if it doesn't exist
-    wallet, created = Wallet.objects.get_or_create(user=request.user)
-    return JsonResponse({
-        "balance": float(wallet.balance),
-        "username": request.user.username
-    })
+# --- UNIFIED BET PLACEMENT ENGINE ---
 
 @login_required
-def wallet_history_api(request):
+@db_transaction.atomic
+# FIX: Decorator now uses aliased 'db_transaction' — no name collision.
+def place_bet(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Method not allowed."}, status=405)
+
+    market_id  = request.POST.get('market')
+    game_type  = request.POST.get('game_type')
+    session    = request.POST.get('session')
+    bets_json  = request.POST.get('bets_json')
+
     try:
+        market = Market.objects.get(id=market_id)
+        bets_data = json.loads(bets_json)
+
+        if not bets_data:
+            return JsonResponse({"status": "error", "message": "No bets provided."})
+
+        if not market.is_betting_allowed(session):
+            return JsonResponse({
+                "status": "error",
+                "message": "Betting is locked. Market closed or within 10-minute lockout."
+            })
+
+        total_amount = sum(int(amt) for amt in bets_data.values())
+
         wallet = request.user.wallet
-        transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at')[:10]
-        data = [
-            {
-                "amount": float(t.amount),
-                "type": t.txn_type,
-                "description": t.description,
-                "date": t.created_at.strftime("%d %b, %H:%M")
-            } for t in transactions
-        ]
-        return JsonResponse({"history": data})
-    except Wallet.DoesNotExist:
-        return JsonResponse({"history": [], "error": "No wallet found"})
-    
+        if wallet.balance < total_amount:
+            return JsonResponse({"status": "error", "message": "Insufficient balance!"})
+
+        wallet.balance -= total_amount
+        wallet.save()
+
+        Transaction.objects.create(
+            wallet=wallet,
+            amount=total_amount,
+            txn_type='BET',
+            description=f"{game_type} - {market.name}"
+        )
+
+        try:
+            prof = request.user.profile
+            uid_display = prof.user_code if prof.user_code else str(request.user.id)
+        except Profile.DoesNotExist:
+            uid_display = str(request.user.id)
+        for number, amount in bets_data.items():
+            Bet.objects.create(
+                user=request.user,
+                user_id_str=uid_display,
+                game_type=game_type,
+                market=market,
+                session=session,
+                number=number,
+                amount=int(amount),
+                status='PENDING'
+            )
+
+        return JsonResponse({"status": "success", "message": "Bets placed successfully!"})
+
+    except Market.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Market not found."})
+    except (json.JSONDecodeError, ValueError) as e:
+        return JsonResponse({"status": "error", "message": f"Invalid data: {str(e)}"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
+
+# --- GAME VIEWS ---
+
 @login_required
 def single(request):
-    markets = MatkaNumber.objects.all()  # Fetch markets to populate the dropdown
-    return render(request, 'single.html', {'markets': markets})
+    return render(request, "single.html", {
+        "markets": Market.objects.all(),
+        "markets_betting": _markets_betting_payload(),
+        "game_title": "SINGLE",
+        "game_type": "SINGLE",
+    })
+
 
 @login_required
 def jodi(request):
-    markets = MatkaNumber.objects.all()
-    return render(request, 'jodi.html', {'markets': markets})
+    return render(request, 'jodi.html', {
+        'markets': Market.objects.all(),
+        "markets_betting": _markets_betting_payload(),
+        'game_title': 'JODI',
+        "game_type": "JODI",
+    })
 
+
+@login_required
+def single_pathi(request):
+    return render(request, "single_pathi.html", {
+        "markets": Market.objects.all(),
+        "markets_betting": _markets_betting_payload(),
+        "game_title": "SINGLE PATTI",
+        "game_type": "SINGLE_PATTI",
+        "patti_groups": SINGLE_PATTI_GROUPS
+    })
+
+
+@login_required
+def double_pathi(request):
+    return render(request, 'single_pathi.html', {
+        'markets': Market.objects.all(),
+        "markets_betting": _markets_betting_payload(),
+        'game_title': 'DOUBLE PATTI',
+        'game_type': 'DOUBLE_PATTI',
+        'patti_groups': DOUBLE_PATTI_GROUPS
+    })
+
+
+@login_required
+def tripple_pathi(request):
+    return render(request, 'single_pathi.html', {
+        'markets': Market.objects.all(),
+        "markets_betting": _markets_betting_payload(),
+        'game_title': 'TRIPPLE PATTI',
+        'game_type': 'TRIPLE_PATTI',
+        'patti_groups': TRIPPLE_PATTI_GROUPS
+    })
+
+
+# --- WALLET & HISTORY ---
+
+@login_required
+def wallet_balance_api(request):
+    return JsonResponse({
+        "balance": float(request.user.wallet.balance),
+        "username": request.user.username
+    })
+
+
+@login_required
+def wallet_history_api(request):
+    txns = request.user.wallet.transactions.order_by('-created_at')[:10]
+    data = [
+        {
+            "amount": float(t.amount),
+            "type": t.txn_type,
+            "description": t.description,
+            "date": t.created_at.strftime("%d %b, %H:%M")
+        }
+        for t in txns
+    ]
+    return JsonResponse({"history": data})
 
 
 @login_required
 def bet_history(request):
-    # Fetch all bets for the CURRENT logged-in user
     bets = Bet.objects.filter(user=request.user).order_by('-created_at')
-    
-    # Debug: This will show in your terminal how many bets were found
-    print(f"DEBUG: Found {bets.count()} bets for user {request.user.username}")
-
-    # Calculate Summary Stats for the stat-grid
-    total_investment = bets.aggregate(Sum('amount'))['amount__sum'] or 0
-    total_won = bets.filter(status='WIN').aggregate(Sum('win_amount'))['win_amount__sum'] or 0
-
-    context = {
-        'user_bets': bets,  # MUST match the {% if user_bets %} in your HTML
-        'total_investment': total_investment,
-        'total_won': total_won,
-    }
-    return render(request, 'bet_history.html', context)
+    return render(request, 'bet_history.html', {'user_bets': bets})
 
 
-@login_required
-def place_bet(request):
-    if request.method == "POST":
-        # 1. Get data from the frontend
-        market = request.POST.get('market')
-        game_type = request.POST.get('game_type')
-        
-        try:
-            # Parse the incoming JSON bets
-            bets_json = request.POST.get('bets_json')
-            bets_data = json.loads(bets_json) # e.g., {"12": 10}
+# --- ADMIN VIEWS ---
 
-            # --- DECIMAL VALIDATION START ---
-            for num, amt in bets_data.items():
-                # Convert to float first to safely check
-                try:
-                    amount_float = float(amt)
-                    # If the float value is not equal to its integer version, it's a decimal
-                    if amount_float != int(amount_float):
-                        return JsonResponse({
-                            "status": "error", 
-                            "message": f"Invalid amount for number {num}. Decimals are not allowed!"
-                        })
-                    
-                    # Also ensure they aren't trying to bet negative numbers
-                    if amount_float <= 0:
-                        return JsonResponse({
-                            "status": "error", 
-                            "message": "Bet amount must be greater than zero."
-                        })
-                except (ValueError, TypeError):
-                    return JsonResponse({"status": "error", "message": "Invalid number format."})
-            # --- DECIMAL VALIDATION END ---
-
-            # Calculate total points after we know they are all integers
-            total_points = sum(int(float(v)) for v in bets_data.values())
-
-            # 2. Database Transaction (Atomic)
-            with transaction.atomic():
-                # Lock the wallet row to prevent double-spending
-                wallet = Wallet.objects.select_for_update().get(user=request.user)
-
-                if wallet.balance < total_points:
-                    return JsonResponse({"status": "error", "message": "Insufficient Balance"})
-
-                # A. Deduct Balance
-                wallet.balance -= total_points
-                wallet.save()
-
-                # B. Create Transaction Record
-                Transaction.objects.create(
-                    wallet=wallet,
-                    amount=total_points,
-                    txn_type='BET_PLACED',
-                    description=f"Played {game_type} on {market}"
-                )
-
-                # C. Create individual Bet records
-                for num, amt in bets_data.items():
-                    amt_int = int(float(amt))
-                    if amt_int > 0:
-                        Bet.objects.create(
-                            user=request.user,
-                            game_type=game_type,
-                            market_name=market,
-                            number=num,
-                            amount=amt_int
-                        )
-
-                return JsonResponse({
-                    "status": "success", 
-                    "message": "Bet placed successfully!",
-                    "new_balance": float(wallet.balance)
-                })
-
-        except json.JSONDecodeError:
-            return JsonResponse({"status": "error", "message": "Invalid bet data format."})
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)})
-
-    return JsonResponse({"status": "error", "message": "Invalid request method."})
-
-
-@login_required
+@user_passes_test(lambda u: u.is_staff)
 def admin_summary(request):
-    if not request.user.is_staff:
-        return render(request, "404.html") # Only allow admins
-
-    today = timezone.now().date()
-    
-    # 1. Get Total Collection per Market for Today
-    market_totals = Bet.objects.filter(created_at__date=today).values('market_name')\
-        .annotate(total_collected=Sum('amount')).order_by('-total_collected')
-
-    # 2. Get the "Heavy Loads" (Which numbers have the most money on them)
-    # This helps you see your potential payout risk
-    heavy_bets = Bet.objects.filter(created_at__date=today).values('market_name', 'number')\
-        .annotate(number_total=Sum('amount')).order_by('-number_total')[:10]
-
-    context = {
-        'market_totals': market_totals,
-        'heavy_bets': heavy_bets,
-        'today': today
-    }
-    return render(request, 'admin_summary.html', context)
-
-@login_required
-def declare_result(request):
-    if not request.user.is_staff:
-        return redirect('home')
-
-    if request.method == "POST":
-        market = request.POST.get('market')
-        winning_num = request.POST.get('winning_number')
-        
-        # Define Payout Rates (You can change these)
-        rates = {
-            'SINGLE': 9,       # 10 ka 90
-            'JODI': 95,       # 10 ka 950
-            'SINGLE_PATTI': 140 # 10 ka 1400
-        }
-
-        # 1. Find all PENDING bets for this market and number
-        winning_bets = Bet.objects.filter(
-            market_name=market, 
-            number=winning_num, 
-            status='PENDING'
-        )
-
-        # 2. Process Winners
-        winners_count = 0
-        with transaction.atomic():
-            for bet in winning_bets:
-                multiplier = rates.get(bet.game_type, 9)
-                win_amount = bet.amount * multiplier
-                
-                # Update User Wallet
-                wallet = Wallet.objects.select_for_update().get(user=bet.user)
-                wallet.balance += win_amount
-                wallet.save()
-
-                # Record Win Transaction
-                Transaction.objects.create(
-                    wallet=wallet,
-                    amount=win_amount,
-                    txn_type='WINNING',
-                    description=f"Won {bet.game_type} on {market} (Num: {winning_num})"
-                )
-
-                # Mark Bet as WIN
-                bet.status = 'WIN'
-                bet.save()
-                winners_count += 1
-
-            # 3. Mark all other PENDING bets for THIS market as LOSS
-            Bet.objects.filter(market_name=market, status='PENDING').update(status='LOSS')
-
-        messages.success(request, f"Result Declared! {winners_count} winners paid for {market}.")
-        return redirect('admin_summary')
-
-    # Get unique market names from your existing bets to show in dropdown
-    markets = Bet.objects.values_list('market_name', flat=True).distinct()
-    return render(request, 'declare_result.html', {'markets': markets})
+    bets = Bet.objects.all()
+    total_inv = bets.aggregate(Sum("amount"))["amount__sum"] or 0
+    return render(request, "admin_summary.html", {"total_inv": total_inv})
 
 
+@user_passes_test(lambda u: u.is_staff)
+def manage_markets(request):
+    return render(request, "manage_markets.html", {"markets": Market.objects.all()})
+
+
+@user_passes_test(lambda u: u.is_staff)
+def market_bets(request):
+    return render(request, "market_bets.html", {"bets": Bet.objects.all()})
+
+
+# --- REST API CLASSES ---
 
 class WalletBalanceView(generics.RetrieveAPIView):
     serializer_class = WalletSerializer
@@ -339,93 +369,12 @@ class WalletBalanceView(generics.RetrieveAPIView):
     def get_object(self):
         return self.request.user.wallet
 
+
 class TransactionHistoryView(generics.ListAPIView):
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Transaction.objects.filter(wallet=self.request.user.wallet).order_by('-created_at')
-    
-    
-@login_required
-def get_wallet_balance(request):
-    try:
-        wallet = Wallet.objects.get(user=request.user)
-        return JsonResponse({"balance": float(wallet.balance)})
-    except Wallet.DoesNotExist:
-        return JsonResponse({"balance": 0.00})
-    
-from django.utils import timezone
-
-@login_required
-def single_pathi(request):
-    markets = MatkaNumber.objects.all()
-    
-    # Complete Single Patti Chart Mapping (Standard)
-    patti_groups = {
-        "1": ["128", "137", "146", "236", "245", "290", "380", "470", "489", "560", "678", "579"],
-        "2": ["129", "138", "147", "156", "237", "246", "345", "390", "480", "570", "679", "589"],
-        "3": ["120", "139", "148", "157", "238", "247", "256", "346", "490", "580", "670", "689"],
-        "4": ["130", "149", "158", "167", "239", "248", "257", "347", "356", "590", "680", "789"],
-        "5": ["140", "159", "168", "177", "230", "249", "258", "267", "348", "357", "456", "690"],
-        "6": ["123", "150", "169", "178", "240", "259", "268", "349", "358", "367", "457", "790"],
-        "7": ["124", "160", "179", "232", "250", "269", "278", "340", "359", "368", "458", "467"],
-        "8": ["125", "134", "170", "189", "260", "279", "350", "369", "378", "459", "468", "567"],
-        "9": ["126", "135", "180", "190", "270", "289", "360", "379", "450", "469", "478", "568"],
-        "0": ["127", "136", "145", "190", "280", "299", "370", "389", "460", "479", "569", "578"],
-    }
-    
-    context = {
-        'markets': markets,
-        'patti_groups': patti_groups,
-        'today_date': timezone.now().strftime("%d %b %Y")
-    }
-    return render(request, 'single_pathi.html', context)
-
-@login_required
-def double_pathi(request):
-    markets = MatkaNumber.objects.all()
-    # Standard Double Patti Chart (2 digits repeat)
-    double_groups = {
-        "1": ["100", "119", "155", "227", "335", "344", "399", "588", "669"],
-        "2": ["110", "200", "228", "255", "336", "444", "499", "660", "688", "778"],
-        "3": ["111", "229", "300", "337", "355", "445", "599", "779", "788", "887"],
-        "4": ["112", "220", "338", "400", "446", "455", "699", "770", "888", "996"],
-        "5": ["113", "122", "339", "447", "500", "555", "799", "889", "880", "997"],
-        "6": ["114", "233", "448", "556", "600", "664", "899", "998", "990"],
-        "7": ["115", "223", "331", "449", "557", "665", "700", "773", "999", "007"],
-        "8": ["116", "224", "332", "440", "558", "666", "774", "800", "882", "990"],
-        "9": ["117", "225", "333", "441", "559", "667", "775", "883", "900", "991"],
-        "0": ["118", "226", "334", "442", "550", "668", "776", "884", "992"],
-    }
-    context = {
-        'markets': markets,
-        'patti_groups': double_groups,
-        'game_title': 'DOUBLE PATTI',
-        'game_type': 'DOUBLE_PATTI',
-        'today_date': timezone.now().strftime("%d %b %Y")
-    }
-    return render(request, 'single_pathi.html', context)
-
-@login_required
-def tripple_pathi(request):
-    markets = MatkaNumber.objects.all()
-    # Triple Patti (All three digits same)
-    triple_groups = {
-        "All": ["000", "111", "222", "333", "444", "555", "666", "777", "888", "999"]
-    }
-    context = {
-        'markets': markets,
-        'patti_groups': triple_groups,
-        'game_title': 'TRIPPLE PATTI',
-        'game_type': 'TRIPPLE_PATTI',
-        'today_date': timezone.now().strftime("%d %b %Y")
-    }
-    return render(request, 'single_pathi.html', context)
-
-@login_required
-def wallet_balance_api(request):
-    wallet, created = Wallet.objects.get_or_create(user=request.user)
-    return JsonResponse({
-        "balance": float(wallet.balance)
-    })
+        return Transaction.objects.filter(
+            wallet=self.request.user.wallet
+        ).order_by('-created_at')

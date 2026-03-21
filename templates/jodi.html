@@ -1,38 +1,156 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="game-container" style="padding: 15px; max-width: 600px; margin: auto;">
-    <div class="game-header" style="background: #01439A; color: white; padding: 10px; text-align: center; font-weight: bold;">
-        JODI (10 KA 950)
-    </div>
+<div class="game-page">
+    <div class="game-title-bar">{{ game_title }}</div>
 
-    <div class="input-row" style="display: flex; gap: 10px; margin: 15px 0;">
-        <select id="market-select" style="flex: 1; padding: 10px; border-radius: 5px;">
-            <option value="">---- Select Market ----</option>
-            {% for market in markets %}
-                <option value="{{ market.m_name }}">{{ market.m_name }}</option>
+    <div class="game-controls market-header">
+        <select id="market-select" class="select-market">
+            <option value="">-- Select Market --</option>
+            {% for m in markets %}
+                <option value="{{ m.id }}">{{ m.name }}</option>
             {% endfor %}
         </select>
-        <input type="text" value="19 Mar 2026" readonly style="width: 120px; text-align: center; border: 1px solid #ccc;">
-    </div>
 
-    <div class="grid-layout" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 400px; overflow-y: auto; padding: 5px; border: 1px solid #eee;">
-        {% for i in "0123456789" %}
-            {% for j in "0123456789" %}
-            <div class="cell" style="display: flex; align-items: center; background: #f9f9f9; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
-                <label style="width: 30px; font-weight: bold;">{{ i }}{{ j }}</label>
-                <input type="number" placeholder="Pts" style="width: 100%; border: 1px solid #ccc; padding: 4px;">
-            </div>
-            {% endfor %}
-        {% endfor %}
+        <div class="readonly-box date-box">
+            <i class="fa fa-calendar" style="margin-right:6px;"></i>
+            <span id="date-display-jodi">--/--/----</span>
+        </div>
     </div>
-
-    <div class="total-points" style="margin-top: 15px; font-size: 18px; font-weight: bold; text-align: center; color: #01439A;">
-        Total Points: <span id="total">0</span>
-    </div>
-
-    <button class="submit-btn" onclick="submitGame()" style="width: 100%; background: #28a745; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; margin-top: 10px; border-radius: 5px; cursor: pointer;">
-        SUBMIT JODI GAME
-    </button>
 </div>
+
+<div class="page-content">
+    <div id="jodi-session-wrap">
+        <div class="section-bar">OPEN (Jodi) <span id="hint-jodi" class="session-hint session-hint--off"></span></div>
+        <div id="jodi-grid" class="bet-grid bet-grid--scroll">
+            {% for i in "0123456789"|make_list %}
+                {% for j in "0123456789"|make_list %}
+                <div class="bet-cell">
+                    <span class="bet-label">{{ i }}{{ j }}</span>
+                    <input type="number" data-digit="{{ i }}{{ j }}" class="bet-input" placeholder="0" min="0">
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer_betting %}
+{{ markets_betting|json_script:"markets-betting-data" }}
+<div class="bet-footer">
+    <div style="line-height: 1.35;">
+        <span class="footer-total-label">Total points (when open)</span><br>
+        <span class="footer-total-value">₹<span id="total-val-jodi">0</span></span>
+    </div>
+    <button type="button" class="place-btn" onclick="submitBets()">Place bet</button>
+</div>
+
+<script>
+    (function () {
+        const now  = new Date();
+        const dd   = String(now.getDate()).padStart(2, '0');
+        const mm   = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        const el   = document.getElementById('date-display-jodi');
+        if (el) el.textContent = `${dd}/${mm}/${yyyy}`;
+    })();
+
+    const MARKET_BETTING = JSON.parse(document.getElementById('markets-betting-data').textContent);
+    var JODI_SESSION = 'OPEN';
+
+    function metaForMarketSelect() {
+        const v = document.getElementById('market-select').value;
+        if (!v) return null;
+        const id = parseInt(v, 10);
+        return MARKET_BETTING.find(function (x) { return x.id === id; }) || null;
+    }
+
+    function applyBettingLocks() {
+        const m = metaForMarketSelect();
+        const openOk = !!(m && m.open);
+
+        document.getElementById('jodi-session-wrap').classList.toggle('bet-section--locked', !openOk);
+        document.querySelectorAll('#jodi-grid .bet-input').forEach(function (inp) {
+            inp.disabled = !openOk;
+        });
+
+        const hj = document.getElementById('hint-jodi');
+        if (hj) {
+            hj.textContent = !m ? '· Select a market' : (openOk ? '· Open for betting' : '· Closed (view only)');
+            hj.className = 'session-hint ' + (openOk ? 'session-hint--on' : 'session-hint--off');
+        }
+        recalcTotal();
+    }
+
+    document.getElementById('market-select').addEventListener('change', applyBettingLocks);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyBettingLocks);
+    } else {
+        applyBettingLocks();
+    }
+
+    function recalcTotal() {
+        let total = 0;
+        document.querySelectorAll('#jodi-grid .bet-input:not(:disabled)').forEach(function (i) {
+            total += parseInt(i.value, 10) || 0;
+        });
+        const t = document.getElementById('total-val-jodi');
+        if (t) t.innerText = total;
+    }
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('bet-input')) recalcTotal();
+    });
+
+    function collectBets() {
+        const bets = {};
+        document.querySelectorAll('#jodi-grid .bet-input:not(:disabled)').forEach(function (i) {
+            const val = parseInt(i.value, 10);
+            if (val > 0) bets[i.getAttribute('data-digit')] = val;
+        });
+        return bets;
+    }
+
+    function submitBets() {
+        const market = document.getElementById('market-select').value;
+        if (!market) { alert("Please select a Market!"); return; }
+
+        const bets = collectBets();
+        if (Object.keys(bets).length === 0) {
+            alert("Please enter points for at least one jodi (OPEN session must be open for this market).");
+            return;
+        }
+
+        const btn = document.querySelector('.place-btn');
+        btn.disabled = true;
+        btn.textContent = 'Placing...';
+
+        fetch("/api/place-bet/", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            body: new URLSearchParams({
+                market:    market,
+                session:   JODI_SESSION,
+                game_type: "{{ game_type }}",
+                bets_json: JSON.stringify(bets)
+            })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.status === 'success') {
+                alert("✅ " + d.message);
+                location.reload();
+            } else {
+                alert("❌ " + d.message);
+                btn.disabled = false;
+                btn.textContent = 'Place bet';
+            }
+        })
+        .catch(function () {
+            alert("❌ Network error. Please try again.");
+            btn.disabled = false;
+            btn.textContent = 'Place bet';
+        });
+    }
+</script>
 {% endblock %}

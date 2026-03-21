@@ -2,358 +2,711 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-    <noscript><meta http-equiv="refresh" content="0;url=/enable-js?js=0" /></noscript>
-
-    <title>Online Matka Play | Kalyan Matka | Matka Results</title>
-    
-    <link rel="stylesheet" href="https://matkaplay.net/assets/front/css/sattamatkaplay.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>MATKAPRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
     <style>
-        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important; margin:0; padding:0; transition: background-color 0.4s ease; }
-        .white-text { color: #fff !important; }
-        .text-center { text-align: center; }
-        
-        /* SETTINGS PANEL */
-        #custom-settings { position: fixed; top: 70px; right: 15px; z-index: 10001; display: flex; gap: 8px; background: rgba(0, 0, 0, 0.5); padding: 5px 10px; border-radius: 30px; backdrop-filter: blur(5px); align-items: center; border: 1px solid rgba(255,255,255,0.2); }
-        .gear-btn { cursor: pointer; font-size: 20px; color: white; }
-        .reset-btn { cursor: pointer; color: #ff4d4d; font-weight: bold; font-size: 18px; margin-left: 5px; }
-        
-        /* HEADER & NAV */
-        .gold-top-hed { background: #01439A; transition: background-color 0.4s ease; z-index: 1000; position: relative; }
-        .gold-menu { background: #333; overflow: hidden; border-bottom: 2px solid #ffcc00; }
-        .gold-menu ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .gold-menu li { flex: 0 0 auto; }
-        .gold-menu li a { color: #fff; padding: 15px 20px; display: block; text-decoration: none; font-weight: bold; font-size: 13px; white-space: nowrap; transition: 0.3s; }
-        .gold-menu li a:hover { background: rgba(255,255,255,0.1); color: #ffcc00; }
-        .gold-menu li.active a { color: #ffcc00; border-bottom: 3px solid #ffcc00; }
+        :root {
+            --primary-gold: #ffcc00;
+            --dark-bg: #1a1a1a;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --accent: #ffcc00;
+            --primary: #1a1a1a;
+            --matka-result-blue: #1552a1;
+        }
 
-        /* AUTH BUTTONS */
-        .btn-nav { text-decoration: none; font-weight: bold; font-size: 11px; padding: 6px 15px; border-radius: 4px; transition: 0.3s; display: inline-block; text-transform: uppercase; }
-        .btn-login { color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.5); }
-        .btn-register { background: linear-gradient(145deg, #ffcc00, #d4ac00); color: #000; border: none; }
+        * { box-sizing: border-box; }
 
-        /* FLOATING BUTTONS */
-        #chat-btns, #call-btn { position: fixed; bottom: 15px; z-index: 9999; }
-        #chat-btns { right: 15px; }
-        #call-btn { left: 15px; width: 48px; height: 48px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; }
-        #call-btn svg { width: 26px; height: 26px; fill: #fff; }
-        .btn-tg { background: #0088cc; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .btn-tg svg { width: 28px; height: 28px; fill: #fff; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+        }
 
+        /* ── TOP NAV (login-style dark bar + gold) ── */
+        .top-nav {
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            border-bottom: 2px solid var(--primary-gold);
+        }
 
+        .brand { font-weight: 700; font-size: 17px; letter-spacing: 0.5px; }
 
-        /* Navigation Styles */
-.top-nav {
-    background: #01439A;
-    padding: 10px 15px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
+        .user-right-panel {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-.nav-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: auto;
-}
+        .user-details { text-align: right; line-height: 1.2; }
+        .username-display { font-size: 12px; font-weight: 600; color: #fff; display: block; }
+        .logout-link { font-size: 10px; color: var(--primary-gold); text-decoration: none; font-weight: 600; }
 
-.logo-area {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    gap: 8px;
-}
+        .profile-img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-gold);
+            object-fit: cover;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+        }
 
-.logo-area img { width: 35px; height: 35px; }
-.logo-text { color: white; font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+        .wallet-pill {
+            background: rgba(255, 204, 0, 0.12);
+            border: 1px solid var(--primary-gold);
+            color: var(--primary-gold);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: default;
+        }
 
-.user-actions { display: flex; align-items: center; gap: 12px; }
+        /* ── GAME NAV ── */
+        .game-nav {
+            background: #000;
+            display: flex;
+            overflow-x: auto;
+            border-bottom: 2px solid var(--primary-gold);
+            scrollbar-width: none;
+        }
+        .game-nav::-webkit-scrollbar { display: none; }
 
-.wallet-badge {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 14px;
-}
+        .nav-item {
+            color: #bbb;
+            padding: 12px 16px;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .nav-item:hover {
+            color: var(--primary-gold);
+            background: #1a1a1a;
+        }
 
-.main-navigation {
-    background: #222;
-    border-bottom: 3px solid #ffcc00;
-    overflow-x: auto;
-}
+        /* ── GAME PAGES (login-like cards) ── */
+        .game-page {
+            padding: 12px 15px 0;
+            max-width: 720px;
+            margin: 0 auto;
+        }
 
-.menu-container {
-    display: flex;
-    justify-content: center;
-    max-width: 1200px;
-    margin: auto;
-}
+        .game-title-bar {
+            background: var(--card-bg);
+            color: var(--dark-bg);
+            text-align: center;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+            border-bottom: 3px solid var(--primary-gold);
+        }
 
-.nav-item {
-    color: #bbb;
-    text-decoration: none;
-    padding: 15px 20px;
-    font-size: 12px;
-    font-weight: bold;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    transition: 0.3s;
-    min-width: 80px;
-}
+        .game-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: stretch;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 12px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+            margin-bottom: 16px;
+            border: none;
+        }
 
-.nav-item i { font-size: 18px; }
-.nav-item:hover, .nav-item.active {
-    color: #ffcc00;
-    background: rgba(255,255,255,0.05);
-}
+        .game-controls select {
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fafafa;
+            color: var(--text-main);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .game-controls select:focus {
+            border-color: var(--primary-gold);
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
+        }
 
-.nav-item.active {
-    border-bottom: 3px solid #ffcc00;
-}
+        .select-market { flex: 2 1 140px; min-width: 0; }
+        .select-session { flex: 1 1 90px; min-width: 0; }
 
-/* Mobile Adjustments */
-@media (max-width: 600px) {
-    .menu-container { justify-content: flex-start; }
-    .nav-item { padding: 10px 15px; flex: 1; }
-}
+        .readonly-box {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+        }
 
+        .page-content {
+            padding: 0 15px 88px;
+            max-width: 720px;
+            margin: 0 auto;
+        }
 
+        .section-bar {
+            background: linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: var(--primary-gold);
+            padding: 8px 14px;
+            font-weight: 600;
+            margin-top: 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            border-left: 4px solid var(--primary-gold);
+        }
+        .section-bar:first-child,
+        #section-open > .section-bar { margin-top: 0; }
+        #section-close > .section-bar { margin-top: 16px; }
 
+        .bet-section--locked {
+            opacity: 0.88;
+        }
+        .bet-section--locked .bet-input:disabled {
+            cursor: not-allowed;
+            background: #e8e8e8 !important;
+            color: #777;
+            border-color: #ccc !important;
+        }
+        .session-hint {
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .session-hint--on { color: #a5d6a7; }
+        .session-hint--off { color: rgba(255, 255, 255, 0.55); }
+
+        #section-close.patti-stack,
+        #section-close.bet-session-stack {
+            margin-top: 20px;
+        }
+
+        .bet-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .bet-grid--scroll {
+            max-height: 52vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .bet-cell {
+            background: var(--card-bg);
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+        }
+
+        .bet-label {
+            width: 45px;
+            font-weight: 700;
+            color: var(--dark-bg);
+            font-size: 15px;
+        }
+
+        input.bet-input {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fafafa;
+            color: var(--text-main);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input.bet-input:focus {
+            border-color: var(--primary-gold);
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 204, 0, 0.25);
+        }
+
+        .patti-block:first-child .section-bar { margin-top: 0; }
+
+        /* ── BET FOOTER ── */
+        .bet-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.94);
+            border-top: 2px solid var(--primary-gold);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .bet-footer .footer-total-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bet-footer .footer-total-value {
+            color: var(--primary-gold);
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .bet-footer .place-btn {
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(255, 204, 0, 0.35);
+        }
+        .bet-footer .place-btn:hover {
+            background: #e6b800;
+            transform: translateY(-1px);
+        }
+        .bet-footer .place-btn:disabled {
+            opacity: 0.65;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        /* ── HOME / RESULT CARDS ── */
+        .home-hero {
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 2px solid var(--primary-gold);
+            padding: 36px 0;
+        }
+        .home-hero a { color: var(--primary-gold); font-weight: 700; }
+
+        .white-text { color: #fff; }
+
+        .home-panel {
+            background: rgba(255, 255, 255, 0.96);
+            color: var(--text-main);
+            border-radius: 12px;
+            padding: 22px;
+            margin: 12px 0;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+        }
+        .home-panel h2 { color: var(--dark-bg); font-size: 18px; margin-top: 0; border-bottom: 3px solid var(--primary-gold); padding-bottom: 8px; display: inline-block; }
+
+        .how-play-area { padding: 28px 0; }
+
+        .home-panel .list-group {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .home-panel .list-group-item {
+            padding: 12px 14px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+        .home-panel .list-group-item:last-child { border-bottom: none; }
+        .home-panel .pull-right { font-weight: 700; color: var(--dark-bg); }
+
+        .home-info-block {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+            color: var(--text-main);
+        }
+        .home-info-block .heading { margin-top: 1.2em; }
+        .home-info-block .heading:first-child { margin-top: 0; }
+
+        .home-cta {
+            background: rgba(0, 0, 0, 0.45);
+            border-top: 2px solid var(--primary-gold);
+            border-bottom: 2px solid var(--primary-gold);
+            padding: 36px 0;
+        }
+
+        .heading { color: var(--dark-bg); font-weight: 600; }
+        .heading.white-text { color: #fff; }
+
+        .results-section-matka {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, transparent 100%);
+        }
+
+        .results-section-matka__banner {
+            background: var(--matka-result-blue);
+            color: #fff;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 14px 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+        .results-container__empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #aaa;
+            margin: 0;
+            padding: 24px;
+        }
+
+        .result-card-matka {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
+            color: var(--text-main);
+        }
+
+        .result-card-matka__head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            background: var(--matka-result-blue);
+            padding: 12px 14px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .result-card-matka__time {
+            font-size: 11px;
+            font-weight: 500;
+            color: #fff;
+            opacity: 0.95;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .result-card-matka__name {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary-gold);
+            letter-spacing: 0.04em;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .result-card-matka__body {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 18px 12px 16px;
+            background: #fff;
+            min-height: 72px;
+        }
+
+        .result-card-matka__patti {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #111;
+            flex: 1;
+            text-align: center;
+            letter-spacing: 0.05em;
+        }
+
+        .result-card-matka__jodi {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #000;
+            flex: 1;
+            text-align: center;
+            line-height: 1;
+            padding: 0 6px;
+        }
+
+        .result-card-matka__foot {
+            padding: 0 12px 12px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .result-card-matka__badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .result-card-matka__badge--open {
+            background: #2e7d32;
+            color: #fff;
+        }
+        .result-card-matka__badge--closed {
+            background: #616161;
+            color: #f5f5f5;
+        }
+
+        @media (max-width: 400px) {
+            .result-card-matka__name { font-size: 11px; }
+            .result-card-matka__jodi { font-size: 1.55rem; }
+        }
+
+        .home-faq { color: #ddd; }
+        .home-faq .heading { color: var(--primary-gold); }
+        .content-link h5 { color: #fff; }
+
+        /* ── GENERIC PAGE SHELL (history, admin) ── */
+        .page-shell {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px 15px 72px;
+        }
+        .page-title {
+            text-align: center;
+            font-weight: 600;
+            font-size: 22px;
+            color: var(--primary-gold);
+            margin: 0 0 8px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 204, 0, 0.35);
+        }
+        .page-sub {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .data-panel {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+            color: var(--text-main);
+            overflow-x: auto;
+        }
+        .data-panel form {
+            background: #f9f9f9;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+        }
+        table.app-table {
+            width: 100%;
+            font-size: 14px;
+            border-collapse: collapse;
+        }
+        table.app-table thead th {
+            background: linear-gradient(90deg, #1a1a1a, #2d2d2d);
+            color: var(--primary-gold);
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        table.app-table tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        table.app-table tbody tr:hover { background: #fffef5; }
+
+        .btn-gold {
+            display: inline-block;
+            background: var(--primary-gold);
+            color: var(--dark-bg) !important;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .btn-gold:hover { background: #e6b800; color: var(--dark-bg) !important; }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 20px;
+            border-radius: 12px;
+            border-bottom: 4px solid var(--primary-gold);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            color: var(--text-main);
+        }
+        .stat-card .stat-label { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .stat-value { margin: 8px 0 0; font-size: 22px; font-weight: 700; color: var(--dark-bg); }
+
+        .admin-table-head {
+            background: linear-gradient(90deg, #1a1a1a, #2d2d2d);
+            color: #fff;
+            padding: 14px 18px;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .bet-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .bet-status--pending { background: #f0ad4e; color: #fff; }
+        .bet-status--win { background: #2e7d32; color: #fff; }
+        .bet-status--loss { background: #c62828; color: #fff; }
+
+        .game-type-pill {
+            display: inline-block;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-card.stat--payout { border-bottom-color: #c62828; }
+        .stat-card.stat--payout .stat-value { color: #c62828; }
+        .stat-card.stat--profit { border-bottom-color: #2e7d32; }
+        .stat-card.stat--profit .stat-value { color: #2e7d32; }
+        .stat-card.stat--loss { border-bottom-color: #c62828; }
+        .stat-card.stat--loss .stat-value { color: #c62828; }
+
+        .data-panel input:not([type="submit"]):not([type="checkbox"]),
+        .data-panel select,
+        .data-panel textarea {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-family: inherit;
+            margin: 6px 0;
+            max-width: 100%;
+        }
+        .data-panel input:focus,
+        .data-panel select:focus,
+        .data-panel textarea:focus {
+            border-color: var(--primary-gold);
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 204, 0, 0.2);
+        }
     </style>
 </head>
-
 <body>
 
-<div id="custom-settings">
-    <label for="bg-picker" class="gear-btn">⚙️</label>
-    <input type="color" id="bg-picker" style="display: none;" onchange="applyTheme(this.value)">
-    <span class="reset-btn" onclick="resetTheme()">✕</span>
-</div>
-
-<div class="container-fluid gold-top-hed" id="header-container">
-    <div class="container">
-        <div class="row" style="padding: 10px 0; display: flex; align-items: center; flex-wrap: nowrap;">
-            <div class="col-xs-3">
-                <a href="/" class="logo-area">
-            <img src="https://cdn-icons-png.flaticon.com/512/10433/10433048.png" alt="Logo">
-            <span class="logo-text">MATKA<span style="color: #ffcc00;">PRO</span></span>
-        </a>
-            </div>
-
-            <div class="col-xs-9 text-right" style="display: flex; justify-content: flex-end; align-items: center;">
-                <ul style="list-style:none; display:flex; gap:10px; margin:0; padding:0;">
-                    {% if user.is_authenticated %}
-                        <li>
-                            <div id="wallet-box" style="background: rgba(0,0,0,0.4); color: #ffcc00; padding: 4px 10px; border-radius: 20px; border: 1px solid #ffcc00; display: flex; align-items: center; gap: 5px;">
-                                <i class="fa fa-money"></i>
-                                <span style="font-size: 14px; font-weight: bold;">₹<span id="user-balance">0.00</span></span>
-                            </div>
-                        </li>
-                        <li style="display: flex; align-items: center; gap: 5px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 10px;">
-                            {% if user.profile.profile_pic %}
-                                <img src="{{ user.profile.profile_pic.url }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid #ffcc00;">
-                            {% else %}
-                                <i class="fa fa-user-circle" style="color: #fff; font-size: 20px;"></i>
-                            {% endif %}
-                            <span style="color: #fff; font-weight: bold; font-size: 11px;">{{ user.username|upper }}</span>
-                        </li>
-                        <li>
-                            <form action="{% url 'logout' %}" method="post" style="margin: 0;">
-                                {% csrf_token %}
-                                <button type="submit" style="background: #d9534f; border: none; color: #fff; padding: 5px 8px; border-radius: 4px; font-size: 10px;">
-                                    <i class="fa fa-sign-out"></i>
-                                </button>
-                            </form>
-                        </li>
-                    {% else %}
-                        <li><a href="{% url 'login' %}" class="btn-nav btn-login">LOGIN</a></li>
-                        <li><a href="{% url 'register' %}" class="btn-nav btn-register">REGISTER</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
+<!-- TOP NAVIGATION -->
+<div class="top-nav">
+    <div class="brand">
+        <i class="fa fa-bars" style="margin-right:8px"></i>MATKA<span style="color:var(--primary-gold)">PRO</span>
     </div>
-</div>
-
-
-
-<nav class="main-navigation">
-    <div class="menu-container">
-        <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
-            <i class="fa fa-home"></i> <span>HOME</span>
-        </a>
-
-        <a href="/single" class="nav-item {% if request.path == '/single' %}active{% endif %}">
-            <i class="fa fa-th"></i> <span>SINGLE</span>
-        </a>
-        
-        <a href="/jodi" class="nav-item {% if request.path == '/jodi' %}active{% endif %}">
-            <i class="fa fa-clone"></i> <span>JODI</span>
-        </a>
-
-        <a href="/single_pathi" class="nav-item {% if request.path == '/single_pathi' %}active{% endif %}">
-            <i class="fa fa-th"></i> <span>SINGLE PATHI</span>
-        </a>
-
-        <a href="/double_pathi" class="nav-item {% if request.path == '/double_pathi' %}active{% endif %}">
-            <i class="fa fa-th-large"></i> <span>DOUBLE</span>
-        </a>
-
-        <a href="/tripple_pathi" class="nav-item {% if request.path == '/tripple_pathi' %}active{% endif %}">
-            <i class="fa fa-star"></i> <span>TRIPLE</span>
-        </a>
-
-        <a href="/bet-history" class="nav-item {% if request.path == '/bet-history' %}active{% endif %}">
-            <i class="fa fa-history"></i> <span>HISTORY</span>
-        </a>
-        
-        {% if user.is_staff %}
-        <a href="/admin-summary" class="nav-item {% if request.path == '/admin-summary' %}active{% endif %}">
-            <i class="fa fa-dashboard"></i> <span>ADMIN</span>
-        </a>
+    <div class="user-right-panel">
+        {% if user.is_authenticated %}
+            <div class="wallet-pill">
+                ₹<span id="user-balance">...</span>
+            </div>
+            <div class="user-details">
+                <span class="username-display">{{ user.username|upper }}</span>
+                <a href="{% url 'logout' %}" class="logout-link">
+                    Logout <i class="fa fa-sign-out"></i>
+                </a>
+            </div>
+            {% if user.profile.profile_pic %}
+                <img src="{{ user.profile.profile_pic.url }}"
+                     class="profile-img"
+                     alt="{{ user.username }}"
+                     onerror="this.style.display='none'">
+            {% else %}
+                <div class="profile-img">
+                    <i class="fa fa-user"></i>
+                </div>
+            {% endif %}
         {% endif %}
     </div>
+</div>
+
+<!-- GAME NAVIGATION -->
+<nav class="game-nav">
+    <a href="{% url 'index' %}" class="nav-item">🏠 HOME</a>
+    <a href="{% url 'single' %}" class="nav-item">SINGLE</a>
+    <a href="{% url 'jodi' %}" class="nav-item">JODI</a>
+    <a href="{% url 'single_pathi' %}" class="nav-item">S-PATTI</a>
+    <a href="{% url 'double_pathi' %}" class="nav-item">D-PATTI</a>
+    <a href="{% url 'tripple_pathi' %}" class="nav-item">T-PATTI</a>
+    <a href="{% url 'bet_history' %}" class="nav-item">HISTORY</a>
 </nav>
 
 {% block content %}{% endblock %}
-
-<footer style="background: #111; padding: 30px 0; color: white; text-align: center;">
-    <div class="container">
-        <ul style="list-style:none; display:flex; justify-content:center; gap:20px; padding:0;">
-            <li><a href="#" class="white-text"><i class="fa fa-facebook"></i></a></li>
-            <li><a href="#" class="white-text"><i class="fa fa-twitter"></i></a></li>
-            <li><a href="#" class="white-text"><i class="fa fa-instagram"></i></a></li>
-        </ul>
-        <p style="font-size: 10px; opacity: 0.6; margin-top: 20px;">Disclaimer: 18+ Only. Play responsibly.</p>
-    </div>
-</footer>
+{% block footer_betting %}{% endblock %}
 
 <script>
-    const header = document.getElementById('header-container');
-    const body = document.body;
-
-    // Theme Management
-    function applyTheme(color) {
-        if(header) header.style.backgroundColor = color;
-        if(body) body.style.backgroundColor = color;
-        localStorage.setItem('matkaBg', color);
-    }
-
-    function resetTheme() {
-        localStorage.removeItem('matkaBg');
-        location.reload();
-    }
-
-
-
-    // Game Submission Logic
-    function submitGame() {
-        let bets = {};
-        let total = 0;
-        let market = document.getElementById('market-select')?.value;
-        let hasDecimal = false;
-
-        if (!market || market.includes("Select Market") || market === "") {
-            return alert("Please select a valid market!");
-        }
-
-        document.querySelectorAll('.cell input').forEach(input => {
-            let valStr = input.value.trim();
-            if (valStr !== "") {
-                let val = Number(valStr);
-                
-                if (!Number.isInteger(val)) {
-                    hasDecimal = true;
-                    input.style.border = "2px solid red";
-                } else if (val > 0) {
-                    let label = input.closest('.cell').querySelector('label').innerText;
-                    bets[label] = val;
-                    total += val;
-                    input.style.border = "1px solid #ccc";
-                }
-            }
-        });
-
-        if (hasDecimal) {
-            return alert("Decimals are not allowed! Use whole numbers only.");
-        }
-
-        if (total === 0) return alert("Enter points first!");
-
-        let formData = new FormData();
-        formData.append('market', market);
-        
-// In base.html update:
-let gType = "SINGLE";
-if(window.location.pathname.includes('jodi')) gType = "JODI";
-else if(window.location.pathname.includes('single_pathi')) gType = "SINGLE_PATTI";
-        
-        formData.append('game_type', gType); 
-        formData.append('bets_json', JSON.stringify(bets));
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-        fetch("/api/place-bet/", {
-            method: "POST",
-            body: formData
+    {% if user.is_authenticated %}
+    fetch('/api/wallet/balance/')
+        .then(r => {
+            if (!r.ok) throw new Error('Unauthorized');
+            return r.json();
         })
-        .then(r => r.json())
-        .then(data => {
-            if(data.status === "success") {
-                alert("Bet Placed Successfully!");
-                location.reload();
-            } else {
-                alert("Error: " + data.message);
-            }
+        .then(d => {
+            const el = document.getElementById('user-balance');
+            if (el) el.innerText = parseFloat(d.balance).toFixed(2);
+        })
+        .catch(() => {
+            const el = document.getElementById('user-balance');
+            if (el) el.innerText = '—';
         });
-    }
-// Optimized Part 3
-document.body.addEventListener('input', (e) => {
-    if (e.target.matches('.cell input')) {
-        // Strip decimals
-        if (e.target.value.includes('.')) {
-            e.target.value = e.target.value.split('.')[0];
-        }
-
-        let total = 0;
-        // Only select inputs that actually have a value to speed up the loop
-        document.querySelectorAll('.cell input').forEach(i => {
-            if (i.value) {
-                total += parseInt(i.value) || 0;
-            }
-        });
-
-        const totalSpan = document.getElementById('total');
-        if (totalSpan) totalSpan.innerText = total;
-    }
-});
-
-    function updateBalance() {
-        fetch('/api/wallet/balance/')
-            .then(response => response.json())
-            .then(data => {
-                const balanceElement = document.getElementById('user-balance');
-                if (balanceElement) {
-                    balanceElement.innerText = data.balance.toFixed(2);
-                }
-            })
-            .catch(error => console.error('Error fetching balance:', error));
-    }
-
-    // Run when the page loads
-    document.addEventListener('DOMContentLoaded', updateBalance);
-
-
+    {% endif %}
 </script>
 </body>
 </html>

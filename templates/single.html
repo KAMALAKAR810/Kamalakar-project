@@ -1,52 +1,183 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="game-container">
-    <div class="game-header">SINGLE (10 KA 95)</div>
-    
-    <div class="input-row">
-        <select id="market-select">
-            <option value="">---- Select Market ----</option>
-            {% for market in markets %}
-                <option value="{{ market.m_name }}">{{ market.m_name }}</option>
+<div class="game-page">
+    <div class="game-title-bar">{{ game_title }}</div>
+
+    <div class="game-controls market-header">
+        <select id="market-select" class="select-market">
+            <option value="">-- Select Market --</option>
+            {% for m in markets %}
+                <option value="{{ m.id }}">{{ m.name }}</option>
             {% endfor %}
         </select>
-       <input type="text" id="todayDate" readonly>
-    </div>
 
-    <div class="grid-layout" style="grid-template-columns: repeat(2, 1fr); display: grid; gap: 10px; padding: 10px;">
-        {% for i in "0123456789" %}
-        <div class="cell" style="border: 1px solid #ccc; padding: 10px; display: flex; justify-content: space-between;">
-            <label>{{ i }}</label>
-            <input type="number" class="bet-input" data-num="{{ i }}" placeholder="Points" style="width: 60px;">
+        <div class="readonly-box date-box">
+            <i class="fa fa-calendar" style="margin-right:6px;"></i>
+            <span id="date-display-single">--/--/----</span>
         </div>
-        {% endfor %}
+    </div>
+</div>
+
+<div class="page-content">
+    <div id="section-open">
+        <div class="section-bar">OPEN <span id="hint-open" class="session-hint session-hint--off"></span></div>
+        <div class="bet-grid">
+            {% for d in "0123456789"|make_list %}
+            <div class="bet-cell">
+                <span class="bet-label">{{ d }}</span>
+                <input type="number" data-digit="{{ d }}" class="bet-input" placeholder="0" min="0">
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
-    <div class="total-points" style="padding: 20px; font-weight: bold;">
-        Total Point : <span id="total">0</span>
+    <div id="section-close" class="bet-session-stack">
+        <div class="section-bar">CLOSE <span id="hint-close" class="session-hint session-hint--off"></span></div>
+        <div class="bet-grid">
+            {% for d in "0123456789"|make_list %}
+            <div class="bet-cell">
+                <span class="bet-label">{{ d }}</span>
+                <input type="number" data-digit="{{ d }}" class="bet-input" placeholder="0" min="0">
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    
-    <button class="submit-btn" onclick="submitGame()" style="width: 100%; padding: 15px; background: #28a745; color: white; border: none;">Submit Game</button>
+</div>
+{% endblock %}
+
+{% block footer_betting %}
+{{ markets_betting|json_script:"markets-betting-data" }}
+<div class="bet-footer">
+    <div style="line-height: 1.35;">
+        <span class="footer-total-label">Total points (active rows)</span><br>
+        <span class="footer-total-value">₹<span id="total-val-single">0</span></span>
+    </div>
+    <button type="button" class="place-btn" onclick="submitBets()">Place bet</button>
 </div>
 
 <script>
-    // Local script to handle the total calculation
-    document.querySelectorAll('.bet-input').forEach(input => {
-        input.addEventListener('input', () => {
-            let total = 0;
-            document.querySelectorAll('.bet-input').forEach(i => {
-                total += Number(i.value) || 0;
-            });
-            document.getElementById('total').innerText = total;
+    (function () {
+        const now  = new Date();
+        const dd   = String(now.getDate()).padStart(2, '0');
+        const mm   = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        const el   = document.getElementById('date-display-single');
+        if (el) el.textContent = `${dd}/${mm}/${yyyy}`;
+    })();
+
+    const MARKET_BETTING = JSON.parse(document.getElementById('markets-betting-data').textContent);
+
+    function metaForMarketSelect() {
+        const v = document.getElementById('market-select').value;
+        if (!v) return null;
+        const id = parseInt(v, 10);
+        return MARKET_BETTING.find(function (x) { return x.id === id; }) || null;
+    }
+
+    function applyBettingLocks() {
+        const m = metaForMarketSelect();
+        const openOk = !!(m && m.open);
+        const closeOk = !!(m && m.close);
+
+        document.getElementById('section-open').classList.toggle('bet-section--locked', !openOk);
+        document.getElementById('section-close').classList.toggle('bet-section--locked', !closeOk);
+
+        document.querySelectorAll('#section-open .bet-input').forEach(function (inp) {
+            inp.disabled = !openOk;
         });
+        document.querySelectorAll('#section-close .bet-input').forEach(function (inp) {
+            inp.disabled = !closeOk;
+        });
+
+        const ho = document.getElementById('hint-open');
+        const hc = document.getElementById('hint-close');
+        if (ho) {
+            ho.textContent = !m ? '· Select a market' : (openOk ? '· Open for betting' : '· Closed (view only)');
+            ho.className = 'session-hint ' + (openOk ? 'session-hint--on' : 'session-hint--off');
+        }
+        if (hc) {
+            hc.textContent = !m ? '· Select a market' : (closeOk ? '· Open for betting' : '· Closed (view only)');
+            hc.className = 'session-hint ' + (closeOk ? 'session-hint--on' : 'session-hint--off');
+        }
+
+        recalcTotal();
+    }
+
+    document.getElementById('market-select').addEventListener('change', applyBettingLocks);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyBettingLocks);
+    } else {
+        applyBettingLocks();
+    }
+
+    function recalcTotal() {
+        let total = 0;
+        document.querySelectorAll('.bet-input:not(:disabled)').forEach(function (i) {
+            total += parseInt(i.value, 10) || 0;
+        });
+        const t = document.getElementById('total-val-single');
+        if (t) t.innerText = total;
+    }
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('bet-input')) recalcTotal();
     });
 
-    const dateOptions = { day: '2-digit', month: 'short', year: 'numeric' };
-  const today = new Date().toLocaleDateString('en-GB', dateOptions);
-  
-  // Set the value of the input field
-  document.getElementById('todayDate').value = today;
+    function collectSection(sectionSel) {
+        const bets = {};
+        document.querySelectorAll(sectionSel + ' .bet-input:not(:disabled)').forEach(function (i) {
+            const val = parseInt(i.value, 10);
+            if (val > 0) bets[i.getAttribute('data-digit')] = val;
+        });
+        return bets;
+    }
 
-  
+    function postBets(market, session, bets) {
+        return fetch("/api/place-bet/", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            body: new URLSearchParams({
+                market: market,
+                session: session,
+                game_type: "{{ game_type }}",
+                bets_json: JSON.stringify(bets)
+            })
+        }).then(function (r) { return r.json(); });
+    }
+
+    function submitBets() {
+        const market = document.getElementById('market-select').value;
+        if (!market) { alert("Please select a Market!"); return; }
+
+        const openBets  = collectSection('#section-open');
+        const closeBets = collectSection('#section-close');
+        if (Object.keys(openBets).length === 0 && Object.keys(closeBets).length === 0) {
+            alert("Please enter points in an open session (OPEN or CLOSE when available).");
+            return;
+        }
+
+        const btn = document.querySelector('.place-btn');
+        btn.disabled = true;
+        btn.textContent = 'Placing...';
+
+        (async function () {
+            try {
+                if (Object.keys(openBets).length > 0) {
+                    const d = await postBets(market, 'OPEN', openBets);
+                    if (d.status !== 'success') throw new Error(d.message || 'OPEN bets failed');
+                }
+                if (Object.keys(closeBets).length > 0) {
+                    const d = await postBets(market, 'CLOSE', closeBets);
+                    if (d.status !== 'success') throw new Error(d.message || 'CLOSE bets failed');
+                }
+                alert("✅ Bets placed successfully!");
+                location.reload();
+            } catch (err) {
+                alert("❌ " + (err.message || String(err)));
+                btn.disabled = false;
+                btn.textContent = 'Place bet';
+            }
+        })();
+    }
 </script>
 {% endblock %}

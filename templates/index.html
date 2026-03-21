@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container-fluid" style="background: rgba(1, 144, 154, 0.9); padding: 40px 0;">
+    <div class="container-fluid home-hero">
         <div class="container text-center">
-            <h2 class="white-text"><b>Play Online Matka</b></h2>
-            <h2 class="white-text"><b>#1 Most Trusted Matka Play Website</b></h2>
-            <a href="tel:8217228766" style="color: yellow; font-size: 20px; font-weight: bold;">Call Us: 8217228766</a>
-            <hr style="border-color: rgba(255,255,255,0.2)" />
-            <p class="white-text">
-                MatkaPlay.net is the best preferred platform to play online satta matka. We provide the best interface to guess and win. 
+            <h2 class="white-text" style="font-weight:700;">Play Online Matka</h2>
+            <h2 class="white-text" style="font-weight:600; font-size:1.1rem; opacity:0.95;">#1 Most Trusted Matka Play Website</h2>
+            <a href="tel:8217228766" style="display:inline-block; margin-top:12px; font-size:18px; font-weight:700;">Call Us: 8217228766</a>
+            <hr style="border-color: rgba(255,255,255,0.2); margin: 20px auto; max-width: 400px;" />
+            <p class="white-text" style="max-width: 640px; margin: 0 auto; line-height: 1.6;">
+                MatkaPlay.net is the best preferred platform to play online satta matka. We provide the best interface to guess and win.
                 We guarantee the best online matka play with Kalyan tricks and tips.
             </p>
         </div>
@@ -18,9 +18,9 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <div class="how-left">
+                    <div class="home-panel how-left">
                         <h2>Notice Board</h2>
-                        <hr />
+                        <hr style="border-color:#eee;" />
                         <p><strong>BEST ONLINE MATKA PLAY CREATED BY KAMALAKAR AND HIS TEAM.</strong></p>
                         <p>MINIMUM DEPOSIT: 500</p>
                         <p>MINIMUM WITHDRAWAL: 1000</p>
@@ -28,14 +28,14 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="how-right">
+                    <div class="home-panel how-right">
                         <h2>Matka Game Rates</h2>
                         <ul class="list-group">
                             <li class="list-group-item">SINGLE <span class="pull-right">10 ka 95</span></li>
                             <li class="list-group-item">JODI <span class="pull-right">10 ka 950</span></li>
                             <li class="list-group-item">SINGLE PATTI <span class="pull-right">10 ka 1400</span></li>
                             <li class="list-group-item">DOUBLE PATTI <span class="pull-right">10 ka 2800</span></li>
-                            <li class="list-group-item">TRIPPLE PATTI <span class="pull-right">10 ka 8000</span></li>
+                            <li class="list-group-item">TRIPLE PATTI <span class="pull-right">10 ka 8000</span></li>
                         </ul>
                     </div>
                 </div>
@@ -43,60 +43,48 @@
         </div>
     </div>
 
-    <div class="container-fluid" style="padding: 30px 0;">
-        <div class="container">
-            <h2 class="heading white-text">Matka Results</h2>
-            <div class="results-container">
-                {% include "display.html" %}
-            </div>
+    <div class="results-section-matka">
+        <div class="results-section-matka__banner">Matka Results</div>
+        <div class="container" style="padding: 24px 15px 32px;">
+            {% include "display.html" %}
         </div>
     </div>
 
-    <div class="container-fluid blue-background" style="padding: 40px 0;">
+    <div class="container-fluid home-cta">
         <div class="container text-center white-text">
-            <h2>Matka Play Online</h2>
+            <h2 style="font-weight:600;">Matka Play Online</h2>
             <p>Call us to play online matka</p>
-            <h3><i class="fa fa-phone"></i> +91 8217228766</h3>
-            <hr style="border-color: rgba(255,255,255,0.2)" />
-            <p>Get Lucky and play the satta matka game with minimum amounts. Expert Kalyan suggestions provided daily.</p>
+            <h3 style="color:var(--primary-gold);"><i class="fa fa-phone"></i> +91 8217228766</h3>
+            <hr style="border-color: rgba(255,255,255,0.2); margin: 20px auto; max-width: 400px;" />
+            <p style="max-width: 560px; margin: 0 auto; opacity: 0.95;">Get Lucky and play the satta matka game with minimum amounts. Expert Kalyan suggestions provided daily.</p>
         </div>
     </div>
 
-    <div class="container" style="padding: 40px 0;">
-        <div class="row">
-            <div class="col-md-12">
-                <h3 class="heading">Online Matka</h3>
-                <p>Live results on all the online matka play markets, every day on Matka Play. We cover Rajdhani, Kalyan, Main Ratan, and Navratna.</p>
-                
-                <h3 class="heading">Why Choose Us</h3>
-                <p>MatkaPlay.net stands out with a mobile-friendly platform and user-friendly navigation.</p>
-                
-                <h3 class="heading">How to Win?</h3>
-                <ul>
-                    <li><b>Understand the Game:</b> Learn the regulations and bet types.</li>
-                    <li><b>Research:</b> Check past results and charts for patterns.</li>
-                    <li><b>Manage Funds:</b> Set a budget and stick to it.</li>
-                </ul>
-            </div>
+    <div class="container page-shell">
+        <div class="home-info-block">
+            <h3 class="heading">Online Matka</h3>
+            <p>Live results on all the online matka play markets, every day on Matka Play. We cover Rajdhani, Kalyan, Main Ratan, and Navratna.</p>
+
+            <h3 class="heading">Why Choose Us</h3>
+            <p>MatkaPlay.net stands out with a mobile-friendly platform and user-friendly navigation.</p>
+
+            <h3 class="heading">How to Win?</h3>
+            <ul>
+                <li><b>Understand the Game:</b> Learn the regulations and bet types.</li>
+                <li><b>Research:</b> Check past results and charts for patterns.</li>
+                <li><b>Manage Funds:</b> Set a budget and stick to it.</li>
+            </ul>
         </div>
     </div>
 
-    <div class="container" style="padding-bottom: 50px;">
-        <h3 class="heading">FAQ</h3>
+    <div class="container page-shell home-faq" style="padding-bottom: 50px;">
+        <h3 class="heading" style="color: var(--primary-gold);">FAQ</h3>
         <div class="content-link">
             <h5><b><i class="fa fa-hand-o-right"></i> Is Matkaplay safe?</b></h5>
             <p>Yes, we have served the industry for 10+ years with accurate results and 24/7 support.</p>
-            
+
             <h5><b><i class="fa fa-hand-o-right"></i> Can I play on mobile?</b></h5>
             <p>Yes, our website is fully optimized for all smartphones and tablets.</p>
         </div>
     </div>
-
-    <script>
-        /* NOTE: Automatic refresh is disabled for better user experience 
-           while using the color settings. If you need it, increase the 
-           time to 30000 (30 seconds).
-        */
-        // setInterval(function() { location.reload(); }, 30000); 
-    </script>
 {% endblock %}

@@ -77,6 +77,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 10},
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -84,13 +85,26 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "MATKAAPP.validators.UppercaseValidator",
+    },
+    {
+        "NAME": "MATKAAPP.validators.LowercaseValidator",
+    },
+    {
+        "NAME": "MATKAAPP.validators.DigitValidator",
+    },
+    {
+        "NAME": "MATKAAPP.validators.SpecialCharacterValidator",
+    },
 ]
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
+
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
