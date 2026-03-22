@@ -1,192 +1,168 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="game-page">
-    <div class="game-title-bar">{{ game_title }}</div>
-
-    <div class="game-controls market-header">
-        <select id="market-select" class="select-market">
-            <option value="">-- Select Market --</option>
-            {% for m in markets %}
-                <option value="{{ m.id }}">{{ m.name }}</option>
-            {% endfor %}
-        </select>
-
-        <div class="readonly-box date-box">
-            <i class="fa fa-calendar" style="margin-right:6px;"></i>
-            <span id="date-display-patti">--/--/----</span>
-        </div>
+<div class="game-card" style="max-width: 900px;">
+    <div class="game-header">
+        <h1>{{ game_title }}</h1>
+        <p>Place your predictions for the {{ game_title }} market</p>
     </div>
-</div>
 
-<div class="page-content">
-    <div id="section-open" class="bet-session-stack">
-        <div class="section-bar">OPEN <span id="hint-open" class="session-hint session-hint--off"></span></div>
-        {% for digit, pattis in patti_groups.items %}
-        <div class="patti-block">
-            <div class="section-bar">Digit: {{ digit }}</div>
-            <div class="bet-grid">
-                {% for p in pattis %}
-                <div class="bet-cell">
-                    <span class="bet-label">{{ p }}</span>
-                    <input type="number" data-digit="{{ p }}" class="bet-input" placeholder="0" min="0">
+    <div class="market-status-info">
+        <div id="market-status-text" class="status-closed">
+            <i class="fas fa-info-circle"></i> Select a market to begin
+        </div>
+        <div id="date-display">--/--/----</div>
+    </div>
+
+    <form id="bet-form">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="bet-form-group">
+                <label for="market-select">Select Market</label>
+                <select id="market-select" class="bet-input" required>
+                    <option value="">-- Choose Market --</option>
+                    {% for m in markets %}
+                        <option value="{{ m.id }}">{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="bet-form-group">
+                <label for="session-select">Select Session</label>
+                <select id="session-select" class="bet-input" required>
+                    <option value="OPEN">OPEN</option>
+                    <option value="CLOSE">CLOSE</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="bet-form-group">
+            <label>Enter Prediction Amounts</label>
+            <div style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: #fff;">
+                {% for digit, pattis in patti_groups.items %}
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #e6f3ff;">Digit: {{ digit }}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;">
+                        {% for p in pattis %}
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                            <span style="font-weight: 700; font-size: 13px; color: var(--dark);">{{ p }}</span>
+                            <input type="number" data-digit="{{ p }}" class="bet-input-field" placeholder="0" min="5" style="width: 100%; border: 1px solid var(--border); border-radius: 4px; background: #fff; font-weight: 600; text-align: center; font-size: 12px; padding: 5px;">
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
-        {% endfor %}
-    </div>
 
-    <div id="section-close" class="bet-session-stack">
-        <div class="section-bar">CLOSE <span id="hint-close" class="session-hint session-hint--off"></span></div>
-        {% for digit, pattis in patti_groups.items %}
-        <div class="patti-block">
-            <div class="section-bar">Digit: {{ digit }}</div>
-            <div class="bet-grid">
-                {% for p in pattis %}
-                <div class="bet-cell">
-                    <span class="bet-label">{{ p }}</span>
-                    <input type="number" data-digit="{{ p }}" class="bet-input" placeholder="0" min="0">
-                </div>
-                {% endfor %}
-            </div>
+        <div style="margin: 25px 0; padding: 15px; background: #e6f3ff; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600; color: var(--primary);">Total Points:</span>
+            <span style="font-size: 20px; font-weight: 800; color: var(--dark);">₹<span id="total-val">0</span></span>
         </div>
-        {% endfor %}
-    </div>
-</div>
-{% endblock %}
 
-{% block footer_betting %}
+        <button type="button" id="submit-btn" class="bet-submit-btn" onclick="submitBets()" disabled>Place Predictions</button>
+    </form>
+</div>
+
 {{ markets_betting|json_script:"markets-betting-data" }}
-<div class="bet-footer">
-    <div style="line-height: 1.35;">
-        <span class="footer-total-label">Total points (active rows)</span><br>
-        <span class="footer-total-value">₹<span id="total-val-patti">0</span></span>
-    </div>
-    <button type="button" class="place-btn" onclick="submitBets()">Place bet</button>
-</div>
 
 <script>
-    (function () {
-        const now  = new Date();
-        const dd   = String(now.getDate()).padStart(2, '0');
-        const mm   = String(now.getMonth() + 1).padStart(2, '0');
-        const yyyy = now.getFullYear();
-        const el   = document.getElementById('date-display-patti');
-        if (el) el.textContent = `${dd}/${mm}/${yyyy}`;
-    })();
-
     const MARKET_BETTING = JSON.parse(document.getElementById('markets-betting-data').textContent);
+    const marketSelect = document.getElementById('market-select');
+    const sessionSelect = document.getElementById('session-select');
+    const statusText = document.getElementById('market-status-text');
+    const submitBtn = document.getElementById('submit-btn');
+    const totalVal = document.getElementById('total-val');
+    const betInputs = document.querySelectorAll('.bet-input-field');
 
-    function metaForMarketSelect() {
-        const v = document.getElementById('market-select').value;
-        if (!v) return null;
-        const id = parseInt(v, 10);
-        return MARKET_BETTING.find(function (x) { return x.id === id; }) || null;
-    }
+    const now = new Date();
+    document.getElementById('date-display').textContent = now.toLocaleDateString('en-IN');
 
-    function applyBettingLocks() {
-        const m = metaForMarketSelect();
-        const openOk = !!(m && m.open);
-        const closeOk = !!(m && m.close);
+    function updateStatus() {
+        const marketId = parseInt(marketSelect.value);
+        const session = sessionSelect.value;
+        const market = MARKET_BETTING.find(m => m.id === marketId);
 
-        document.getElementById('section-open').classList.toggle('bet-section--locked', !openOk);
-        document.getElementById('section-close').classList.toggle('bet-section--locked', !closeOk);
-
-        document.querySelectorAll('#section-open .bet-input').forEach(function (inp) {
-            inp.disabled = !openOk;
-        });
-        document.querySelectorAll('#section-close .bet-input').forEach(function (inp) {
-            inp.disabled = !closeOk;
-        });
-
-        const ho = document.getElementById('hint-open');
-        const hc = document.getElementById('hint-close');
-        if (ho) {
-            ho.textContent = !m ? '· Select a market' : (openOk ? '· Open for betting' : '· Closed (view only)');
-            ho.className = 'session-hint ' + (openOk ? 'session-hint--on' : 'session-hint--off');
-        }
-        if (hc) {
-            hc.textContent = !m ? '· Select a market' : (closeOk ? '· Open for betting' : '· Closed (view only)');
-            hc.className = 'session-hint ' + (closeOk ? 'session-hint--on' : 'session-hint--off');
-        }
-        recalcTotal();
-    }
-
-    document.getElementById('market-select').addEventListener('change', applyBettingLocks);
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', applyBettingLocks);
-    } else {
-        applyBettingLocks();
-    }
-
-    function recalcTotal() {
-        let total = 0;
-        document.querySelectorAll('#section-open .bet-input:not(:disabled), #section-close .bet-input:not(:disabled)').forEach(function (i) {
-            total += parseInt(i.value, 10) || 0;
-        });
-        const t = document.getElementById('total-val-patti');
-        if (t) t.innerText = total;
-    }
-
-    document.addEventListener('input', function (e) {
-        if (e.target.classList.contains('bet-input')) recalcTotal();
-    });
-
-    function collectSection(sectionSel) {
-        const bets = {};
-        document.querySelectorAll(sectionSel + ' .bet-input:not(:disabled)').forEach(function (i) {
-            const val = parseInt(i.value, 10);
-            if (val > 0) bets[i.getAttribute('data-digit')] = val;
-        });
-        return bets;
-    }
-
-    function postBets(market, session, bets) {
-        return fetch("/api/place-bet/", {
-            method: "POST",
-            headers: { "X-CSRFToken": "{{ csrf_token }}" },
-            body: new URLSearchParams({
-                market: market,
-                session: session,
-                game_type: "{{ game_type }}",
-                bets_json: JSON.stringify(bets)
-            })
-        }).then(function (r) { return r.json(); });
-    }
-
-    function submitBets() {
-        const market = document.getElementById('market-select').value;
-        if (!market) { alert("Please select a Market!"); return; }
-
-        const openBets  = collectSection('#section-open');
-        const closeBets = collectSection('#section-close');
-        if (Object.keys(openBets).length === 0 && Object.keys(closeBets).length === 0) {
-            alert("Please enter points in an open session (OPEN or CLOSE when available).");
+        if (!market) {
+            statusText.innerHTML = '<i class="fas fa-info-circle"></i> Select a market to begin';
+            statusText.className = 'status-closed';
+            submitBtn.disabled = true;
             return;
         }
 
-        const btn = document.querySelector('.place-btn');
-        btn.disabled = true;
-        btn.textContent = 'Placing...';
+        const isAllowed = session === 'OPEN' ? market.open : market.close;
+        
+        if (isAllowed) {
+            statusText.innerHTML = '<i class="fas fa-check-circle"></i> Market is OPEN for betting';
+            statusText.className = 'status-open';
+            submitBtn.disabled = false;
+        } else {
+            statusText.innerHTML = '<i class="fas fa-lock"></i> Market is CLOSED for this session';
+            statusText.className = 'status-closed';
+            submitBtn.disabled = true;
+        }
+    }
 
-        (async function () {
-            try {
-                if (Object.keys(openBets).length > 0) {
-                    const d = await postBets(market, 'OPEN', openBets);
-                    if (d.status !== 'success') throw new Error(d.message || 'OPEN bets failed');
-                }
-                if (Object.keys(closeBets).length > 0) {
-                    const d = await postBets(market, 'CLOSE', closeBets);
-                    if (d.status !== 'success') throw new Error(d.message || 'CLOSE bets failed');
-                }
-                alert("✅ Bets placed successfully!");
-                location.reload();
-            } catch (err) {
-                alert("❌ " + (err.message || String(err)));
-                btn.disabled = false;
-                btn.textContent = 'Place bet';
+    function calculateTotal() {
+        let total = 0;
+        betInputs.forEach(input => {
+            const val = parseInt(input.value) || 0;
+            total += val;
+        });
+        totalVal.textContent = total;
+    }
+
+    marketSelect.addEventListener('change', updateStatus);
+    sessionSelect.addEventListener('change', updateStatus);
+    betInputs.forEach(input => input.addEventListener('input', calculateTotal));
+
+    async function submitBets() {
+        const marketId = marketSelect.value;
+        const session = sessionSelect.value;
+        const bets = {};
+        
+        betInputs.forEach(input => {
+            const val = parseInt(input.value);
+            if (val > 0) {
+                bets[input.dataset.digit] = val;
             }
-        })();
+        });
+
+        if (Object.keys(bets).length === 0) {
+            alert("Please enter at least one prediction amount.");
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Processing...";
+
+        try {
+            const response = await fetch('/api/place-bet/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    market_id: marketId,
+                    game_type: '{{ game_type }}',
+                    session: session,
+                    bets: bets
+                })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                alert("Predictions placed successfully!");
+                window.location.href = "{% url 'bet_history' %}";
+            } else {
+                alert(data.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Place Predictions";
+            }
+        } catch (err) {
+            alert("An error occurred. Please try again.");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Place Predictions";
+        }
     }
 </script>
 {% endblock %}

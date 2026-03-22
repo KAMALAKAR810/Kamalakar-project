@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+    <h2 class="page-title">User Bet History</h2>
+    <p class="page-sub">Comprehensive list of all user bets</p>
+
+    <div class="data-panel">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Mobile</th>
+                    <th>Market</th>
+                    <th>Date/Time</th>
+                    <th>Section</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bet in bets %}
+                <tr>
+                    <td>{{ bet.user.profile.user_code }}</td>
+                    <td>{{ bet.user.username }}</td>
+                    <td>{{ bet.user.profile.mobile }}</td>
+                    <td>{{ bet.market.name }}</td>
+                    <td>{{ bet.created_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        <span class="game-type-pill">{{ bet.session }}</span>
+                    </td>
+                    <td>₹{{ bet.amount }}</td>
+                    <td>
+                        <span class="bet-status bet-status--{{ bet.status|lower }}">
+                            {{ bet.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center;">No bets found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

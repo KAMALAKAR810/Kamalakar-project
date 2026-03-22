@@ -33,6 +33,7 @@ class Profile(models.Model):
         unique=True,
         null=True,
         blank=True,
+        editable=False,
         help_text="Public ID e.g. KMWU0001",
     )
     mobile = models.CharField(
@@ -42,16 +43,32 @@ class Profile(models.Model):
         unique=True,
         help_text="Normalized 10-digit Indian mobile; unique per account.",
     )
+    is_new = models.BooleanField(default=True)
     # FIX: Field name is 'profile_pic' — base.html was using 'image' (wrong). Standardized here.
     profile_pic = models.ImageField(
         upload_to='profile_pics/',
         default='profile_pics/default.png',
         blank=True
     )
+    bio = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user.username
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"From {self.sender} to {self.receiver} at {self.created_at}"
 
 
 class RegistrationCounter(models.Model):
@@ -101,11 +118,11 @@ class Market(models.Model):
     close_start_time = models.TimeField(help_text="Time when Close betting starts")
     close_end_time = models.TimeField(help_text="Official Close end time")
 
-    open_patti = models.CharField(max_length=3, blank=True, null=True, help_text="e.g. 123")
-    open_single = models.CharField(max_length=1, blank=True, null=True, help_text="e.g. 6")
-
-    close_single = models.CharField(max_length=1, blank=True, null=True, help_text="e.g. 7")
-    close_patti = models.CharField(max_length=3, blank=True, null=True, help_text="e.g. 601")
+    # Admin Results
+    open_patti = models.CharField(max_length=3, blank=True, null=True)
+    open_single = models.CharField(max_length=1, blank=True, null=True)
+    close_patti = models.CharField(max_length=3, blank=True, null=True)
+    close_single = models.CharField(max_length=1, blank=True, null=True)
 
     def is_betting_allowed(self, session_type):
         """
@@ -126,6 +143,12 @@ class Market(models.Model):
         lockout_limit = (end_dt - timedelta(minutes=10)).time()
 
         return start <= now <= lockout_limit
+
+    def is_betting_allowed_open(self):
+        return self.is_betting_allowed("OPEN")
+
+    def is_betting_allowed_close(self):
+        return self.is_betting_allowed("CLOSE")
 
     @property
     def is_open_betting_open(self):

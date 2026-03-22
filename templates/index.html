@@ -1,90 +1,199 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-    <div class="container-fluid home-hero">
-        <div class="container text-center">
-            <h2 class="white-text" style="font-weight:700;">Play Online Matka</h2>
-            <h2 class="white-text" style="font-weight:600; font-size:1.1rem; opacity:0.95;">#1 Most Trusted Matka Play Website</h2>
-            <a href="tel:8217228766" style="display:inline-block; margin-top:12px; font-size:18px; font-weight:700;">Call Us: 8217228766</a>
-            <hr style="border-color: rgba(255,255,255,0.2); margin: 20px auto; max-width: 400px;" />
-            <p class="white-text" style="max-width: 640px; margin: 0 auto; line-height: 1.6;">
-                MatkaPlay.net is the best preferred platform to play online satta matka. We provide the best interface to guess and win.
-                We guarantee the best online matka play with Kalyan tricks and tips.
-            </p>
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--dark) 0%, #333 100%);
+        color: var(--white);
+        padding: 60px 20px;
+        border-radius: 16px;
+        text-align: center;
+        margin-bottom: 40px;
+        box-shadow: var(--shadow);
+    }
+
+    .hero-section h1 {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 15px;
+        letter-spacing: -1px;
+    }
+
+    .hero-section p {
+        font-size: 18px;
+        color: #ccc;
+        max-width: 700px;
+        margin: 0 auto 30px;
+    }
+
+    .cta-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .info-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 25px;
+        transition: var(--transition);
+    }
+
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .info-card h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--primary);
+    }
+
+    .rate-list {
+        list-style: none;
+    }
+
+    .rate-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--light);
+        font-weight: 500;
+    }
+
+    .rate-item:last-child {
+        border-bottom: none;
+    }
+
+    .rate-value {
+        color: var(--success);
+        font-weight: 700;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .section-header h2 {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .view-all {
+        font-size: 14px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .faq-section {
+        margin-top: 60px;
+    }
+
+    .faq-item {
+        margin-bottom: 20px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .faq-item h3 {
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: var(--dark);
+    }
+
+    .faq-item p {
+        font-size: 14px;
+        color: var(--gray);
+    }
+
+    @media (max-width: 768px) {
+        .hero-section h1 { font-size: 28px; }
+        .hero-section p { font-size: 16px; }
+        .cta-buttons { flex-direction: column; }
+    }
+</style>
+
+<section class="hero-section">
+    <h1>Change Life With Numbers</h1>
+    <p>The premier platform for professional number analytics and market insights. Join thousands of successful predictors today.</p>
+    <div class="cta-buttons">
+        <a href="{% url 'register' %}" class="btn-gold">Create Free Account</a>
+        <a href="tel:8217228766" class="btn-gold" style="background: var(--white); color: var(--dark) !important;">
+            <i class="fas fa-phone"></i> Contact Support
+        </a>
+    </div>
+</section>
+
+<div class="info-grid">
+    <div class="info-card">
+        <h2><i class="fas fa-bullhorn"></i> Notice Board</h2>
+        <div style="font-size: 14px; color: var(--gray);">
+            <p style="margin-bottom: 15px; color: var(--dark); font-weight: 600;">Welcome to the new professional portal.</p>
+            <div class="rate-item"><span>Min Deposit</span> <span class="rate-value">₹500</span></div>
+            <div class="rate-item"><span>Min Withdrawal</span> <span class="rate-value">₹1000</span></div>
+            <div class="rate-item"><span>Withdrawal Limit</span> <span class="rate-value">No Limits</span></div>
+            <p style="margin-top: 15px; font-style: italic;">Fastest payouts guaranteed by our professional team.</p>
         </div>
     </div>
 
-    <div class="container-fluid how-play-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="home-panel how-left">
-                        <h2>Notice Board</h2>
-                        <hr style="border-color:#eee;" />
-                        <p><strong>BEST ONLINE MATKA PLAY CREATED BY KAMALAKAR AND HIS TEAM.</strong></p>
-                        <p>MINIMUM DEPOSIT: 500</p>
-                        <p>MINIMUM WITHDRAWAL: 1000</p>
-                        <p>MAXIMUM WITHDRAWAL: NO LIMITS</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="home-panel how-right">
-                        <h2>Matka Game Rates</h2>
-                        <ul class="list-group">
-                            <li class="list-group-item">SINGLE <span class="pull-right">10 ka 95</span></li>
-                            <li class="list-group-item">JODI <span class="pull-right">10 ka 950</span></li>
-                            <li class="list-group-item">SINGLE PATTI <span class="pull-right">10 ka 1400</span></li>
-                            <li class="list-group-item">DOUBLE PATTI <span class="pull-right">10 ka 2800</span></li>
-                            <li class="list-group-item">TRIPLE PATTI <span class="pull-right">10 ka 8000</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+    <div class="info-card">
+        <h2><i class="fas fa-chart-line"></i> Market Game Rates</h2>
+        <div class="rate-list">
+            <div class="rate-item"><span>SINGLE</span> <span class="rate-value">10 ka 95</span></div>
+            <div class="rate-item"><span>JODI</span> <span class="rate-value">10 ka 950</span></div>
+            <div class="rate-item"><span>SINGLE PATTI</span> <span class="rate-value">10 ka 1400</span></div>
+            <div class="rate-item"><span>DOUBLE PATTI</span> <span class="rate-value">10 ka 2800</span></div>
+            <div class="rate-item"><span>TRIPLE PATTI</span> <span class="rate-value">10 ka 8000</span></div>
         </div>
     </div>
+</div>
 
-    <div class="results-section-matka">
-        <div class="results-section-matka__banner">Matka Results</div>
-        <div class="container" style="padding: 24px 15px 32px;">
-            {% include "display.html" %}
+<section>
+    <div class="section-header">
+        <h2>Live Market Results</h2>
+        <a href="{% url 'display' %}" class="view-all">View All Markets <i class="fas fa-arrow-right"></i></a>
+    </div>
+    {% include "display.html" %}
+</section>
+
+<section class="faq-section">
+    <div class="section-header">
+        <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="info-grid">
+        <div class="faq-item">
+            <h3>Is Change Life With Numbers safe?</h3>
+            <p>Absolutely. We use industry-standard encryption and professional-grade security protocols to ensure your data and transactions are always protected.</p>
+        </div>
+        <div class="faq-item">
+            <h3>How do I start playing?</h3>
+            <p>Simply register for a free account, add points to your wallet via our secure payment gateway, and you can start predicting on any active market.</p>
+        </div>
+        <div class="faq-item">
+            <h3>What are the support hours?</h3>
+            <p>Our dedicated professional support team is available 24/7 via the in-app chat or phone to assist you with any queries.</p>
         </div>
     </div>
+</section>
 
-    <div class="container-fluid home-cta">
-        <div class="container text-center white-text">
-            <h2 style="font-weight:600;">Matka Play Online</h2>
-            <p>Call us to play online matka</p>
-            <h3 style="color:var(--primary-gold);"><i class="fa fa-phone"></i> +91 8217228766</h3>
-            <hr style="border-color: rgba(255,255,255,0.2); margin: 20px auto; max-width: 400px;" />
-            <p style="max-width: 560px; margin: 0 auto; opacity: 0.95;">Get Lucky and play the satta matka game with minimum amounts. Expert Kalyan suggestions provided daily.</p>
-        </div>
-    </div>
-
-    <div class="container page-shell">
-        <div class="home-info-block">
-            <h3 class="heading">Online Matka</h3>
-            <p>Live results on all the online matka play markets, every day on Matka Play. We cover Rajdhani, Kalyan, Main Ratan, and Navratna.</p>
-
-            <h3 class="heading">Why Choose Us</h3>
-            <p>MatkaPlay.net stands out with a mobile-friendly platform and user-friendly navigation.</p>
-
-            <h3 class="heading">How to Win?</h3>
-            <ul>
-                <li><b>Understand the Game:</b> Learn the regulations and bet types.</li>
-                <li><b>Research:</b> Check past results and charts for patterns.</li>
-                <li><b>Manage Funds:</b> Set a budget and stick to it.</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="container page-shell home-faq" style="padding-bottom: 50px;">
-        <h3 class="heading" style="color: var(--primary-gold);">FAQ</h3>
-        <div class="content-link">
-            <h5><b><i class="fa fa-hand-o-right"></i> Is Matkaplay safe?</b></h5>
-            <p>Yes, we have served the industry for 10+ years with accurate results and 24/7 support.</p>
-
-            <h5><b><i class="fa fa-hand-o-right"></i> Can I play on mobile?</b></h5>
-            <p>Yes, our website is fully optimized for all smartphones and tablets.</p>
-        </div>
-    </div>
 {% endblock %}

@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from .views import WalletBalanceView, TransactionHistoryView
 
 urlpatterns = [
     # --- Public Pages ---
@@ -23,6 +22,16 @@ urlpatterns = [
     # --- Bet API ---
     path("api/place-bet/", views.place_bet, name="place_bet"),
 
+    # --- Chat & User Messaging ---
+    path("chat/", views.chat_view, name="chat"),
+    path("chat/<int:user_id>/", views.chat_view, name="admin_chat_user"),
+    path("admin-users/", views.admin_user_management, name="admin_user_management"),
+    path("admin-chats/", views.admin_chat_list, name="admin_chat_list"),
+    path("api/send-welcome/<int:user_id>/", views.send_welcome_msg, name="send_welcome_msg"),
+
+    # --- Payment ---
+    path("payment/", views.payment_page, name="payment"),
+
     # --- History ---
     path("bet-history/", views.bet_history, name="bet_history"),
 
@@ -30,12 +39,12 @@ urlpatterns = [
     path("admin-summary/", views.admin_summary, name="admin_summary"),
     path("manage-markets/", views.manage_markets, name="manage_markets"),
     path("market-bets/", views.market_bets, name="market_bets"),
+    path("admin-bets/", views.admin_bet_history, name="admin_bet_history"),
+    path("organize-data/", views.organize_data_view, name="organize_data"),
+    path("admin-declare/", views.declare_result, name="declare_result"),
+    path("admin-winners/", views.winners_list, name="winners_list"),
 
     # --- Wallet REST Endpoints ---
     path("api/wallet/balance/", views.wallet_balance_api, name="wallet_balance_api"),
     path("api/wallet/history/", views.wallet_history_api, name="wallet_history_api"),
-
-    # --- DRF Class-Based Views ---
-    path("balance/", WalletBalanceView.as_view(), name="wallet-balance"),
-    path("history/", TransactionHistoryView.as_view(), name="transaction-history"),
 ]
