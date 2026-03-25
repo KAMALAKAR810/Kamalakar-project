@@ -1,20 +1,5 @@
-﻿# Python bytecode
-__pycache__/
+﻿__pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Django
 db.sqlite3
-media/
-staticfiles/
-
-# Environments
 .venv/
-venv/
-env/
-.env
-
-# IDEs
-.vscode/
-.idea/
+staticfiles/
