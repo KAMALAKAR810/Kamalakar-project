@@ -38,7 +38,7 @@
                 {% for d in "0123456789"|make_list %}
                 <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
                     <span style="font-weight: 800; font-size: 18px; width: 25px; color: var(--primary);">{{ d }}</span>
-                    <input type="number" data-digit="{{ d }}" class="bet-input-field" placeholder="Amount" min="5" style="width: 100%; border: none; background: transparent; font-weight: 600; outline: none;">
+                    <input type="number" data-digit="{{ d }}" class="bet-input-field" placeholder="Amount" min="5" style="width: 100%; border: none; background: transparent; font-weight: 600; outline: none;" readonly>
                 </div>
                 {% endfor %}
             </div>
@@ -82,6 +82,7 @@
             statusText.innerHTML = '<i class="fas fa-info-circle"></i> Select a market to begin';
             statusText.className = 'status-closed';
             submitBtn.disabled = true;
+            betInputs.forEach(input => input.readOnly = true);
             return;
         }
 
@@ -91,10 +92,12 @@
             statusText.innerHTML = '<i class="fas fa-check-circle"></i> Market is OPEN for betting';
             statusText.className = 'status-open';
             submitBtn.disabled = false;
+            betInputs.forEach(input => input.readOnly = false);
         } else {
             statusText.innerHTML = '<i class="fas fa-lock"></i> Market is CLOSED for this session';
             statusText.className = 'status-closed';
             submitBtn.disabled = true;
+            betInputs.forEach(input => input.readOnly = true);
         }
     }
 

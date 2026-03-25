@@ -31,15 +31,20 @@ urlpatterns = [
 
     # --- Payment ---
     path("payment/", views.payment_page, name="payment"),
+    path("wallet/", views.wallet_view, name="wallet"),
+    path("wallet-history/", views.wallet_history_view, name="wallet_history"),
+    path("admin-withdrawals/", views.admin_withdrawal_management, name="admin_withdrawal_management"),
 
     # --- History ---
     path("bet-history/", views.bet_history, name="bet_history"),
+    path("jodi-winners/", views.jodi_winners_view, name="jodi_winners"),
 
     # --- Admin Views ---
     path("admin-summary/", views.admin_summary, name="admin_summary"),
     path("manage-markets/", views.manage_markets, name="manage_markets"),
     path("market-bets/", views.market_bets, name="market_bets"),
     path("admin-bets/", views.admin_bet_history, name="admin_bet_history"),
+    path("admin-report/", views.admin_report, name="admin_report"),
     path("organize-data/", views.organize_data_view, name="organize_data"),
     path("admin-declare/", views.declare_result, name="declare_result"),
     path("admin-winners/", views.winners_list, name="winners_list"),

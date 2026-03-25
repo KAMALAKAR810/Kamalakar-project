@@ -44,7 +44,7 @@
                         {% for p in pattis %}
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
                             <span style="font-weight: 700; font-size: 13px; color: var(--dark);">{{ p }}</span>
-                            <input type="number" data-digit="{{ p }}" class="bet-input-field" placeholder="0" min="5" style="width: 100%; border: 1px solid var(--border); border-radius: 4px; background: #fff; font-weight: 600; text-align: center; font-size: 12px; padding: 5px;">
+                            <input type="number" data-digit="{{ p }}" class="bet-input-field" placeholder="0" min="5" style="width: 100%; border: 1px solid var(--border); border-radius: 4px; background: #fff; font-weight: 600; text-align: center; font-size: 12px; padding: 5px;" readonly>
                         </div>
                         {% endfor %}
                     </div>
@@ -85,6 +85,7 @@
             statusText.innerHTML = '<i class="fas fa-info-circle"></i> Select a market to begin';
             statusText.className = 'status-closed';
             submitBtn.disabled = true;
+            betInputs.forEach(input => input.readOnly = true);
             return;
         }
 
@@ -94,10 +95,12 @@
             statusText.innerHTML = '<i class="fas fa-check-circle"></i> Market is OPEN for betting';
             statusText.className = 'status-open';
             submitBtn.disabled = false;
+            betInputs.forEach(input => input.readOnly = false);
         } else {
             statusText.innerHTML = '<i class="fas fa-lock"></i> Market is CLOSED for this session';
             statusText.className = 'status-closed';
             submitBtn.disabled = true;
+            betInputs.forEach(input => input.readOnly = true);
         }
     }
 

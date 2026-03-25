@@ -28,6 +28,7 @@ STATUS_CHOICES = (
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    session_key = models.CharField(max_length=40, null=True, blank=True)
     user_code = models.CharField(
         max_length=12,
         unique=True,
@@ -111,6 +112,9 @@ class Market(models.Model):
     Contains timing and Matka result codes.
     """
     name = models.CharField(max_length=100, unique=True)
+    
+    # Task 16: Collection date for the market
+    collection_date = models.DateTimeField(null=True, blank=True, help_text="Market specific collection date and time")
 
     open_start_time = models.TimeField(help_text="Time when Open betting starts")
     open_end_time = models.TimeField(help_text="Official Open end time")
@@ -193,3 +197,23 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.txn_type} - ₹{self.amount}"
+
+
+class WithdrawalRequest(models.Model):
+    """
+    Task 13: Withdrawal requests from user.
+    """
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='withdrawals')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    upi_id = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - ₹{self.amount} ({self.status})"

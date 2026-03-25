@@ -19,20 +19,14 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
                 <div class="form-group">
-                    <label>Open Patti (e.g. 123)</label>
-                    <input type="text" name="open_patti" maxlength="3" pattern="\d{3}" placeholder="123" required style="width: 100%;">
+                    <label>Open Result (Patti-Single, e.g. 123-6)</label>
+                    <input type="text" name="open_result" placeholder="123-6" style="width: 100%;">
+                    <p style="font-size: 11px; color: var(--gray); margin-top: 4px;">Leave blank if not declaring Open result yet.</p>
                 </div>
                 <div class="form-group">
-                    <label>Open Single (0-9)</label>
-                    <input type="text" name="open_single" maxlength="1" pattern="\d{1}" placeholder="6" required style="width: 100%;">
-                </div>
-                <div class="form-group">
-                    <label>Close Single (0-9)</label>
-                    <input type="text" name="close_single" maxlength="1" pattern="\d{1}" placeholder="7" required style="width: 100%;">
-                </div>
-                <div class="form-group">
-                    <label>Close Patti (e.g. 601)</label>
-                    <input type="text" name="close_patti" maxlength="3" pattern="\d{3}" placeholder="601" required style="width: 100%;">
+                    <label>Close Result (Single-Patti, e.g. 7-601)</label>
+                    <input type="text" name="close_result" placeholder="7-601" style="width: 100%;">
+                    <p style="font-size: 11px; color: var(--gray); margin-top: 4px;">Leave blank if not declaring Close result yet.</p>
                 </div>
             </div>
 

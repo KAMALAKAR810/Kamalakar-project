@@ -4,16 +4,52 @@
     <h2 class="page-title">User Bet History</h2>
     <p class="page-sub">Comprehensive list of all user bets</p>
 
+    <!-- Task 7: Filters Section -->
+    <div class="data-panel" style="margin-bottom: 25px; padding: 20px;">
+        <form method="GET" class="row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">MARKET</label>
+                <select name="market" class="bet-input" style="padding: 10px; font-size: 13px;">
+                    <option value="">All Markets</option>
+                    {% for m in markets %}
+                        <option value="{{ m.id }}" {% if selected_market == m.id|slugify %}selected{% endif %}>{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">SECTION</label>
+                <select name="session" class="bet-input" style="padding: 10px; font-size: 13px;">
+                    <option value="">All Sections</option>
+                    <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>Open</option>
+                    <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>Close</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">USER</label>
+                <select name="user" class="bet-input" style="padding: 10px; font-size: 13px;">
+                    <option value="">All Users</option>
+                    {% for u in all_users %}
+                        <option value="{{ u.id }}" {% if selected_user == u.id|slugify %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-gold" style="padding: 10px 20px;">Filter</button>
+                <a href="{% url 'admin_bet_history' %}" class="btn-gold" style="padding: 10px 20px; background: var(--gray);">Reset</a>
+            </div>
+        </form>
+    </div>
+
     <div class="data-panel">
         <table class="app-table">
             <thead>
                 <tr>
                     <th>User ID</th>
                     <th>Username</th>
-                    <th>Mobile</th>
                     <th>Market</th>
                     <th>Date/Time</th>
                     <th>Section</th>
+                    <th>Number</th>
                     <th>Amount</th>
                     <th>Status</th>
                 </tr>
@@ -23,12 +59,12 @@
                 <tr>
                     <td>{{ bet.user.profile.user_code }}</td>
                     <td>{{ bet.user.username }}</td>
-                    <td>{{ bet.user.profile.mobile }}</td>
                     <td>{{ bet.market.name }}</td>
                     <td>{{ bet.created_at|date:"d M Y, H:i" }}</td>
                     <td>
                         <span class="game-type-pill">{{ bet.session }}</span>
                     </td>
+                    <td><strong style="color: var(--primary);">{{ bet.number }}</strong></td>
                     <td>₹{{ bet.amount }}</td>
                     <td>
                         <span class="bet-status bet-status--{{ bet.status|lower }}">

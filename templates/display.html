@@ -109,11 +109,7 @@
         <div class="market-card-body">
             <div class="result-patti">{{ market.open_patti|default:"***" }}</div>
             <div class="result-jodi">
-                {% if market.open_single and market.close_single %}
-                    {{ market.open_single }}{{ market.close_single }}
-                {% else %}
-                    **
-                {% endif %}
+                {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
             </div>
             <div class="result-patti">{{ market.close_patti|default:"***" }}</div>
         </div>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+    <h2 class="page-title">Withdraw Points</h2>
+    <p class="page-sub">Convert your game coins to INR (1 Coin = 1 INR)</p>
+
+    <div class="data-panel" style="max-width: 500px; margin: 0 auto; padding: 30px;">
+        <div style="text-align: center; margin-bottom: 25px; padding: 15px; background: #e6f3ff; border-radius: 12px;">
+            <span style="display: block; font-size: 14px; color: var(--primary); font-weight: 600;">Current Balance</span>
+            <span style="font-size: 32px; font-weight: 800; color: var(--dark);">₹{{ user.wallet.balance }}</span>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">User ID</label>
+                <input type="text" value="{{ user.profile.user_code }}" class="bet-input" readonly style="background: #f8f9fa;">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Username</label>
+                <input type="text" value="{{ user.username }}" class="bet-input" readonly style="background: #f8f9fa;">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Phone Number</label>
+                <input type="text" value="{{ user.profile.mobile }}" class="bet-input" readonly style="background: #f8f9fa;">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Withdraw Amount (Coins) *</label>
+                <input type="number" name="amount" class="bet-input" placeholder="Min ₹1" min="1" max="{{ user.wallet.balance }}" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">UPI ID (Optional)</label>
+                <input type="text" name="upi_id" class="bet-input" placeholder="example@upi">
+            </div>
+
+            <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; font-size: 16px;">SUBMIT WITHDRAWAL REQUEST</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

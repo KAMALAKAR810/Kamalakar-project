@@ -102,8 +102,8 @@
 
 <div class="auth-container">
     <div class="auth-card">
-        <h2>Create Account</h2>
-        <p class="auth-subtitle">Join Change Life With Numbers today</p>
+        <h2>Join ChangeLifeWithNumbers</h2>
+        <p class="auth-subtitle">Create an account to start your prediction journey</p>
         
         <form method="POST" enctype="multipart/form-data" class="auth-form" id="register-form">
             {% csrf_token %}
@@ -111,9 +111,9 @@
             <!-- Honeypot -->
             <input type="text" name="website" class="honeypot">
             
-            <input type="text" name="name" id="reg-name" placeholder="Full Name" required>
-            <input type="text" name="username" id="reg-username" placeholder="Choose Username" required>
-            <input type="tel" name="mobile" id="reg-mobile" placeholder="Mobile Number (10 digits)" required>
+            <input type="text" name="name" id="reg-name" placeholder="Full Name" value="{{ name|default:'' }}" required>
+            <input type="text" name="username" id="reg-username" placeholder="Choose Username" value="{{ username|default:'' }}" required>
+            <input type="tel" name="mobile" id="reg-mobile" placeholder="Mobile Number (10 digits)" value="{{ mobile|default:'' }}" required>
             
             <div class="pwd-rules">
                 <i class="fas fa-info-circle"></i> Password must be at least 8 characters and not too common.
@@ -127,6 +127,11 @@
                 <input type="file" name="profile_pic" accept="image/*" style="font-size: 12px; border: none; padding: 0;">
             </div>
             
+            <div style="margin-bottom: 15px; background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #cce5ff;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 5px;">I'm not a robot: {{ captcha_text }}</label>
+                <input type="text" name="captcha" placeholder="Enter answer" required style="margin-bottom: 0;">
+            </div>
+
             <button type="submit" class="auth-btn">Register Now</button>
         </form>
         

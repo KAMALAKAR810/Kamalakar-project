@@ -134,13 +134,36 @@
 </style>
 
 <section class="hero-section">
-    <h1>Change Life With Numbers</h1>
-    <p>The premier platform for professional number analytics and market insights. Join thousands of successful predictors today.</p>
+    <h1>Predict. Win. <span>Prosper.</span></h1>
+    <p>Welcome to <strong>ChangeLifeWithNumbers</strong>, the most secure and trusted platform for your number game predictions. Start your journey today!</p>
     <div class="cta-buttons">
-        <a href="{% url 'register' %}" class="btn-gold">Create Free Account</a>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn-gold">Create Free Account</a>
+        {% else %}
+            <a href="#how-to-play" class="btn-gold">How to Play</a>
+        {% endif %}
         <a href="tel:8217228766" class="btn-gold" style="background: var(--white); color: var(--dark) !important;">
             <i class="fas fa-phone"></i> Contact Support
         </a>
+    </div>
+</section>
+
+<!-- ... existing code ... -->
+
+<section id="how-to-play" class="faq-section" style="margin-top: 40px; background: var(--white); padding: 40px; border-radius: 16px; border: 1px solid var(--border);">
+    <div class="section-header">
+        <h2>How to Play</h2>
+    </div>
+    <div style="font-size: 15px; line-height: 1.8; color: var(--dark);">
+        <ol style="padding-left: 20px;">
+            <li><strong>Login to your account:</strong> Ensure you are logged in to access the betting markets.</li>
+            <li><strong>Add Balance:</strong> Go to the <a href="{% url 'payment' %}">Payment</a> page to add points to your wallet.</li>
+            <li><strong>Select a Game:</strong> Choose from Single, Jodi, or Patti games from the navigation menu.</li>
+            <li><strong>Choose Market & Session:</strong> Select your preferred market (e.g., Kalyan) and session (Open or Close).</li>
+            <li><strong>Enter Numbers & Amounts:</strong> Enter the amount you want to bet against your chosen numbers.</li>
+            <li><strong>Place Prediction:</strong> Click on "Place Predictions" to confirm your bet.</li>
+            <li><strong>Check History:</strong> Monitor your bets and winnings in the <a href="{% url 'bet_history' %}">History</a> section.</li>
+        </ol>
     </div>
 </section>
 
@@ -182,7 +205,7 @@
     </div>
     <div class="info-grid">
         <div class="faq-item">
-            <h3>Is Change Life With Numbers safe?</h3>
+            <h3>Is ChangeLifeWithNumbers safe?</h3>
             <p>Absolutely. We use industry-standard encryption and professional-grade security protocols to ensure your data and transactions are always protected.</p>
         </div>
         <div class="faq-item">

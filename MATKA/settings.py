@@ -37,7 +37,16 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "MATKAAPP.middleware.OneSessionPerUserMiddleware",
+    "MATKAAPP.middleware.SessionTimeoutMiddleware",
 ]
+
+# Session Security
+SESSION_COOKIE_AGE = 600  # 10 minutes in seconds
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_TIMEOUT_SECONDS = 600  # 10 minutes 
+
 
 ROOT_URLCONF = "MATKA.urls"
 
@@ -76,25 +85,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {"min_length": 10},
+        "OPTIONS": {"min_length": 6},
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-    {
-        "NAME": "MATKAAPP.validators.UppercaseValidator",
-    },
-    {
-        "NAME": "MATKAAPP.validators.LowercaseValidator",
-    },
-    {
-        "NAME": "MATKAAPP.validators.DigitValidator",
-    },
-    {
-        "NAME": "MATKAAPP.validators.SpecialCharacterValidator",
+        "NAME": "MATKAAPP.validators.MaximumLengthValidator",
+        "OPTIONS": {"max_length": 15},
     },
 ]
 
