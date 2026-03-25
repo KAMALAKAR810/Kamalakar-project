@@ -16,7 +16,7 @@ SECRET_KEY = "django-insecure-s$-ze+8omuezrz=(2!wnnwn+)d5h0nbaeep$@4zc)x%eomv2za
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -26,7 +26,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'MATKAAPP',
+    "MATKAAPP",
+    "django_recaptcha",
 ]
 
 MIDDLEWARE = [
@@ -45,7 +46,7 @@ MIDDLEWARE = [
 SESSION_COOKIE_AGE = 600  # 10 minutes in seconds
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_TIMEOUT_SECONDS = 600  # 10 minutes 
+SESSION_TIMEOUT_SECONDS = 600  # 10 minutes
 
 
 ROOT_URLCONF = "MATKA.urls"
@@ -53,7 +54,7 @@ ROOT_URLCONF = "MATKA.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, 'templates')],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -62,7 +63,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.media",  # Add this for media files in templates
-                "MATKAAPP.views._get_admin_notifications", # Added for admin dots
+                "MATKAAPP.views._get_admin_notifications",  # Added for admin dots
             ],
         },
     },
@@ -101,15 +102,15 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
 # Media files (User uploaded content)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Storage backends
 STORAGES = {
@@ -122,9 +123,20 @@ STORAGES = {
 }
 
 # Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Authentication URLs
-LOGIN_URL = 'login'  # URL name for login page
-LOGIN_REDIRECT_URL = 'index'  # Where to redirect after login
-LOGOUT_REDIRECT_URL = 'index'  # Where to redirect after logout
+LOGIN_URL = "login"  # URL name for login page
+LOGIN_REDIRECT_URL = "index"  # Where to redirect after login
+LOGOUT_REDIRECT_URL = "index"  # Where to redirect after logout
+
+
+# Google reCAPTCHA Keys
+RECAPTCHA_PUBLIC_KEY = "6Lc17JcsAAAAAK9AT9bYN8BaWSJnoozc4p8nS_5b"
+RECAPTCHA_PRIVATE_KEY = "6Lc17JcsAAAAAGKkC12Ig19GjFmSQtlVW8HHnsX9"
+
+# Optional: PythonAnywhere usually works fine, but you can force
+# the use of HTTPS for the verification request:
+RECAPTCHA_USE_SSL = True
+RECAPTCHA_VERIFY_TIMEOUT = 10
+RECAPTCHA_OPTIONS = {"theme": "light"}  # for django-recaptcha

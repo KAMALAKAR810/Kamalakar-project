@@ -243,15 +243,6 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect('index')
 
-    # Task 5: Simple arithmetic captcha
-    if request.method == 'GET':
-        a = random.randint(1, 10)
-        b = random.randint(1, 10)
-        request.session['reg_captcha_result'] = a + b
-        captcha_text = f"{a} + {b} = ?"
-    else:
-        captcha_text = ""
-
     if request.method == 'POST':
         # Honeypot — bots often fill hidden fields
         if request.POST.get("website", "").strip():
@@ -263,24 +254,25 @@ def register_view(request):
         psw = request.POST.get('password') or ''
         psw2 = request.POST.get('password2') or ''
         mob = request.POST.get('mobile') or ''
-        captcha_input = request.POST.get('captcha')
-
-        # Check captcha
-        try:
-            if int(captcha_input) != request.session.get('reg_captcha_result'):
-                messages.error(request, "Invalid captcha.")
-                a = random.randint(1, 10)
-                b = random.randint(1, 10)
-                request.session['reg_captcha_result'] = a + b
-                return render(request, 'register.html', {
-                    'name': name, 'username': user_n, 'mobile': mob,
-                    'captcha_text': f"{a} + {b} = ?"
-                })
-        except (ValueError, TypeError):
-            messages.error(request, "Invalid captcha format.")
+        
+        # Google reCAPTCHA Verification
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        import requests
+        from django.conf import settings
+        
+        verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+        verify_data = {
+            'secret': settings.RECAPTCHA_PRIVATE_KEY,
+            'response': recaptcha_response
+        }
+        
+        verify_response = requests.post(verify_url, data=verify_data)
+        verify_result = verify_response.json()
+        
+        if not verify_result.get('success'):
+            messages.error(request, "Please complete the 'I'm not a robot' verification.")
             return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob,
-                'captcha_text': captcha_text
+                'name': name, 'username': user_n, 'mobile': mob
             })
 
         if not name or not user_n:
@@ -1016,3 +1008,19 @@ def manage_markets(request):
 @user_passes_test(lambda u: u.is_staff)
 def market_bets(request):
     return render(request, "market_bets.html", {"bets": Bet.objects.all()})
+
+
+
+from django.shortcuts import render
+from .forms import MyContactForm
+
+def contact_view(request):
+    if request.method == 'POST':
+        form = MyContactForm(request.POST)
+        if form.is_valid():
+            # If we are here, Google has already confirmed they are human!
+            return render(request, 'success.html')
+    else:
+        form = MyContactForm()
+    
+    return render(request, 'contact.html', {'form': form})
