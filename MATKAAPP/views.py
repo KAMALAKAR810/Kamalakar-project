@@ -19,9 +19,17 @@ from django.db import transaction as db_transaction
 from django.db.models import Sum, Q
 from django.utils import timezone
 
-from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest
+from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification
 
-# --- WALLET & WITHDRAWAL VIEWS (Task 13) ---
+def create_notification(user, title, message):
+    Notification.objects.create(user=user, title=title, message=message)
+
+@login_required
+def notifications_view(request):
+    notifications = request.user.notifications.all()
+    # Mark all as read when viewing
+    notifications.filter(is_read=False).update(is_read=True)
+    return render(request, 'notifications.html', {'notifications': notifications})
 
 @login_required
 def wallet_view(request):
@@ -56,7 +64,14 @@ def wallet_view(request):
                 description=f"Withdrawal Request: {upi_id}"
             )
             
-        messages.success(request, "Withdrawal request submitted successfully!")
+            # Notification (Task 14)
+            create_notification(
+                request.user,
+                "Withdrawal Requested",
+                f"Your request for ₹{amount} has been submitted."
+            )
+            
+        messages.success(request, f"Withdrawal request for ₹{amount} submitted!")
         return redirect('wallet_history')
         
     return render(request, 'wallet.html')
@@ -64,9 +79,13 @@ def wallet_view(request):
 
 @login_required
 def wallet_history_view(request):
-    """User can see their withdrawal history and status."""
+    """User can see their wallet transactions and withdrawal status."""
+    transactions = Transaction.objects.filter(wallet=request.user.wallet).order_by('-created_at')
     withdrawals = WithdrawalRequest.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'wallet_history.html', {'withdrawals': withdrawals})
+    return render(request, 'wallet_history.html', {
+        'transactions': transactions,
+        'withdrawals': withdrawals
+    })
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -81,6 +100,13 @@ def admin_withdrawal_management(request):
             old_status = withdrawal.status
             withdrawal.status = new_status
             withdrawal.save()
+            
+            # Notification (Task 14)
+            create_notification(
+                withdrawal.user,
+                f"Withdrawal {new_status}",
+                f"Your withdrawal request for ₹{withdrawal.amount} has been {new_status.lower()}."
+            )
             
             # Task 13: Automatic message to user on status change
             admin_user = User.objects.filter(is_superuser=True).first()
@@ -116,11 +142,19 @@ def _markets_betting_payload():
 
 def _get_admin_notifications(request):
     """Context processor for admin notification dots. Must accept 'request'."""
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return {}
-    new_users = Profile.objects.filter(is_new=True).count()
-    unread_msgs = Message.objects.filter(receiver__is_superuser=True, is_read=False).count()
-    return {'new_users': new_users, 'unread_msgs': unread_msgs}
+    if request.user.is_authenticated:
+        unread_count = Message.objects.filter(receiver=request.user, is_read=False).count()
+        if request.user.is_superuser:
+            return {
+                'new_users': Profile.objects.filter(is_new=True).exists(),
+                'unread_msgs': unread_count
+            }
+        else:
+            return {
+                'unread_notifs': Notification.objects.filter(user=request.user, is_read=False).count(),
+                'unread_msgs': unread_count
+            }
+    return {}
 
 
 # --- PATTI NUMBER GROUPS ---
@@ -255,7 +289,8 @@ def register_view(request):
         psw2 = request.POST.get('password2') or ''
         mob = request.POST.get('mobile') or ''
         
-        # Google reCAPTCHA Verification
+        # Google reCAPTCHA Verification (Commented out)
+        """
         recaptcha_response = request.POST.get('g-recaptcha-response')
         import requests
         from django.conf import settings
@@ -274,6 +309,7 @@ def register_view(request):
             return render(request, 'register.html', {
                 'name': name, 'username': user_n, 'mobile': mob
             })
+        """
 
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
@@ -429,6 +465,13 @@ def place_bet(request):
             description=f"{game_type} - {market.name}"
         )
 
+        # Notification (Task 14)
+        create_notification(
+            request.user, 
+            "Bet Placed Successfully", 
+            f"You placed bets worth ₹{total_amount} on {market.name} ({game_type})."
+        )
+
         try:
             prof = request.user.profile
             uid_display = prof.user_code if prof.user_code else str(request.user.id)
@@ -548,13 +591,18 @@ def bet_history(request):
     bets = Bet.objects.filter(user=request.user).select_related('market').order_by('-created_at')
 
     if date_filter:
-        bets = bets.filter(date=date_filter)
-    if market_filter:
+        # Use created_at__date for filtering based on string input from date picker
+        # Also ensure we handle both 'date' field and 'created_at' field if needed,
+        # but created_at__date is more reliable for DateTimeField.
+        bets = bets.filter(created_at__date=date_filter)
+    
+    if market_filter and market_filter != '':
         bets = bets.filter(market_id=market_filter)
-    if session_filter:
+        
+    if session_filter and session_filter != '':
         bets = bets.filter(session=session_filter)
 
-    # Calculate totals
+    # Calculate totals AFTER filtering
     total_betted = bets.aggregate(Sum('amount'))['amount__sum'] or 0
     total_won = bets.aggregate(Sum('win_amount'))['win_amount__sum'] or 0
 
@@ -576,8 +624,34 @@ def bet_history(request):
 @user_passes_test(lambda u: u.is_superuser)
 def admin_bet_history(request):
     """Admin view for all user bet history with specific columns."""
+    date_filter = request.GET.get('date')
+    market_filter = request.GET.get('market')
+    user_filter = request.GET.get('user')
+    session_filter = request.GET.get('session')
+
     bets = Bet.objects.select_related('user', 'user__profile', 'market').all().order_by('-created_at')
-    return render(request, 'admin_bet_history.html', {'bets': bets})
+
+    if date_filter and date_filter != '':
+        bets = bets.filter(created_at__date=date_filter)
+    if market_filter and market_filter != '':
+        bets = bets.filter(market_id=market_filter)
+    if user_filter and user_filter != '':
+        bets = bets.filter(user_id=user_filter)
+    if session_filter and session_filter != '':
+        bets = bets.filter(session=session_filter)
+
+    markets = Market.objects.all()
+    all_users = User.objects.exclude(is_superuser=True).select_related('profile')
+
+    return render(request, 'admin_bet_history.html', {
+        'bets': bets,
+        'markets': markets,
+        'all_users': all_users,
+        'selected_date': date_filter,
+        'selected_market': market_filter,
+        'selected_user': user_filter,
+        'selected_session': session_filter,
+    })
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -585,6 +659,7 @@ def declare_result(request):
     """
     Task 11: Combined result declaration with sequential declaration support.
     Admin can declare Open result (Patti-Single) first, then Close (Single-Patti).
+    Enforced Pattern: Open: 123-1, Close: 1-123
     """
     markets = Market.objects.all()
     if request.method == "POST":
@@ -598,31 +673,45 @@ def declare_result(request):
             
         market = Market.objects.get(id=market_id)
         
-        # Handle Open Result (Patti-Single, e.g. 123-6)
-        if open_res:
-            try:
-                op, os = open_res.split('-')
-                market.open_patti = op.strip()
-                market.open_single = os.strip()
-                # Calculate winners for Open session
-                calculate_winners(market, session_to_calculate='OPEN')
-            except ValueError:
-                messages.error(request, "Invalid Open result format. Use Patti-Single (e.g. 123-6).")
-                return redirect('declare_result')
+        with db_transaction.atomic():
+            # Handle Open Result (Patti-Single, e.g. 123-6)
+            if open_res:
+                try:
+                    if '-' not in open_res:
+                        raise ValueError("Missing dash")
+                    op, os = open_res.split('-')
+                    if len(op) != 3 or len(os) != 1:
+                        raise ValueError("Invalid lengths")
+                    
+                    market.open_patti = op.strip()
+                    market.open_single = os.strip()
+                    market.open_declared_at = timezone.now()
+                    # Calculate winners for Open session
+                    calculate_winners(market, session_to_calculate='OPEN')
+                except ValueError:
+                    messages.error(request, "Invalid Open result format. Use Patti-Single (e.g. 123-1).")
+                    return redirect('declare_result')
 
-        # Handle Close Result (Single-Patti, e.g. 7-601)
-        if close_res:
-            try:
-                cs, cp = close_res.split('-')
-                market.close_single = cs.strip()
-                market.close_patti = cp.strip()
-                # Calculate winners for Close session and Jodi
-                calculate_winners(market, session_to_calculate='CLOSE')
-            except ValueError:
-                messages.error(request, "Invalid Close result format. Use Single-Patti (e.g. 7-601).")
-                return redirect('declare_result')
+            # Handle Close Result (Single-Patti, e.g. 7-601)
+            if close_res:
+                try:
+                    if '-' not in close_res:
+                        raise ValueError("Missing dash")
+                    cs, cp = close_res.split('-')
+                    if len(cs) != 1 or len(cp) != 3:
+                        raise ValueError("Invalid lengths")
+                        
+                    market.close_single = cs.strip()
+                    market.close_patti = cp.strip()
+                    market.close_declared_at = timezone.now()
+                    # Calculate winners for Close session and Jodi
+                    calculate_winners(market, session_to_calculate='CLOSE')
+                except ValueError:
+                    messages.error(request, "Invalid Close result format. Use Single-Patti (e.g. 1-123).")
+                    return redirect('declare_result')
 
-        market.save()
+            market.save()
+
         messages.success(request, f"Results updated for {market.name} successfully!")
         return redirect('declare_result')
         
@@ -632,21 +721,21 @@ def declare_result(request):
 def calculate_winners(market, session_to_calculate=None):
     """
     Business logic to compare admin result with user bets.
-    Task 11: Sequential calculation based on session.
+    Handles re-calculation if result is changed (Task 12).
     """
-    # Only calculate for PENDING bets
-    bets = Bet.objects.filter(market=market, status='PENDING')
+    # Get all bets for this market
+    bets = Bet.objects.filter(market=market)
     
     # Filter by session if specified
     if session_to_calculate:
-        # Jodi is special - it needs both Open and Close singles
         if session_to_calculate == 'CLOSE':
-            # When Close is declared, we can calculate both Close bets AND Jodi bets
+            # Close session also calculates Jodi
             bets = bets.filter(Q(session='CLOSE') | Q(game_type='JODI'))
         else:
             bets = bets.filter(session=session_to_calculate)
     
     for bet in bets:
+        old_status = bet.status
         is_winner = False
         win_ratio = 0
         
@@ -678,48 +767,78 @@ def calculate_winners(market, session_to_calculate=None):
                 elif bet.game_type == 'DOUBLE_PATTI': win_ratio = 260
                 elif bet.game_type == 'TRIPLE_PATTI': win_ratio = 700
                 
-        # 5. Jodi check (Matches against OpenSingle + CloseSingle)
+        # 5. Jodi check
         elif bet.game_type == 'JODI':
-            # Jodi number is OpenSingle + CloseSingle
             if market.open_single and market.close_single:
                 jodi_result = f"{market.open_single}{market.close_single}"
                 if bet.number == jodi_result:
                     is_winner = True
                     win_ratio = 90
             else:
-                # If either open or close single is missing, we can't decide Jodi yet
-                continue 
+                continue # Can't decide yet
         
-        if is_winner:
+        new_status = 'WIN' if is_winner else 'LOSS'
+        
+        # Determine if result for this bet is actually declared yet
+        is_declared = False
+        if bet.session == 'OPEN' and market.open_single: is_declared = True
+        elif bet.session == 'CLOSE' and market.close_single: is_declared = True
+        elif bet.game_type == 'JODI' and market.open_single and market.close_single: is_declared = True
+        
+        if not is_declared:
+            continue
+
+        if old_status == 'WIN' and new_status == 'LOSS':
+            # Was a winner, now a loser (Correction)
+            if bet.is_credited:
+                # Deduct from wallet if already credited
+                with db_transaction.atomic():
+                    wallet = bet.user.wallet
+                    wallet.balance -= Decimal(str(bet.win_amount))
+                    wallet.save()
+                    Transaction.objects.create(
+                        wallet=wallet,
+                        amount=Decimal(str(bet.win_amount)),
+                        txn_type='WITHDRAWAL',
+                        description=f"CORRECTION: {bet.game_type} - {market.name} result changed to LOSS"
+                    )
+            bet.status = 'LOSS'
+            bet.win_amount = 0
+            bet.is_credited = False
+            bet.save()
+            
+        elif (old_status == 'LOSS' or old_status == 'PENDING') and new_status == 'WIN':
+            # Was a loser or pending, now a winner
             bet.status = 'WIN'
             bet.win_amount = float(bet.amount) * win_ratio
-            # Credit to wallet
-            with db_transaction.atomic():
-                wallet = bet.user.wallet
-                wallet.balance += Decimal(str(bet.win_amount))
-                wallet.save()
-                
-                # Record the transaction
-                Transaction.objects.create(
-                    wallet=wallet,
-                    amount=Decimal(str(bet.win_amount)),
-                    txn_type='WIN',
-                    description=f"WIN: {bet.game_type} - {market.name} ({bet.number})"
-                )
-        else:
-            # Only mark as LOSS if the result for that session is actually declared
-            if bet.session == 'OPEN' and market.open_single:
-                bet.status = 'LOSS'
-            elif bet.session == 'CLOSE' and market.close_single:
-                bet.status = 'LOSS'
-            elif bet.game_type == 'JODI' and market.open_single and market.close_single:
-                bet.status = 'LOSS'
-            else:
-                continue # Keep PENDING
+            bet.is_credited = False # Will be picked up by middleware
+            bet.save()
             
+        elif old_status == 'PENDING' and new_status == 'LOSS':
+            # Just mark as loss
+            bet.status = 'LOSS'
             bet.win_amount = 0
-            
-        bet.save()
+            bet.save()
+        
+        # If it was WIN and stays WIN, but win_amount changed (unlikely in Matka but possible)
+        elif old_status == 'WIN' and new_status == 'WIN':
+            new_win_amount = float(bet.amount) * win_ratio
+            if float(bet.win_amount) != new_win_amount:
+                # Handle win amount change correction
+                diff = Decimal(str(new_win_amount)) - Decimal(str(bet.win_amount))
+                if bet.is_credited:
+                    with db_transaction.atomic():
+                        wallet = bet.user.wallet
+                        wallet.balance += diff
+                        wallet.save()
+                        Transaction.objects.create(
+                            wallet=wallet,
+                            amount=abs(diff),
+                            txn_type='WIN' if diff > 0 else 'WITHDRAWAL',
+                            description=f"CORRECTION: {bet.game_type} - {market.name} amount adjusted"
+                        )
+                bet.win_amount = new_win_amount
+                bet.save()
 
 
 @login_required
@@ -838,49 +957,49 @@ def admin_report(request):
     market_id = request.GET.get('market')
     user_id = request.GET.get('user')
     
-    bets = Bet.objects.filter(date=date_str).select_related('user', 'market', 'user__wallet')
+    if date_str and date_str != '':
+        bets = Bet.objects.filter(created_at__date=date_str).select_related('user', 'market', 'user__wallet')
+    else:
+        # Fallback to today if no date provided
+        bets = Bet.objects.filter(created_at__date=timezone.now().date()).select_related('user', 'market', 'user__wallet')
     
-    if market_id:
+    if market_id and market_id != '' and market_id != 'None':
         bets = bets.filter(market_id=market_id)
-    if user_id:
+    if user_id and user_id != '' and user_id != 'None':
         bets = bets.filter(user_id=user_id)
         
-    # Group by market and user
+    # Group by user directly using Django aggregation to avoid duplicates
+    user_stats = bets.values('user_id').annotate(
+        total_betted=Sum('amount'),
+        total_won=Sum('win_amount')
+    ).order_by('user_id')
+
     report_data = []
-    
-    # Get distinct users who bet on this date/market
-    user_ids = bets.values_list('user_id', flat=True).distinct()
-    
-    for uid in user_ids:
-        user_bets = bets.filter(user_id=uid)
-        user_obj = user_bets.first().user
-        
-        # Calculate stats per user for the selected filters
-        stats = user_bets.aggregate(
-            total_betted=Sum('amount'),
-            total_won=Sum('win_amount')
-        )
-        
+    for stat in user_stats:
+        uid = stat['user_id']
+        # Fetch the user object with profile and wallet
         try:
+            user_obj = User.objects.select_related('profile', 'wallet').get(id=uid)
             prof = user_obj.profile
             user_code = prof.user_code
-            mobile = prof.mobile
-        except Profile.DoesNotExist:
-            user_code = "N/A"
-            mobile = "N/A"
+        except (User.DoesNotExist, Profile.DoesNotExist):
+            continue # Should not happen with valid bets
             
+        total_betted = stat['total_betted'] or 0
+        total_won = stat['total_won'] or 0
+        net_pl = total_won - total_betted
+
         report_data.append({
             'user': user_obj,
             'user_code': user_code,
-            'mobile': mobile,
-            'total_betted': stats['total_betted'] or 0,
-            'total_won': stats['total_won'] or 0,
+            'total_betted': total_betted,
+            'total_won': total_won,
+            'net_pl': net_pl,
             'balance': user_obj.wallet.balance,
-            'markets': ", ".join(user_bets.values_list('market__name', flat=True).distinct())
         })
         
     markets = Market.objects.all()
-    all_users = User.objects.exclude(is_superuser=True)
+    all_users = User.objects.exclude(is_superuser=True).select_related('profile')
     
     return render(request, 'admin_report.html', {
         'report_data': report_data,
@@ -894,9 +1013,48 @@ def admin_report(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def admin_summary(request):
-    bets = Bet.objects.all()
-    total_inv = bets.aggregate(Sum("amount"))["amount__sum"] or 0
-    return render(request, "admin_summary.html", {"total_inv": total_inv})
+    """
+    Professional Dashboard for Admins.
+    """
+    from .models import User, Wallet, WithdrawalRequest, Transaction
+    from django.db.models import Sum, Count, Q
+    from django.utils import timezone
+    
+    today = timezone.now().date()
+    
+    # Core Stats
+    total_users = User.objects.exclude(is_superuser=True).count()
+    total_wallet_balance = Wallet.objects.aggregate(Sum('balance'))['balance__sum'] or 0
+    
+    # Today's activity
+    today_bets = Bet.objects.filter(created_at__date=today)
+    today_collection = today_bets.aggregate(Sum('amount'))['amount__sum'] or 0
+    today_payouts = today_bets.aggregate(Sum('win_amount'))['win_amount__sum'] or 0
+    today_profit = today_collection - today_payouts
+    
+    # Pending Withdrawals
+    pending_withdrawals = WithdrawalRequest.objects.filter(status='PENDING').count()
+    
+    # Market Summary for Today
+    market_summary = today_bets.values('market__name', 'game_type').annotate(
+        total_amount=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total_amount')
+    
+    # Recent Transactions (Last 10)
+    recent_txns = Transaction.objects.select_related('wallet__user').order_by('-created_at')[:10]
+
+    return render(request, "admin_summary.html", {
+        "today": today,
+        "total_users": total_users,
+        "total_wallet_balance": total_wallet_balance,
+        "today_collection": today_collection,
+        "today_payouts": today_payouts,
+        "today_profit": today_profit,
+        "pending_withdrawals": pending_withdrawals,
+        "market_summary": market_summary,
+        "recent_txns": recent_txns
+    })
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -939,9 +1097,9 @@ def chat_view(request, user_id=None):
         content = request.POST.get('content')
         if content:
             Message.objects.create(sender=request.user, receiver=other_user, content=content)
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'status': 'success'})
-            return redirect('chat_view', user_id=other_user.id if request.user.is_superuser else None)
+            return redirect('chat') if not request.user.is_superuser else redirect('admin_chat_user', user_id=other_user.id)
 
     # Get messages between these two users
     messages_list = Message.objects.filter(
@@ -958,9 +1116,11 @@ def chat_view(request, user_id=None):
 @user_passes_test(lambda u: u.is_superuser)
 def send_welcome_msg(request, user_id):
     """Ajax endpoint to send welcome message."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'})
     user = User.objects.get(id=user_id)
-    content = f"Hi {user.username}, welcome to MatkaPlay!"
-    Message.objects.get_or_create(sender=request.user, receiver=user, content=content)
+    content = f"Hi {user.username}, welcome to ChangeLifeWithNumbers!"
+    Message.objects.create(sender=request.user, receiver=user, content=content)
     return JsonResponse({'status': 'success'})
 
 
@@ -991,13 +1151,20 @@ def manage_markets(request):
         cst = request.POST.get('close_start_time')
         cet = request.POST.get('close_end_time')
         
+        # Replace 'T' with space if present for some DB backends, 
+        # though Django usually handles datetime-local format.
+        def parse_dt(dt_str):
+            if dt_str:
+                return dt_str.replace('T', ' ')
+            return None
+
         Market.objects.create(
             name=name,
-            collection_date=coll_date,
-            open_start_time=ost,
-            open_end_time=oet,
-            close_start_time=cst,
-            close_end_time=cet
+            collection_date=parse_dt(coll_date),
+            open_start_time=parse_dt(ost),
+            open_end_time=parse_dt(oet),
+            close_start_time=parse_dt(cst),
+            close_end_time=parse_dt(cet)
         )
         messages.success(request, f"Market '{name}' created successfully!")
         return redirect('manage_markets')

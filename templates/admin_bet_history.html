@@ -8,11 +8,15 @@
     <div class="data-panel" style="margin-bottom: 25px; padding: 20px;">
         <form method="GET" class="row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
             <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">DATE</label>
+                <input type="date" name="date" class="bet-input" value="{{ selected_date }}" style="padding: 10px; font-size: 13px;">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
                 <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">MARKET</label>
                 <select name="market" class="bet-input" style="padding: 10px; font-size: 13px;">
                     <option value="">All Markets</option>
                     {% for m in markets %}
-                        <option value="{{ m.id }}" {% if selected_market == m.id|slugify %}selected{% endif %}>{{ m.name }}</option>
+                        <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -29,7 +33,7 @@
                 <select name="user" class="bet-input" style="padding: 10px; font-size: 13px;">
                     <option value="">All Users</option>
                     {% for u in all_users %}
-                        <option value="{{ u.id }}" {% if selected_user == u.id|slugify %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
+                        <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
                     {% endfor %}
                 </select>
             </div>

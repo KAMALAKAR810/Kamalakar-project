@@ -42,11 +42,13 @@
             padding: 10px 20px;
             z-index: 1000;
             box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
         }
 
         .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 100%;
+            margin: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -139,23 +141,232 @@
             font-weight: 500;
         }
 
+        /* ── MODAL POPUP ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            animation: modalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icon {
+            font-size: 64px;
+            margin-bottom: 25px;
+            display: inline-flex;
+            width: 90px;
+            height: 90px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+
+        .modal-text {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 30px;
+            line-height: 1.5;
+            text-transform: uppercase;
+        }
+
+        .modal-btn {
+            background: #007bff;
+            color: var(--white);
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+            margin: 0 5px;
+        }
+
+        .modal-btn-cancel {
+            background: #f8f9fa;
+            color: #6c757d;
+            box-shadow: none;
+            border: 1px solid #dee2e6;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #e2e6ea;
+            color: #495057;
+        }
+
+        .modal-btn:hover { 
+            background: #0069d9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        /* ── LOADING SPINNER ── */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-success .modal-icon { color: #28a745; background: #e8f5e9; }
+        .modal-error .modal-icon { color: #dc3545; background: #ffebee; }
+        .modal-warning .modal-icon { color: #ffc107; background: #fff8e1; }
+        .modal-info .modal-icon { color: #007bff; background: #e3f2fd; }
+
         /* ── NAVIGATION ── */
         .nav-bar {
             background-color: var(--white);
             border-bottom: 1px solid var(--border);
-            overflow-x: auto;
-            scrollbar-width: none;
             position: sticky;
-            top: 76px; /* Height of header */
+            top: 76px; /* Height of header on desktop */
             z-index: 999;
         }
-        .nav-bar::-webkit-scrollbar { display: none; }
 
         .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 100%;
+            margin: 0;
             display: flex;
             padding: 0 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .nav-container::-webkit-scrollbar { display: none; }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                top: 0; /* Let it stick to top in mobile if needed, or adjust based on header */
+                position: relative; /* Better for absolute menu positioning */
+            }
+            .nav-toggle {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                justify-content: center;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                padding: 15px;
+            }
+            .nav-container {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--white);
+                box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+                border-top: 1px solid var(--border);
+                z-index: 1001;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            .nav-container.show {
+                display: flex;
+            }
+            .nav-link {
+                width: 100%;
+                border-bottom: 1px solid var(--border);
+                padding: 18px 25px !important;
+                text-align: left;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .nav-link::after {
+                content: '\f105';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                opacity: 0.5;
+            }
+            .nav-divider {
+                display: block;
+                width: 100%;
+                height: 40px;
+                background: #f8f9fa;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                padding-left: 25px;
+                font-size: 11px;
+                font-weight: 800;
+                color: var(--gray);
+                text-transform: uppercase;
+            }
+            .nav-divider::before {
+                content: "ADMINISTRATOR TOOLS";
+            }
+            .admin-link {
+                margin-left: 0 !important;
+                border: none !important;
+                background: #fffafa;
+                color: var(--danger);
+            }
+            .admin-link.active {
+                background: var(--danger) !important;
+            }
         }
 
         .nav-link {
@@ -169,14 +380,29 @@
             transition: var(--transition);
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover {
             color: var(--primary);
-            border-bottom-color: var(--primary);
             background-color: rgba(0, 102, 204, 0.05);
+        }
+
+        .nav-link.active {
+            color: var(--white) !important;
+            background-color: var(--primary) !important;
+            border-bottom-color: var(--secondary);
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 24px;
+            background-color: var(--border);
+            margin: 0 10px;
+            flex-shrink: 0;
         }
 
         .admin-link {
             color: var(--danger);
+            border: 1px dashed var(--primary);
+            margin-left: 5px;
         }
         .admin-link:hover {
             background-color: rgba(220, 53, 69, 0.05);
@@ -462,10 +688,18 @@
         
         <div class="user-panel">
             {% if user.is_authenticated %}
-                <div class="wallet-info" id="wallet-display" title="Currency Conversion (INR to USD)">
+                <a href="{% url 'chat' %}" class="wallet-info" style="background: #fff; border: 1px solid var(--border); padding: 8px 12px; text-decoration: none; position: relative;" title="Messages">
+                    <i class="fas fa-bell" style="color: var(--gray);"></i>
+                    {% if unread_msgs %}
+                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid white;">
+                            {{ unread_msgs }}
+                        </span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'wallet_history' %}" class="wallet-info" id="wallet-display" title="Wallet Balance (Click for History)" style="text-decoration: none;">
                     <i class="fas fa-wallet"></i>
                     ₹<span id="user-balance">0.00</span>
-                </div>
+                </a>
                 <div class="user-meta">
                     {% if user.profile.profile_pic %}
                         <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="user-avatar">
@@ -487,7 +721,12 @@
 </header>
 
 <nav class="nav-bar">
-    <div class="nav-container">
+    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 100%; padding: 0 10px;">
+        <button class="nav-toggle" id="nav-toggle-btn">
+            <i class="fas fa-bars"></i> Menu
+        </button>
+    </div>
+    <div class="nav-container" id="nav-menu">
         <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">HOME</a>
         <a href="{% url 'single' %}" class="nav-link {% if request.resolver_match.url_name == 'single' %}active{% endif %}">SINGLE</a>
         <a href="{% url 'jodi' %}" class="nav-link {% if request.resolver_match.url_name == 'jodi' %}active{% endif %}">JODI</a>
@@ -495,31 +734,43 @@
         <a href="{% url 'double_pathi' %}" class="nav-link {% if request.resolver_match.url_name == 'double_pathi' %}active{% endif %}">D-PATTI</a>
         <a href="{% url 'tripple_pathi' %}" class="nav-link {% if request.resolver_match.url_name == 'tripple_pathi' %}active{% endif %}">T-PATTI</a>
         <a href="{% url 'wallet' %}" class="nav-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">WITHDRAW</a>
-        <a href="{% url 'wallet_history' %}" class="nav-link {% if request.resolver_match.url_name == 'wallet_history' %}active{% endif %}">WALLET HISTORY</a>
+        <a href="{% url 'notifications' %}" class="nav-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" style="position: relative;">
+            NOTIFICATIONS
+            {% if unread_notifs %}
+                <span style="position: absolute; top: 12px; right: 8px; width: 6px; height: 6px; background: var(--danger); border-radius: 50%;"></span>
+            {% endif %}
+        </a>
         <a href="{% url 'payment' %}" class="nav-link {% if request.resolver_match.url_name == 'payment' %}active{% endif %}">ADD COINS</a>
-        <a href="{% url 'chat' %}" class="nav-link {% if request.resolver_match.url_name == 'chat' %}active{% endif %}">CHAT</a>
+        <a href="{% url 'chat' %}" class="nav-link {% if request.resolver_match.url_name == 'chat' %}active{% endif %}" style="position: relative;">
+            CHAT
+            {% if unread_msgs %}
+                <span style="position: absolute; top: 12px; right: 8px; width: 6px; height: 6px; background: var(--danger); border-radius: 50%;"></span>
+            {% endif %}
+        </a>
         <a href="{% url 'bet_history' %}" class="nav-link {% if request.resolver_match.url_name == 'bet_history' %}active{% endif %}">HISTORY</a>
         
         {% if user.is_superuser %}
-            <a href="{% url 'admin_user_management' %}" class="nav-link admin-link" style="position: relative;">
+            <div class="nav-divider"></div>
+            <a href="{% url 'admin_summary' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">DASHBOARD</a>
+            <a href="{% url 'admin_user_management' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_user_management' %}active{% endif %}" style="position: relative;">
                 USERS
                 {% if new_users %}
                     <span style="position: absolute; top: 12px; right: 8px; width: 6px; height: 6px; background: var(--danger); border-radius: 50%;"></span>
                 {% endif %}
             </a>
-            <a href="{% url 'admin_chat_list' %}" class="nav-link admin-link" style="position: relative;">
+            <a href="{% url 'admin_chat_list' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_chat_list' %}active{% endif %}" style="position: relative;">
                 ADMIN CHAT
                 {% if unread_msgs %}
                     <span style="position: absolute; top: 12px; right: 8px; width: 6px; height: 6px; background: var(--danger); border-radius: 50%;"></span>
                 {% endif %}
             </a>
-            <a href="{% url 'admin_bet_history' %}" class="nav-link admin-link">USER BETS</a>
-            <a href="{% url 'admin_withdrawal_management' %}" class="nav-link admin-link">WITHDRAWALS</a>
-            <a href="{% url 'jodi_winners' %}" class="nav-link admin-link">JODI WINNERS</a>
-            <a href="{% url 'admin_report' %}" class="nav-link admin-link">REPORT</a>
-            <a href="{% url 'organize_data' %}" class="nav-link admin-link">ORGANIZE</a>
-            <a href="{% url 'declare_result' %}" class="nav-link admin-link">DECLARE</a>
-            <a href="{% url 'winners_list' %}" class="nav-link admin-link">WINNERS</a>
+            <a href="{% url 'admin_bet_history' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_bet_history' %}active{% endif %}">USER BETS</a>
+            <a href="{% url 'admin_withdrawal_management' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_withdrawal_management' %}active{% endif %}">WITHDRAWALS</a>
+            <a href="{% url 'jodi_winners' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'jodi_winners' %}active{% endif %}">JODI WINNERS</a>
+            <a href="{% url 'admin_report' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_report' %}active{% endif %}">REPORT</a>
+            <a href="{% url 'organize_data' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'organize_data' %}active{% endif %}">ORGANIZE</a>
+            <a href="{% url 'declare_result' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'declare_result' %}active{% endif %}">DECLARE</a>
+            <a href="{% url 'winners_list' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'winners_list' %}active{% endif %}">WINNERS</a>
             <a href="{% url 'admin:index' %}" class="nav-link admin-link">DJANGO ADMIN</a>
         {% endif %}
     </div>
@@ -528,13 +779,6 @@
 <main class="main-content">
 
 
-
-
-    <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit</button>
-</form>
 
 
 
@@ -564,7 +808,7 @@
         <div class="footer-links">
             <h3>Support</h3>
             <p style="color: #aaa; font-size: 14px; margin-bottom: 10px;"><i class="fas fa-envelope"></i> support@changelifewithnumbers.com</p>
-            <p style="color: #aaa; font-size: 14px;"><i class="fas fa-phone"></i> +91 8217228766</p>
+            <p style="color: #aaa; font-size: 14px;"><i class="fab fa-whatsapp"></i> +91 7026734598</p>
         </div>
     </div>
     <div class="footer-bottom">
@@ -572,6 +816,7 @@
     </div>
 </footer>
 
+<!-- reCAPTCHA Overlay (Commented out)
 <div id="captcha-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); z-index: 99999; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;">
     <img src="{% static 'logo.jpeg' %}" style="height: 100px; margin-bottom: 30px; border-radius: 12px;">
     <h1 style="margin-bottom: 10px;">Security Verification</h1>
@@ -604,37 +849,143 @@
 
     window.addEventListener('DOMContentLoaded', initCaptcha);
 </script>
+-->
 
-<!-- Toast Notifications -->
-{% if messages %}
-<div id="msg-overlay">
-    {% for message in messages %}
-        <div class="alert-toast {{ message.tags }}">
-            <div class="alert-icon">
-                {% if message.tags == 'success' %}
-                    <i class="fas fa-check-circle"></i>
-                {% elif message.tags == 'error' %}
-                    <i class="fas fa-times-circle"></i>
-                {% else %}
-                    <i class="fas fa-exclamation-circle"></i>
-                {% endif %}
-            </div>
-            <div class="alert-msg">{{ message }}</div>
-            <div class="close-alert" onclick="this.parentElement.remove()">&times;</div>
-        </div>
-    {% endfor %}
-</div>
 <script>
-    setTimeout(() => {
-        const overlay = document.getElementById('msg-overlay');
-        if (overlay) {
-            overlay.style.opacity = '0';
-            overlay.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => overlay.remove(), 500);
+    // Mobile Nav Toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('nav-toggle-btn');
+        const navMenu = document.getElementById('nav-menu');
+
+        if (toggleBtn && navMenu) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                navMenu.classList.toggle('show');
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!navMenu.contains(event.target) && !toggleBtn.contains(event.target)) {
+                    navMenu.classList.remove('show');
+                }
+            });
         }
-    }, 5000);
+    });
 </script>
-{% endif %}
+
+<script>
+    // Restore Nav Scroll Position
+    document.addEventListener("DOMContentLoaded", function() {
+        const navBar = document.querySelector(".nav-bar");
+        if (navBar) {
+            const scrollPos = localStorage.getItem("navScrollPos");
+            if (scrollPos) {
+                navBar.scrollLeft = scrollPos;
+            }
+
+            navBar.addEventListener("scroll", function() {
+                localStorage.setItem("navScrollPos", navBar.scrollLeft);
+            });
+        }
+    });
+</script>
+
+<!-- Modal Notification -->
+<div id="modal-notification" class="modal-overlay">
+    <div class="modal-content" id="modal-container">
+        <div class="modal-icon"><i id="modal-icon-i" class="fas"></i></div>
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-text" id="modal-text"></div>
+        <div id="modal-actions" style="display: flex; justify-content: center; gap: 10px;">
+            <button id="modal-btn-confirm" class="modal-btn">OK</button>
+            <button id="modal-btn-cancel" class="modal-btn modal-btn-cancel" style="display: none;" onclick="closeModal(false)">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+</div>
+
+<script>
+    let modalCallback = null;
+
+    function showModal(title, text, type = 'info', callback = null) {
+        const modal = document.getElementById('modal-notification');
+        const container = document.getElementById('modal-container');
+        const iconI = document.getElementById('modal-icon-i');
+        const titleEl = document.getElementById('modal-title');
+        const textEl = document.getElementById('modal-text');
+        const btnConfirm = document.getElementById('modal-btn-confirm');
+        const btnCancel = document.getElementById('modal-btn-cancel');
+
+        modalCallback = callback;
+
+        container.className = 'modal-content modal-' + type;
+        titleEl.innerText = title;
+        textEl.innerText = text;
+        
+        btnConfirm.innerText = "OK";
+        btnConfirm.onclick = () => closeModal(true);
+        btnCancel.style.display = "none";
+
+        iconI.className = 'fas';
+        if (type === 'success') iconI.classList.add('fa-check-circle');
+        else if (type === 'error') iconI.classList.add('fa-times-circle');
+        else if (type === 'warning') iconI.classList.add('fa-exclamation-triangle');
+        else iconI.classList.add('fa-info-circle');
+
+        modal.style.display = 'flex';
+    }
+
+    function showConfirm(title, text, callback) {
+        const modal = document.getElementById('modal-notification');
+        const container = document.getElementById('modal-container');
+        const iconI = document.getElementById('modal-icon-i');
+        const titleEl = document.getElementById('modal-title');
+        const textEl = document.getElementById('modal-text');
+        const btnConfirm = document.getElementById('modal-btn-confirm');
+        const btnCancel = document.getElementById('modal-btn-cancel');
+
+        modalCallback = callback;
+
+        container.className = 'modal-content modal-warning';
+        titleEl.innerText = title;
+        textEl.innerText = text;
+
+        btnConfirm.innerText = "Yes, Continue";
+        btnConfirm.onclick = () => closeModal(true);
+        btnCancel.style.display = "inline-block";
+
+        iconI.className = 'fas fa-question-circle';
+        modal.style.display = 'flex';
+    }
+
+    function closeModal(confirmed = false) {
+        document.getElementById('modal-notification').style.display = 'none';
+        if (modalCallback && typeof modalCallback === 'function') {
+            modalCallback(confirmed);
+        }
+        modalCallback = null;
+    }
+
+    function showLoading(show = true) {
+        document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+    }
+
+    // Handle Django Messages as Modals
+    {% if messages %}
+        window.addEventListener('load', () => {
+            {% for message in messages %}
+                showModal(
+                    "{% if message.tags == 'success' %}Success{% elif message.tags == 'error' %}Error{% else %}Notice{% endif %}",
+                    "{{ message|escapejs }}",
+                    "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
+                );
+            {% endfor %}
+        });
+    {% endif %}
+</script>
 
 <script>
     {% if user.is_authenticated %}

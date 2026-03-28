@@ -105,7 +105,7 @@
     function generateQR() {
         const amt = document.getElementById('pay-amount').value;
         if (!amt || amt < 100) {
-            alert('Please enter amount (Min ₹100)');
+            showModal("Attention", "Please enter amount (Min ₹100)", "warning");
             return;
         }
 

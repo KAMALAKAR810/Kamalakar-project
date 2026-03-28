@@ -16,7 +16,7 @@
                 <select name="market" class="bet-input" style="padding: 10px; font-size: 13px;">
                     <option value="">All Markets</option>
                     {% for m in markets %}
-                        <option value="{{ m.id }}" {% if selected_market == m.id|slugify %}selected{% endif %}>{{ m.name }}</option>
+                        <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -25,7 +25,7 @@
                 <select name="user" class="bet-input" style="padding: 10px; font-size: 13px;">
                     <option value="">All Users</option>
                     {% for u in all_users %}
-                        <option value="{{ u.id }}" {% if selected_user == u.id|slugify %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
+                        <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
                     {% endfor %}
                 </select>
             </div>
@@ -38,13 +38,13 @@
 
     <div class="data-panel">
     {% if report_data %}
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--primary);">Filtered Individual User Data</h3>
     <div style="overflow-x: auto;">
         <table class="app-table table table-bordered" style="width: 100%;">
             <thead>
                 <tr>
                     <th>User ID</th>
                     <th>User Name</th>
-                    <th>Markets Played</th>
                     <th>Total Betted</th>
                     <th>Total Won</th>
                     <th>Current Balance</th>
@@ -56,15 +56,16 @@
                 <tr>
                     <td><strong style="color: var(--primary);">{{ data.user_code }}</strong></td>
                     <td>{{ data.user.username }}</td>
-                    <td style="font-size: 12px;">{{ data.markets }}</td>
                     <td style="font-weight: 600;">₹{{ data.total_betted }}</td>
                     <td style="font-weight: 600; color: var(--success);">₹{{ data.total_won }}</td>
                     <td style="font-weight: 600;">₹{{ data.balance }}</td>
-                    <td style="font-weight: 700; color: {% if data.total_won > data.total_betted %}var(--success){% else %}var(--danger){% endif %};">
-                        ₹{{ data.total_won|add:"-data.total_betted" }}
-                        {% with pl=data.total_won|add:"-data.total_betted" %}
-                            {% if pl > 0 %}(Profit){% else %}(Loss){% endif %}
-                        {% endwith %}
+                    <td style="font-weight: 700; color: {% if data.net_pl > 0 %}var(--success){% elif data.net_pl < 0 %}#dc3545{% else %}var(--dark){% endif %};">
+                        {% if data.total_won == data.total_betted %}
+                            ----
+                        {% else %}
+                            ₹{{ data.net_pl }}
+                            {% if data.net_pl > 0 %}(Profit){% else %}(Loss){% endif %}
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

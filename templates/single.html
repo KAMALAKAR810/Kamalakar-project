@@ -86,7 +86,19 @@
             return;
         }
 
-        const isAllowed = session === 'OPEN' ? market.open : market.close;
+        // Show/Hide session options based on availability
+        const openOpt = sessionSelect.querySelector('option[value="OPEN"]');
+        const closeOpt = sessionSelect.querySelector('option[value="CLOSE"]');
+        
+        if (!market.open && session === 'OPEN') {
+            // If currently selected session is OPEN but it's not allowed, 
+            // try to switch to CLOSE if allowed, otherwise keep OPEN but disabled
+            if (market.close) {
+                sessionSelect.value = 'CLOSE';
+            }
+        }
+
+        const isAllowed = sessionSelect.value === 'OPEN' ? market.open : market.close;
         
         if (isAllowed) {
             statusText.innerHTML = '<i class="fas fa-check-circle"></i> Market is OPEN for betting';
@@ -127,12 +139,13 @@
         });
 
         if (Object.keys(bets).length === 0) {
-            alert("Please enter at least one prediction amount.");
+            showModal("Attention", "Please enter at least one prediction amount.", "warning");
             return;
         }
 
         submitBtn.disabled = true;
         submitBtn.textContent = "Processing...";
+        showLoading(true);
 
         try {
             const response = await fetch('/api/place-bet/', {
@@ -150,16 +163,19 @@
             });
 
             const data = await response.json();
+            showLoading(false);
             if (data.status === 'success') {
-                alert("Predictions placed successfully!");
-                window.location.href = "{% url 'bet_history' %}";
+                showModal("Success", "Predictions placed successfully!", "success", () => {
+                    window.location.href = "{% url 'bet_history' %}";
+                });
             } else {
-                alert(data.message);
+                showModal("Error", data.message, "error");
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Place Predictions";
             }
         } catch (err) {
-            alert("An error occurred. Please try again.");
+            showLoading(false);
+            showModal("Error", "An error occurred. Please try again.", "error");
             submitBtn.disabled = false;
             submitBtn.textContent = "Place Predictions";
         }

@@ -16,7 +16,7 @@
                 <select name="market" class="bet-input" style="padding: 10px; font-size: 13px;">
                     <option value="">All Markets</option>
                     {% for m in markets %}
-                        <option value="{{ m.id }}" {% if selected_market == m.id|slugify %}selected{% endif %}>{{ m.name }}</option>
+                        <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
                     {% endfor %}
                 </select>
             </div>

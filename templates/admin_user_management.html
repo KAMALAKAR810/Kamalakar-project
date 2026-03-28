@@ -55,17 +55,29 @@
 
 <script>
     function sendWelcome(userId) {
-        if (!confirm('Send welcome message to this user?')) return;
-        
-        fetch(`/api/send-welcome/${userId}/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-        })
-        .then(r => r.json())
-        .then(d => {
-            if (d.status === 'success') alert('Message sent!');
-            else alert('Error sending message.');
-        });
+        showConfirm(
+            "Send Message?", 
+            "Do you want to send a welcome message to this user?", 
+            (confirmed) => {
+                if (!confirmed) return;
+                
+                showLoading(true);
+                fetch(`/api/send-welcome/${userId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                })
+                .then(r => r.json())
+                .then(d => {
+                    showLoading(false);
+                    if (d.status === 'success') showModal("Success", "Welcome message sent successfully!", "success");
+                    else showModal("Error", "Error sending message.", "error");
+                })
+                .catch(() => {
+                    showLoading(false);
+                    showModal("Error", "A connection error occurred.", "error");
+                });
+            }
+        );
     }
 </script>
 {% endblock %}

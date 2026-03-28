@@ -33,6 +33,7 @@ urlpatterns = [
     path("payment/", views.payment_page, name="payment"),
     path("wallet/", views.wallet_view, name="wallet"),
     path("wallet-history/", views.wallet_history_view, name="wallet_history"),
+    path("notifications/", views.notifications_view, name="notifications"),
     path("admin-withdrawals/", views.admin_withdrawal_management, name="admin_withdrawal_management"),
 
     # --- History ---

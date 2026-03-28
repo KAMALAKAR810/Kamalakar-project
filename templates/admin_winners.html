@@ -1,13 +1,64 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .market-results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .market-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    .market-card-header {
+        background: var(--primary);
+        color: var(--white);
+        padding: 12px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .market-name { font-weight: 700; font-size: 14px; text-transform: uppercase; }
+    .market-card-body {
+        padding: 20px 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        background: linear-gradient(to bottom, #fff, #f8f9fa);
+    }
+    .result-patti { font-size: 16px; font-weight: 600; color: var(--gray); letter-spacing: 2px; }
+    .result-jodi {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--dark);
+        border-left: 2px solid var(--border);
+        border-right: 2px solid var(--border);
+        padding: 0 15px;
+    }
+</style>
+
 <div class="page-shell">
     <h2 class="page-title">Winners (PASS) List</h2>
     
     {% if latest_result %}
-    <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: #1a1a1a; color: var(--primary-gold); border-radius: 12px; border: 2px solid var(--primary-gold);">
-        <h3 style="margin-top: 0; font-size: 24px;">{{ latest_result.name }} Result</h3>
-        <div style="font-size: 32px; font-weight: 800; letter-spacing: 5px;">
-            {{ latest_result.open_patti }} - {{ latest_result.open_single }} | {{ latest_result.close_single }} - {{ latest_result.close_patti }}
+    <div class="market-results-grid">
+        <div class="market-card" style="margin: 0 auto; min-width: 350px;">
+            <div class="market-card-header">
+                <span class="market-name">{{ latest_result.name }}</span>
+                <span class="market-time">RESULT DECLARED</span>
+            </div>
+            <div class="market-card-body">
+                <div class="result-patti">{{ latest_result.open_patti|default:"***" }}</div>
+                <div class="result-jodi">
+                    {% if latest_result.open_single %}{{ latest_result.open_single }}{% else %}*{% endif %}{% if latest_result.close_single %}{{ latest_result.close_single }}{% else %}*{% endif %}
+                </div>
+                <div class="result-patti">{{ latest_result.close_patti|default:"***" }}</div>
+            </div>
         </div>
     </div>
     {% endif %}
@@ -60,12 +111,22 @@
                     <td><span class="game-type-pill">{{ w.game_type }}</span></td>
                     <td>
                         <span style="font-weight: 700;">
-                            {% if w.game_type == 'JODI' %}
-                                {{ w.market.open_single }}{{ w.market.close_single }}
-                            {% elif w.session == 'OPEN' %}
-                                {{ w.market.open_patti }}-{{ w.market.open_single }}
+                            {% if w.game_type == 'SINGLE' %}
+                                {% if w.session == 'OPEN' %}
+                                    {{ w.market.open_single|default:"*" }}
+                                {% else %}
+                                    {{ w.market.close_single|default:"*" }}
+                                {% endif %}
+                            {% elif w.game_type == 'JODI' %}
+                                {% if w.market.open_single %}{{ w.market.open_single }}{% else %}*{% endif %}{% if w.market.close_single %}{{ w.market.close_single }}{% else %}*{% endif %}
+                            {% elif w.game_type == 'TRIPLE_PATTI' %}
+                                {% if w.session == 'OPEN' %}
+                                    {{ w.market.open_patti|default:"***" }}
+                                {% else %}
+                                    {{ w.market.close_patti|default:"***" }}
+                                {% endif %}
                             {% else %}
-                                {{ w.market.close_single }}-{{ w.market.close_patti }}
+                                {{ w.market.open_patti|default:"***" }} - {{ w.market.close_patti|default:"***" }}
                             {% endif %}
                         </span>
                     </td>

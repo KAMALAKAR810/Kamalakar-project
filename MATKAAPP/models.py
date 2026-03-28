@@ -116,35 +116,46 @@ class Market(models.Model):
     # Task 16: Collection date for the market
     collection_date = models.DateTimeField(null=True, blank=True, help_text="Market specific collection date and time")
 
-    open_start_time = models.TimeField(help_text="Time when Open betting starts")
-    open_end_time = models.TimeField(help_text="Official Open end time")
+    open_start_time = models.DateTimeField(help_text="Time when Open betting starts")
+    open_end_time = models.DateTimeField(help_text="Official Open end time")
 
-    close_start_time = models.TimeField(help_text="Time when Close betting starts")
-    close_end_time = models.TimeField(help_text="Official Close end time")
+    close_start_time = models.DateTimeField(help_text="Time when Close betting starts")
+    close_end_time = models.DateTimeField(help_text="Official Close end time")
 
     # Admin Results
     open_patti = models.CharField(max_length=3, blank=True, null=True)
     open_single = models.CharField(max_length=1, blank=True, null=True)
+    open_declared_at = models.DateTimeField(null=True, blank=True)
+
     close_patti = models.CharField(max_length=3, blank=True, null=True)
     close_single = models.CharField(max_length=1, blank=True, null=True)
+    close_declared_at = models.DateTimeField(null=True, blank=True)
 
     def is_betting_allowed(self, session_type):
         """
         User can bet between start_time and (end_time - 10 mins).
         Last 10 mins is locked.
+        Also, if result is declared, betting is CLOSED.
         """
-        now = timezone.localtime().time()
+        now = timezone.localtime()
 
         if session_type == 'OPEN':
+            # If open result is declared, no more betting for OPEN
+            if self.open_single or self.open_patti:
+                return False
             start = self.open_start_time
             end = self.open_end_time
         else:
+            # If close result is declared, no more betting for CLOSE
+            if self.close_single or self.close_patti:
+                return False
             start = self.close_start_time
             end = self.close_end_time
 
-        dummy_date = datetime.today()
-        end_dt = datetime.combine(dummy_date, end)
-        lockout_limit = (end_dt - timedelta(minutes=10)).time()
+        if not start or not end:
+            return False
+
+        lockout_limit = end - timedelta(minutes=10)
 
         return start <= now <= lockout_limit
 
@@ -174,6 +185,8 @@ class Bet(models.Model):
     amount = models.PositiveIntegerField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     win_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    is_credited = models.BooleanField(default=False, help_text="True if winning amount is added to wallet")
+    credited_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -197,6 +210,20 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.txn_type} - ₹{self.amount}"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=100)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.title}"
 
 
 class WithdrawalRequest(models.Model):

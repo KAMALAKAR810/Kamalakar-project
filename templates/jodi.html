@@ -121,12 +121,13 @@
         });
 
         if (Object.keys(bets).length === 0) {
-            alert("Please enter at least one prediction amount.");
+            showModal("Attention", "Please enter at least one prediction amount.", "warning");
             return;
         }
 
         submitBtn.disabled = true;
         submitBtn.textContent = "Processing...";
+        showLoading(true);
 
         try {
             const response = await fetch('/api/place-bet/', {
@@ -144,16 +145,19 @@
             });
 
             const data = await response.json();
+            showLoading(false);
             if (data.status === 'success') {
-                alert("Predictions placed successfully!");
-                window.location.href = "{% url 'bet_history' %}";
+                showModal("Success", "Predictions placed successfully!", "success", () => {
+                    window.location.href = "{% url 'bet_history' %}";
+                });
             } else {
-                alert(data.message);
+                showModal("Error", data.message, "error");
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Place Predictions";
             }
         } catch (err) {
-            alert("An error occurred. Please try again.");
+            showLoading(false);
+            showModal("Error", "An error occurred. Please try again.", "error");
             submitBtn.disabled = false;
             submitBtn.textContent = "Place Predictions";
         }

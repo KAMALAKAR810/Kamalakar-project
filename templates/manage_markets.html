@@ -5,14 +5,6 @@
     <h2 class="page-title">Manage Matka Markets</h2>
     <p class="page-sub">Only admins can view and update markets.</p>
 
-    {% if messages %}
-        <div class="data-panel" style="margin-bottom: 16px;">
-            {% for message in messages %}
-                <div class="alert alert-success" style="margin:0;">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
     <div class="data-panel">
         <form method="POST">
             {% csrf_token %}
@@ -30,20 +22,20 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="form-group">
-                    <label>Open Start Time</label>
-                    <input type="time" name="open_start_time" class="bet-input" required>
+                    <label>Open Start Date & Time</label>
+                    <input type="datetime-local" name="open_start_time" class="bet-input" required>
                 </div>
                 <div class="form-group">
-                    <label>Open End Time</label>
-                    <input type="time" name="open_end_time" class="bet-input" required>
+                    <label>Open End Date & Time</label>
+                    <input type="datetime-local" name="open_end_time" class="bet-input" required>
                 </div>
                 <div class="form-group">
-                    <label>Close Start Time</label>
-                    <input type="time" name="close_start_time" class="bet-input" required>
+                    <label>Close Start Date & Time</label>
+                    <input type="datetime-local" name="close_start_time" class="bet-input" required>
                 </div>
                 <div class="form-group">
-                    <label>Close End Time</label>
-                    <input type="time" name="close_end_time" class="bet-input" required>
+                    <label>Close End Date & Time</label>
+                    <input type="datetime-local" name="close_end_time" class="bet-input" required>
                 </div>
             </div>
 
@@ -65,8 +57,8 @@
                 <tr>
                     <td><strong style="color: var(--primary);">{{ market.name }}</strong></td>
                     <td>{{ market.collection_date|date:"d M Y, H:i" }}</td>
-                    <td>{{ market.open_start_time|time:"H:i" }} - {{ market.open_end_time|time:"H:i" }}</td>
-                    <td>{{ market.close_start_time|time:"H:i" }} - {{ market.close_end_time|time:"H:i" }}</td>
+                    <td>{{ market.open_start_time|date:"d M Y, H:i" }} - {{ market.open_end_time|date:"d M Y, H:i" }}</td>
+                    <td>{{ market.close_start_time|date:"d M Y, H:i" }} - {{ market.close_end_time|date:"d M Y, H:i" }}</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="3" class="text-center">No markets defined yet.</td></tr>

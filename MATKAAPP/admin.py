@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils import timezone
-from .models import Profile, Wallet, Market, Bet, Transaction, RegistrationCounter
+from .models import Profile, Wallet, Market, Bet, Transaction, RegistrationCounter, Message, Notification
 
 
 # --- INLINES ---
@@ -29,11 +29,13 @@ class MarketAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
     def get_status(self, obj):
-        now = timezone.localtime().time()
-        if obj.open_start_time <= now <= obj.open_end_time:
-            return "✅ OPEN ACTIVE"
-        elif obj.close_start_time <= now <= obj.close_end_time:
-            return "✅ CLOSE ACTIVE"
+        now = timezone.localtime()
+        if obj.open_start_time and obj.open_end_time:
+            if obj.open_start_time <= now <= obj.open_end_time:
+                return "✅ OPEN ACTIVE"
+        if obj.close_start_time and obj.close_end_time:
+            if obj.close_start_time <= now <= obj.close_end_time:
+                return "✅ CLOSE ACTIVE"
         return "❌ CLOSED"
 
     get_status.short_description = 'Betting Status'
@@ -94,3 +96,17 @@ class RegistrationCounterAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('sender', 'receiver', 'content', 'created_at', 'is_read')
+    list_filter = ('created_at', 'is_read')
+    search_fields = ('content', 'sender__username', 'receiver__username')
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'title', 'is_read', 'created_at')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('title', 'message', 'user__username')

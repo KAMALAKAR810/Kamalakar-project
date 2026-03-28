@@ -40,6 +40,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "MATKAAPP.middleware.OneSessionPerUserMiddleware",
     "MATKAAPP.middleware.SessionTimeoutMiddleware",
+    "MATKAAPP.middleware.DelayedWinningCreditMiddleware",
 ]
 
 # Session Security
