@@ -4,7 +4,7 @@ import re
 import random
 from datetime import timedelta
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -19,7 +19,7 @@ from django.db import transaction as db_transaction
 from django.db.models import Sum, Q
 from django.utils import timezone
 
-from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification
+from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory
 
 def create_notification(user, title, message):
     Notification.objects.create(user=user, title=title, message=message)
@@ -1135,6 +1135,50 @@ def payment_page(request):
         'user_code': profile.user_code or "N/A",
         'upi_id': '8217228766@ibl'
     })
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def reset_market(request, market_id):
+    """
+    Task: Reset a market, archive its results and timing into MarketHistory.
+    """
+    market = get_object_or_404(Market, id=market_id)
+    
+    # Archive current data
+    MarketHistory.objects.create(
+        market=market,
+        collection_date=market.collection_date,
+        open_patti=market.open_patti,
+        open_single=market.open_single,
+        close_patti=market.close_patti,
+        close_single=market.close_single
+    )
+    
+    # Reset market fields to None (allowing re-entry for a new cycle)
+    market.collection_date = None
+    market.open_start_time = None
+    market.open_end_time = None
+    market.close_start_time = None
+    market.close_end_time = None
+    market.open_patti = None
+    market.open_single = None
+    market.open_declared_at = None
+    market.close_patti = None
+    market.close_single = None
+    market.close_declared_at = None
+    market.save()
+    
+    messages.success(request, f"Market '{market.name}' has been reset and archived successfully.")
+    return redirect('manage_markets')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def market_history_view(request):
+    """
+    View for admin to see all archived market history.
+    """
+    history = MarketHistory.objects.select_related('market').all()
+    return render(request, 'admin_market_history.html', {'history': history})
 
 
 @user_passes_test(lambda u: u.is_staff)

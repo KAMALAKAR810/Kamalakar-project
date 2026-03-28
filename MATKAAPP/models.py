@@ -116,11 +116,11 @@ class Market(models.Model):
     # Task 16: Collection date for the market
     collection_date = models.DateTimeField(null=True, blank=True, help_text="Market specific collection date and time")
 
-    open_start_time = models.DateTimeField(help_text="Time when Open betting starts")
-    open_end_time = models.DateTimeField(help_text="Official Open end time")
+    open_start_time = models.DateTimeField(null=True, blank=True, help_text="Time when Open betting starts")
+    open_end_time = models.DateTimeField(null=True, blank=True, help_text="Official Open end time")
 
-    close_start_time = models.DateTimeField(help_text="Time when Close betting starts")
-    close_end_time = models.DateTimeField(help_text="Official Close end time")
+    close_start_time = models.DateTimeField(null=True, blank=True, help_text="Time when Close betting starts")
+    close_end_time = models.DateTimeField(null=True, blank=True, help_text="Official Close end time")
 
     # Admin Results
     open_patti = models.CharField(max_length=3, blank=True, null=True)
@@ -171,6 +171,25 @@ class Market(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class MarketHistory(models.Model):
+    """
+    Archives market results and timings before a reset.
+    """
+    market = models.ForeignKey(Market, on_delete=models.CASCADE, related_name='history')
+    collection_date = models.DateTimeField(null=True, blank=True)
+    open_patti = models.CharField(max_length=3, blank=True, null=True)
+    open_single = models.CharField(max_length=1, blank=True, null=True)
+    close_patti = models.CharField(max_length=3, blank=True, null=True)
+    close_single = models.CharField(max_length=1, blank=True, null=True)
+    archived_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-archived_at']
+
+    def __str__(self):
+        return f"History: {self.market.name} at {self.archived_at}"
 
 
 class Bet(models.Model):

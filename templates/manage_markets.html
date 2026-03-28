@@ -2,8 +2,13 @@
 
 {% block content %}
 <div class="page-shell" style="max-width: 800px;">
-    <h2 class="page-title">Manage Matka Markets</h2>
-    <p class="page-sub">Only admins can view and update markets.</p>
+    <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h2 class="page-title" style="margin-bottom: 5px;">Manage Matka Markets</h2>
+            <p class="page-sub">Only admins can view and update markets.</p>
+        </div>
+        <a href="{% url 'market_history' %}" class="btn-gold" style="background: var(--dark); padding: 10px 20px;">VIEW HISTORY</a>
+    </div>
 
     <div class="data-panel">
         <form method="POST">
@@ -50,6 +55,7 @@
                     <th>Collection Date</th>
                     <th>Open (Start-End)</th>
                     <th>Close (Start-End)</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,14 +63,31 @@
                 <tr>
                     <td><strong style="color: var(--primary);">{{ market.name }}</strong></td>
                     <td>{{ market.collection_date|date:"d M Y, H:i" }}</td>
-                    <td>{{ market.open_start_time|date:"d M Y, H:i" }} - {{ market.open_end_time|date:"d M Y, H:i" }}</td>
-                    <td>{{ market.close_start_time|date:"d M Y, H:i" }} - {{ market.close_end_time|date:"d M Y, H:i" }}</td>
+                    <td>{{ market.open_start_time|date:"H:i" }} - {{ market.open_end_time|date:"H:i" }}</td>
+                    <td>{{ market.close_start_time|date:"H:i" }} - {{ market.close_end_time|date:"H:i" }}</td>
+                    <td>
+                        <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')" class="btn-gold" style="background: var(--danger); padding: 5px 10px; font-size: 11px;">RESET</button>
+                    </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="3" class="text-center">No markets defined yet.</td></tr>
+                <tr><td colspan="5" class="text-center">No markets defined yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    function confirmReset(id, name) {
+        showConfirm(
+            "Reset Market?",
+            `This will archive current results for ${name} and clear all timings. Continue?`,
+            function(confirmed) {
+                if (confirmed) {
+                    window.location.href = `/reset-market/${id}/`;
+                }
+            }
+        );
+    }
+</script>
 {% endblock %}

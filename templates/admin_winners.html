@@ -119,14 +119,18 @@
                                 {% endif %}
                             {% elif w.game_type == 'JODI' %}
                                 {% if w.market.open_single %}{{ w.market.open_single }}{% else %}*{% endif %}{% if w.market.close_single %}{{ w.market.close_single }}{% else %}*{% endif %}
-                            {% elif w.game_type == 'TRIPLE_PATTI' %}
+                            {% elif w.game_type == 'SINGLE_PATTI' or w.game_type == 'DOUBLE_PATTI' or w.game_type == 'TRIPLE_PATTI' %}
                                 {% if w.session == 'OPEN' %}
                                     {{ w.market.open_patti|default:"***" }}
                                 {% else %}
                                     {{ w.market.close_patti|default:"***" }}
                                 {% endif %}
                             {% else %}
-                                {{ w.market.open_patti|default:"***" }} - {{ w.market.close_patti|default:"***" }}
+                                {% if w.session == 'OPEN' %}
+                                    {{ w.market.open_patti|default:"***" }}
+                                {% else %}
+                                    {{ w.market.close_patti|default:"***" }}
+                                {% endif %}
                             {% endif %}
                         </span>
                     </td>

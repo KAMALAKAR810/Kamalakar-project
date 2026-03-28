@@ -752,6 +752,8 @@
         {% if user.is_superuser %}
             <div class="nav-divider"></div>
             <a href="{% url 'admin_summary' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">DASHBOARD</a>
+            <a href="{% url 'manage_markets' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'manage_markets' %}active{% endif %}">MARKETS</a>
+            <a href="{% url 'market_history' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'market_history' %}active{% endif %}">MARKET HISTORY</a>
             <a href="{% url 'admin_user_management' %}" class="nav-link admin-link {% if request.resolver_match.url_name == 'admin_user_management' %}active{% endif %}" style="position: relative;">
                 USERS
                 {% if new_users %}

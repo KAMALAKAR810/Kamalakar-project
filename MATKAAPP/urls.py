@@ -43,6 +43,8 @@ urlpatterns = [
     # --- Admin Views ---
     path("admin-summary/", views.admin_summary, name="admin_summary"),
     path("manage-markets/", views.manage_markets, name="manage_markets"),
+    path("reset-market/<int:market_id>/", views.reset_market, name="reset_market"),
+    path("market-history/", views.market_history_view, name="market_history"),
     path("market-bets/", views.market_bets, name="market_bets"),
     path("admin-bets/", views.admin_bet_history, name="admin_bet_history"),
     path("admin-report/", views.admin_report, name="admin_report"),
