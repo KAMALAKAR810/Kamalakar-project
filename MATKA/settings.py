@@ -133,8 +133,8 @@ LOGOUT_REDIRECT_URL = "index"  # Where to redirect after logout
 
 
 # Google reCAPTCHA Keys
-RECAPTCHA_PUBLIC_KEY = "6Lc17JcsAAAAAK9AT9bYN8BaWSJnoozc4p8nS_5b"
-RECAPTCHA_PRIVATE_KEY = "6Lc17JcsAAAAAGKkC12Ig19GjFmSQtlVW8HHnsX9"
+RECAPTCHA_PUBLIC_KEY = "6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE"
+RECAPTCHA_PRIVATE_KEY = "6LdYKZ0sAAAAAF_zdko28ow4I90nSwvU_u9myv7T"
 
 # Optional: PythonAnywhere usually works fine, but you can force
 # the use of HTTPS for the verification request:
