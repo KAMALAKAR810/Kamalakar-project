@@ -146,12 +146,17 @@
                 <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--dark);">Profile Picture (Optional)</label>
                 <input type="file" name="profile_pic" accept="image/*" style="font-size: 12px; border: none; padding: 0;">
             </div>
+
+            <div style="margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
+                <input type="checkbox" id="terms_agree" name="terms_agree" style="width: auto; margin-top: 4px;" required>
+                <label for="terms_agree" style="font-size: 13px; color: var(--gray); cursor: pointer;">
+                    I agree to the <a href="#" style="color: var(--primary); font-weight: 600;">Terms and Conditions</a> and privacy policy.
+                </label>
+            </div>
             
-            <!-- reCAPTCHA (Commented out)
             <div style="margin-bottom: 20px; display: flex; justify-content: center;">
                 <div class="g-recaptcha" data-sitekey="6Lc17JcsAAAAAK9AT9bYN8BaWSJnoozc4p8nS_5b"></div>
             </div>
-            -->
 
             <button type="submit" class="auth-btn">Register Now</button>
         </form>

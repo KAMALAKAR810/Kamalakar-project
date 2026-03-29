@@ -743,9 +743,9 @@ def calculate_winners(market, session_to_calculate=None):
         if bet.session == 'OPEN' and bet.game_type in ['SINGLE_PATTI', 'DOUBLE_PATTI', 'TRIPLE_PATTI']:
             if market.open_patti and bet.number == market.open_patti:
                 is_winner = True
-                if bet.game_type == 'SINGLE_PATTI': win_ratio = 130
-                elif bet.game_type == 'DOUBLE_PATTI': win_ratio = 260
-                elif bet.game_type == 'TRIPLE_PATTI': win_ratio = 700
+                if bet.game_type == 'SINGLE_PATTI': win_ratio = 140
+                elif bet.game_type == 'DOUBLE_PATTI': win_ratio = 280
+                elif bet.game_type == 'TRIPLE_PATTI': win_ratio = 300
         
         # 2. Open Single check
         elif bet.session == 'OPEN' and bet.game_type == 'SINGLE':
@@ -763,9 +763,9 @@ def calculate_winners(market, session_to_calculate=None):
         elif bet.session == 'CLOSE' and bet.game_type in ['SINGLE_PATTI', 'DOUBLE_PATTI', 'TRIPLE_PATTI']:
             if market.close_patti and bet.number == market.close_patti:
                 is_winner = True
-                if bet.game_type == 'SINGLE_PATTI': win_ratio = 130
-                elif bet.game_type == 'DOUBLE_PATTI': win_ratio = 260
-                elif bet.game_type == 'TRIPLE_PATTI': win_ratio = 700
+                if bet.game_type == 'SINGLE_PATTI': win_ratio = 140
+                elif bet.game_type == 'DOUBLE_PATTI': win_ratio = 280
+                elif bet.game_type == 'TRIPLE_PATTI': win_ratio = 300
                 
         # 5. Jodi check
         elif bet.game_type == 'JODI':
