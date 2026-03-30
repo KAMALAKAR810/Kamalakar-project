@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-shell" style="max-width: 800px;">
+    <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h2 class="page-title" style="margin-bottom: 5px;">Manage Matka Markets</h2>
+            <p class="page-sub">Only admins can view and update markets.</p>
+        </div>
+        <a href="{% url 'market_history' %}" class="btn-gold" style="background: var(--dark); padding: 10px 20px;">VIEW HISTORY</a>
+    </div>
+
+    <div class="data-panel">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 5px;">Market Name</label>
+                <input type="text" name="name" class="bet-input" placeholder="e.g. KALYAN" required>
+            </div>
+            
+            <!-- Task 16: Date-Time Picker -->
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="collection-date">Collection Date *</label> 
+                <input type="datetime-local" id="collection-date" name="collection_date" 
+                       value="2026-03-25T12:00" class="bet-input" required> 
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Open Start Date & Time</label>
+                    <input type="datetime-local" name="open_start_time" class="bet-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Open End Date & Time</label>
+                    <input type="datetime-local" name="open_end_time" class="bet-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Close Start Date & Time</label>
+                    <input type="datetime-local" name="close_start_time" class="bet-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Close End Date & Time</label>
+                    <input type="datetime-local" name="close_end_time" class="bet-input" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-gold" style="margin-top: 20px; width: 100%;">SAVE NEW MARKET</button>
+        </form>
+
+        <h3 style="margin-top: 30px; font-size: 16px; font-weight: 800; border-bottom: 2px solid var(--border); padding-bottom: 10px;">Active Markets</h3>
+        <table class="app-table table table-bordered" style="margin-top: 8px;">
+            <thead>
+                <tr>
+                    <th>Market Name</th>
+                    <th>Collection Date</th>
+                    <th>Open (Start-End)</th>
+                    <th>Close (Start-End)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for market in markets %}
+                <tr>
+                    <td><strong style="color: var(--primary);">{{ market.name }}</strong></td>
+                    <td>{{ market.collection_date|date:"d M Y, H:i" }}</td>
+                    <td>{{ market.open_start_time|date:"H:i" }} - {{ market.open_end_time|date:"H:i" }}</td>
+                    <td>{{ market.close_start_time|date:"H:i" }} - {{ market.close_end_time|date:"H:i" }}</td>
+                    <td>
+                        <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')" class="btn-gold" style="background: var(--danger); padding: 5px 10px; font-size: 11px;">RESET</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">No markets defined yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function confirmReset(id, name) {
+        showConfirm(
+            "Reset Market?",
+            `This will archive current results for ${name} and clear all timings. Continue?`,
+            function(confirmed) {
+                if (confirmed) {
+                    window.location.href = `/reset-market/${id}/`;
+                }
+            }
+        );
+    }
+</script>
+{% endblock %}

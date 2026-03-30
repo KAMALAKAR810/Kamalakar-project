@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .organized-container {
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+    }
+    .organized-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 10px;
+        margin-top: 20px;
+    }
+    .organized-table th {
+        background: var(--primary);
+        color: white;
+        padding: 15px;
+        text-align: center;
+        border-radius: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 14px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .organized-table td {
+        padding: 0;
+        vertical-align: top;
+        min-width: 200px;
+    }
+    .bet-data-card {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 15px;
+        text-align: left;
+        background: white;
+        margin-bottom: 10px;
+        font-size: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border-left: 4px solid var(--primary);
+    }
+    .bet-data-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .bet-data-card .num-label {
+        font-weight: 800;
+        color: #1a1a1a;
+        background: #f0f2f5;
+        padding: 4px 8px;
+        border-radius: 5px;
+    }
+    .bet-data-card .amt-label {
+        font-weight: 700;
+        color: #2e7d32;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    .empty-cell {
+        text-align: center;
+        padding: 20px;
+        color: #ccc;
+        font-style: italic;
+        font-size: 12px;
+    }
+</style>
+
+<div class="page-shell">
+    <h2 class="page-title"><i class="fas fa-sitemap"></i> Organized Market Data</h2>
+    <p class="page-sub">Comprehensive view of all bets placed in selected market session.</p>
+    
+    <div class="data-panel" style="margin-bottom: 25px; border-radius: 15px; border: 1px solid #eee;">
+        <form method="GET" style="display: flex; gap: 20px; flex-wrap: wrap; background: none; border: none; padding: 10px;">
+            <div style="flex: 1; min-width: 250px;">
+                <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">MARKET</label>
+                <select name="market" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
+                    <option value="">-- Select Market --</option>
+                    {% for m in markets %}
+                        <option value="{{ m.id }}" {% if m.id|stringformat:"s" == selected_market_id %}selected{% endif %}>{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 250px;">
+                <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">SESSION</label>
+                <select name="session" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
+                    <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN SESSION</option>
+                    <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE SESSION</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    {% if selected_market_id %}
+    <div class="organized-container">
+        <div style="overflow-x: auto;">
+            <table class="organized-table">
+                <thead>
+                    <tr>
+                        <th>Single</th>
+                        <th>Jodi</th>
+                        <th>Single Patti</th>
+                        <th>Double Patti</th>
+                        <th>Triple Patti</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_rows %}
+                    <tr>
+                        <td>
+                            {% if row.SINGLE %}
+                            <div class="bet-data-card" style="border-left-color: #007bff;">
+                                <span class="num-label">{{ row.SINGLE.number }}</span>
+                                <span class="amt-label">₹{{ row.SINGLE.amount }}</span>
+                            </div>
+                            {% else %}
+                            <div class="empty-cell">-</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.JODI %}
+                            <div class="bet-data-card" style="border-left-color: #28a745;">
+                                <span class="num-label">{{ row.JODI.number }}</span>
+                                <span class="amt-label">₹{{ row.JODI.amount }}</span>
+                            </div>
+                            {% else %}
+                            <div class="empty-cell">-</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.SINGLE_PATTI %}
+                            <div class="bet-data-card" style="border-left-color: #ffc107;">
+                                <span class="num-label">{{ row.SINGLE_PATTI.number }}</span>
+                                <span class="amt-label">₹{{ row.SINGLE_PATTI.amount }}</span>
+                            </div>
+                            {% else %}
+                            <div class="empty-cell">-</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.DOUBLE_PATTI %}
+                            <div class="bet-data-card" style="border-left-color: #17a2b8;">
+                                <span class="num-label">{{ row.DOUBLE_PATTI.number }}</span>
+                                <span class="amt-label">₹{{ row.DOUBLE_PATTI.amount }}</span>
+                            </div>
+                            {% else %}
+                            <div class="empty-cell">-</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.TRIPLE_PATTI %}
+                            <div class="bet-data-card" style="border-left-color: #dc3545;">
+                                <span class="num-label">{{ row.TRIPLE_PATTI.number }}</span>
+                                <span class="amt-label">₹{{ row.TRIPLE_PATTI.amount }}</span>
+                            </div>
+                            {% else %}
+                            <div class="empty-cell">-</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 60px; background: white; border-radius: 15px;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" style="opacity: 0.1; margin-bottom: 20px;">
+                            <p style="color: #999; font-weight: 600;">No data found for this session.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="data-panel" style="text-align: center; padding: 80px; border-radius: 15px; background: white;">
+        <i class="fas fa-mouse-pointer" style="font-size: 50px; color: #eee; margin-bottom: 20px;"></i>
+        <h3 style="color: #666; font-weight: 700;">Ready to analyze?</h3>
+        <p style="color: #999;">Select a market above to view organized bet data.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

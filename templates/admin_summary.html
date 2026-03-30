@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .admin-dashboard {
+        padding: 20px;
+    }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .dashboard-card {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: transform 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+    .dashboard-card:hover { transform: translateY(-5px); }
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    .icon-users { background: #e3f2fd; color: #007bff; }
+    .icon-collection { background: #e8f5e9; color: #28a745; }
+    .icon-payout { background: #fff3e0; color: #ff9800; }
+    .icon-profit { background: #f3e5f5; color: #9c27b0; }
+    .icon-withdraw { background: #ffebee; color: #f44336; }
+
+    .card-info h3 { font-size: 14px; color: #888; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
+    .card-info p { font-size: 24px; font-weight: 800; color: #333; margin: 0; }
+
+    .dashboard-tables {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 30px;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .txn-pill {
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .txn-WIN { background: #e8f5e9; color: #2e7d32; }
+    .txn-BET { background: #e3f2fd; color: #1565c0; }
+    .txn-DEPOSIT { background: #fff3e0; color: #e65100; }
+</style>
+
+<div class="page-shell admin-dashboard">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h2 class="page-title" style="text-align: left; border: none; padding: 0; margin: 0;">Admin Command Center</h2>
+            <p class="page-sub" style="text-align: left; margin: 0;">System overview for <strong>{{ today|date:"l, d F Y" }}</strong></p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'declare_result' %}" class="btn-gold" style="padding: 12px 25px; text-decoration: none; font-size: 14px;">
+                <i class="fa fa-bullhorn"></i> Declare Result
+            </a>
+            <a href="{% url 'admin_withdrawal_management' %}" class="btn-gold" style="background: #333; padding: 12px 25px; text-decoration: none; font-size: 14px;">
+                <i class="fa fa-money-bill-wave"></i> Pending ({{ pending_withdrawals }})
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="card-icon icon-users"><i class="fas fa-users"></i></div>
+            <div class="card-info">
+                <h3>Total Users</h3>
+                <p>{{ total_users }}</p>
+            </div>
+        </div>
+        <div class="dashboard-card">
+            <div class="card-icon icon-collection"><i class="fas fa-coins"></i></div>
+            <div class="card-info">
+                <h3>Today's Collection</h3>
+                <p>₹{{ today_collection }}</p>
+            </div>
+        </div>
+        <div class="dashboard-card">
+            <div class="card-icon icon-payout"><i class="fas fa-hand-holding-usd"></i></div>
+            <div class="card-info">
+                <h3>Today's Payouts</h3>
+                <p>₹{{ today_payouts }}</p>
+            </div>
+        </div>
+        <div class="dashboard-card">
+            <div class="card-icon icon-profit" style="background: {% if today_profit >= 0 %}#e8f5e9{% else %}#ffebee{% endif %}; color: {% if today_profit >= 0 %}#2e7d32{% else %}#c62828{% endif %};">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="card-info">
+                <h3>Today's Net P/L</h3>
+                <p>₹{{ today_profit }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-tables">
+        <!-- Market Summary -->
+        <div class="data-panel" style="padding: 25px;">
+            <h3 class="section-title"><i class="fas fa-list-ul"></i> Market Wise Performance (Today)</h3>
+            <div class="table-responsive">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Market</th>
+                            <th>Type</th>
+                            <th>Bets</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in market_summary %}
+                        <tr>
+                            <td><strong style="color: var(--primary);">{{ item.market__name }}</strong></td>
+                            <td><span class="game-type-pill">{{ item.game_type }}</span></td>
+                            <td>{{ item.count }}</td>
+                            <td><strong>₹{{ item.total_amount }}</strong></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; color: #999; padding: 40px;">No bets recorded today.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="data-panel" style="padding: 25px;">
+            <h3 class="section-title"><i class="fas fa-history"></i> Global System Activity</h3>
+            <div class="table-responsive">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Activity</th>
+                            <th>Amount</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in recent_txns %}
+                        <tr>
+                            <td><span style="font-size: 12px; font-weight: 700;">{{ txn.wallet.user.username }}</span></td>
+                            <td><span class="txn-pill txn-{{ txn.txn_type }}">{{ txn.txn_type }}</span></td>
+                            <td><strong style="color: {% if txn.txn_type == 'WIN' or txn.txn_type == 'DEPOSIT' %}#2e7d32{% else %}#c62828{% endif %};">₹{{ txn.amount }}</strong></td>
+                            <td style="font-size: 11px; color: #999;">{{ txn.created_at|date:"H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; color: #999; padding: 40px;">No recent system activity.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

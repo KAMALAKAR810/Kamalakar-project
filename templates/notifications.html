@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .notif-item {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        transition: var(--transition);
+    }
+    .notif-item.unread {
+        border-left: 4px solid var(--primary);
+        background: #f0f7ff;
+    }
+    .notif-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        flex-shrink: 0;
+    }
+    .notif-body { flex: 1; }
+    .notif-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .notif-msg { font-size: 13px; color: var(--gray); line-height: 1.4; }
+    .notif-time { font-size: 11px; color: #999; margin-top: 8px; }
+</style>
+
+<div class="page-shell">
+    <h2 class="page-title">Notifications</h2>
+    <p class="page-sub">Updates on your bets, transactions, and account</p>
+
+    <div class="data-panel" style="background: none; border: none; padding: 0;">
+        {% for n in notifications %}
+        <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+            <div class="notif-icon">
+                {% if "Win" in n.title %}
+                    <i class="fas fa-trophy" style="color: #ff9900;"></i>
+                {% elif "Bet" in n.title %}
+                    <i class="fas fa-dice"></i>
+                {% elif "Withdrawal" in n.title %}
+                    <i class="fas fa-money-bill-wave"></i>
+                {% else %}
+                    <i class="fas fa-bell"></i>
+                {% endif %}
+            </div>
+            <div class="notif-body">
+                <div class="notif-title">{{ n.title }}</div>
+                <div class="notif-msg">{{ n.message }}</div>
+                <div class="notif-time">{{ n.created_at|date:"d M Y, H:i" }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="data-panel" style="text-align: center; padding: 40px; color: var(--gray);">
+            <i class="fas fa-bell-slash" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
+            <p>No notifications yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

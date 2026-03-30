@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .declare-card {
+        background: var(--white);
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    .declare-header {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+    .declare-header h2 {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+    .declare-header p {
+        color: var(--gray);
+        font-size: 14px;
+    }
+    .form-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid var(--primary);
+        margin-bottom: 25px;
+    }
+    .form-section-title {
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 15px;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .declare-input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 15px;
+        transition: var(--transition);
+    }
+    .declare-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+    .declare-btn {
+        width: 100%;
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        padding: 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    .declare-btn:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 102, 204, 0.2);
+    }
+    .help-text {
+        font-size: 12px;
+        color: var(--gray);
+        margin-top: 6px;
+    }
+</style>
+
+<div class="page-shell">
+    <div class="declare-card">
+        <div class="declare-header">
+            <h2><i class="fas fa-bullhorn"></i> Declare Market Result</h2>
+            <p>Official panel for result declaration and automatic winner calculation</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px; color: var(--dark);">Select Market to Update</label>
+                <select name="market_id" class="declare-input" required>
+                    <option value="">-- Search and Select Market --</option>
+                    {% for m in markets %}
+                        <option value="{{ m.id }}">{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                <div class="form-section">
+                    <div class="form-section-title"><i class="fas fa-sun" style="color: #ff9900;"></i> OPEN SECTION</div>
+                    <label style="font-size: 12px; font-weight: 600; color: var(--gray);">RESULT FORMAT (PATTI-SINGLE)</label>
+                    <input type="text" name="open_result" class="declare-input" placeholder="e.g. 123-6">
+                    <p class="help-text">Leave blank to skip Open update</p>
+                </div>
+
+                <div class="form-section" style="border-left-color: var(--secondary);">
+                    <div class="form-section-title"><i class="fas fa-moon" style="color: var(--primary);"></i> CLOSE SECTION</div>
+                    <label style="font-size: 12px; font-weight: 600; color: var(--gray);">RESULT FORMAT (SINGLE-PATTI)</label>
+                    <input type="text" name="close_result" class="declare-input" placeholder="e.g. 7-601">
+                    <p class="help-text">Leave blank to skip Close update</p>
+                </div>
+            </div>
+
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #ffe0b2;">
+                <p style="font-size: 12px; color: #e65100; margin: 0; font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle"></i> NOTE: Declaring result will automatically process all bets for this market. Winners will be credited after 30 minutes.
+                </p>
+            </div>
+
+            <button type="submit" class="declare-btn" style="margin-top: 30px;">
+                <i class="fas fa-check-circle"></i> PUBLISH RESULTS & NOTIFY WINNERS
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

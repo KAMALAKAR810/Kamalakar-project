@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .wallet-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+        padding: 10px 20px;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--gray);
+        border-bottom: 3px solid transparent;
+        transition: var(--transition);
+    }
+    .tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+</style>
+
+<div class="page-shell">
+    <h2 class="page-title">Wallet & Transaction History</h2>
+    <p class="page-sub">Track your wallet updates and withdrawal status</p>
+
+    <div class="wallet-tabs">
+        <div class="tab-btn active" onclick="showTab('transactions', this)">Wallet Updates</div>
+        <div class="tab-btn" onclick="showTab('withdrawals', this)">Withdrawals</div>
+    </div>
+
+    <div id="transactions" class="tab-content active">
+        <div class="data-panel">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions %}
+                    <tr>
+                        <td>{{ txn.created_at|date:"d M Y, H:i" }}</td>
+                        <td>{{ txn.description }}</td>
+                        <td>
+                            <span class="status-badge {% if txn.txn_type == 'WIN' or txn.txn_type == 'DEPOSIT' %}open{% else %}closed{% endif %}" style="padding: 4px 8px;">
+                                {{ txn.txn_type }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong style="color: {% if txn.txn_type == 'WIN' or txn.txn_type == 'DEPOSIT' %}#2e7d32{% else %}#c62828{% endif %};">
+                                {% if txn.txn_type == 'WIN' or txn.txn_type == 'DEPOSIT' %}+{% else %}-{% endif %}₹{{ txn.amount }}
+                            </strong>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--gray);">
+                            No wallet updates found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="withdrawals" class="tab-content">
+        <div class="data-panel">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>UPI ID</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in withdrawals %}
+                    <tr>
+                        <td>{{ req.created_at|date:"d M Y, H:i" }}</td>
+                        <td><strong style="color: var(--dark);">₹{{ req.amount }}</strong></td>
+                        <td>{{ req.upi_id|default:"N/A" }}</td>
+                        <td>
+                            <span class="bet-status bet-status--{{ req.status|lower }}">
+                                {{ req.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: var(--gray);">
+                            No withdrawal requests found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+</script>
+{% endblock %}
