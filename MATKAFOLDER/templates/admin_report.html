@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+    <h2 class="page-title">Market-Wise & Date-Wise Report</h2>
+    <p class="page-sub">Analyze user activity and profitability across markets</p>
+
+    <!-- Filters Section -->
+    <div class="data-panel" style="margin-bottom: 25px; padding: 20px;">
+        <form method="GET" class="row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">DATE</label>
+                <input type="date" name="date" class="bet-input" value="{{ selected_date }}" style="padding: 10px; font-size: 13px;">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">MARKET</label>
+                <select name="market" class="bet-input" style="padding: 10px; font-size: 13px;">
+                    <option value="">All Markets</option>
+                    {% for m in markets %}
+                        <option value="{{ m.id }}" {% if selected_market == m.id|slugify %}selected{% endif %}>{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">USER</label>
+                <select name="user" class="bet-input" style="padding: 10px; font-size: 13px;">
+                    <option value="">All Users</option>
+                    {% for u in all_users %}
+                        <option value="{{ u.id }}" {% if selected_user == u.id|slugify %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-gold" style="padding: 10px 20px;">Generate Report</button>
+                <a href="{% url 'admin_report' %}" class="btn-gold" style="padding: 10px 20px; background: var(--gray);">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="data-panel">
+    {% if report_data %}
+    <div style="overflow-x: auto;">
+        <table class="app-table table table-bordered" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>User Name</th>
+                    <th>Markets Played</th>
+                    <th>Total Betted</th>
+                    <th>Total Won</th>
+                    <th>Current Balance</th>
+                    <th>Net P/L</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in report_data %}
+                <tr>
+                    <td><strong style="color: var(--primary);">{{ data.user_code }}</strong></td>
+                    <td>{{ data.user.username }}</td>
+                    <td style="font-size: 12px;">{{ data.markets }}</td>
+                    <td style="font-weight: 600;">₹{{ data.total_betted }}</td>
+                    <td style="font-weight: 600; color: var(--success);">₹{{ data.total_won }}</td>
+                    <td style="font-weight: 600;">₹{{ data.balance }}</td>
+                    <td style="font-weight: 700; color: {% if data.total_won > data.total_betted %}var(--success){% else %}var(--danger){% endif %};">
+                        ₹{{ data.total_won|add:"-data.total_betted" }}
+                        {% with pl=data.total_won|add:"-data.total_betted" %}
+                            {% if pl > 0 %}(Profit){% else %}(Loss){% endif %}
+                        {% endwith %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 40px; text-align: center; color: var(--gray);">
+        <i class="fas fa-chart-pie" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
+        <p>No data available for the selected date and market.</p>
+    </div>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}

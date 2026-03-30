@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+    <h2 class="page-title">Withdrawal History</h2>
+    <p class="page-sub">Track your withdrawal requests and status</p>
+
+    <div class="data-panel">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>UPI ID</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in withdrawals %}
+                <tr>
+                    <td>{{ req.created_at|date:"d M Y, H:i" }}</td>
+                    <td><strong style="color: var(--dark);">₹{{ req.amount }}</strong></td>
+                    <td>{{ req.upi_id|default:"N/A" }}</td>
+                    <td>
+                        <span class="bet-status bet-status--{{ req.status|lower }}">
+                            {{ req.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px; color: var(--gray);">
+                        No withdrawal requests found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

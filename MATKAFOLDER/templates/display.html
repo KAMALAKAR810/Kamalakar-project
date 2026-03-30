@@ -1,0 +1,130 @@
+<style>
+    .market-results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .market-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+
+    .market-card:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+
+    .market-card-header {
+        background: var(--primary);
+        color: var(--white);
+        padding: 12px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .market-name {
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .market-time {
+        font-size: 11px;
+        opacity: 0.9;
+    }
+
+    .market-card-body {
+        padding: 20px 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        background: linear-gradient(to bottom, #fff, #f8f9fa);
+    }
+
+    .result-patti {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray);
+        letter-spacing: 2px;
+    }
+
+    .result-jodi {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--dark);
+        border-left: 2px solid var(--border);
+        border-right: 2px solid var(--border);
+        padding: 0 15px;
+    }
+
+    .market-card-footer {
+        padding: 10px 15px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: center;
+    }
+
+    .status-badge {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border-radius: 50px;
+    }
+
+    .status-badge.open {
+        background-color: #e6f4ea;
+        color: #1e7e34;
+    }
+
+    .status-badge.closed {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        color: var(--gray);
+        background: var(--white);
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+    }
+</style>
+
+<div class="market-results-grid">
+    {% for market in markets %}
+    <div class="market-card">
+        <div class="market-card-header">
+            <span class="market-name">{{ market.name }}</span>
+            <span class="market-time">{{ market.open_start_time|time:"H:i" }} - {{ market.close_end_time|time:"H:i" }}</span>
+        </div>
+        <div class="market-card-body">
+            <div class="result-patti">{{ market.open_patti|default:"***" }}</div>
+            <div class="result-jodi">
+                {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
+            </div>
+            <div class="result-patti">{{ market.close_patti|default:"***" }}</div>
+        </div>
+        <div class="market-card-footer">
+            {% if market.is_betting_allowed_open or market.is_betting_allowed_close %}
+                <span class="status-badge open"><i class="fas fa-clock"></i> Betting Open</span>
+            {% else %}
+                <span class="status-badge closed"><i class="fas fa-lock"></i> Market Closed</span>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+        <p>No active markets found at this time.</p>
+    </div>
+    {% endfor %}
+</div>

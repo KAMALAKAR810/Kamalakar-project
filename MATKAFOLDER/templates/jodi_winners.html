@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+    <h2 class="page-title">Jodi Winners</h2>
+    <p class="page-sub">List of users who predicted correct Jodi numbers</p>
+
+    <div class="data-panel" style="margin-bottom: 25px;">
+        <form method="GET" class="row" style="display: flex; gap: 15px; align-items: flex-end;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">FILTER BY MARKET</label>
+                <select name="market" class="bet-input" onchange="this.form.submit()">
+                    <option value="ALL">All Markets</option>
+                    {% for m in markets %}
+                        <option value="{{ m.id }}" {% if selected_market_id == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <a href="{% url 'jodi_winners' %}" class="btn-gold" style="padding: 10px 20px; background: var(--gray);">Reset</a>
+        </form>
+    </div>
+
+    <div class="data-panel">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>User ID</th>
+                    <th>Market</th>
+                    <th>Date</th>
+                    <th>Number</th>
+                    <th>Bet Amt</th>
+                    <th>Won Amt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for w in winners %}
+                <tr>
+                    <td>{{ w.user.username }}</td>
+                    <td>{{ w.user.profile.user_code }}</td>
+                    <td>{{ w.market.name }}</td>
+                    <td>{{ w.created_at|date:"d M Y" }}</td>
+                    <td><strong style="color: var(--primary); font-size: 18px;">{{ w.number }}</strong></td>
+                    <td>₹{{ w.amount }}</td>
+                    <td style="color: var(--success); font-weight: 800;">₹{{ w.win_amount }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray);">No Jodi winners found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

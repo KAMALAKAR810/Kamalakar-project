@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 250px);
+        padding: 20px;
+    }
+
+    .auth-card {
+        background: var(--white);
+        padding: 40px;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .auth-card h2 {
+        font-size: 24px;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 8px;
+        color: var(--dark);
+    }
+
+    .auth-subtitle {
+        text-align: center;
+        font-size: 14px;
+        color: var(--gray);
+        margin-bottom: 30px;
+    }
+
+    .auth-form input {
+        width: 100%;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 14px;
+        transition: var(--transition);
+    }
+
+    .auth-form input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .pwd-rules {
+        font-size: 11px;
+        color: var(--gray);
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 3px solid var(--secondary);
+    }
+
+    .auth-btn {
+        width: 100%;
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 10px;
+    }
+
+    .auth-btn:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 25px;
+        font-size: 14px;
+        color: var(--gray);
+    }
+
+    .auth-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .honeypot {
+        display: none;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Join ChangeLifeWithNumbers</h2>
+        <p class="auth-subtitle">Create an account to start your prediction journey</p>
+        
+        <form method="POST" enctype="multipart/form-data" class="auth-form" id="register-form">
+            {% csrf_token %}
+            
+            <!-- Honeypot -->
+            <input type="text" name="website" class="honeypot">
+            
+            <input type="text" name="name" id="reg-name" placeholder="Full Name" value="{{ name|default:'' }}" required>
+            <input type="text" name="username" id="reg-username" placeholder="Choose Username" value="{{ username|default:'' }}" required>
+            <input type="tel" name="mobile" id="reg-mobile" placeholder="Mobile Number (10 digits)" value="{{ mobile|default:'' }}" required>
+            
+            <div class="pwd-rules">
+                <i class="fas fa-info-circle"></i> Password must be at least 8 characters and not too common.
+            </div>
+            
+            <input type="password" name="password" id="reg-password" placeholder="Password" required>
+            <input type="password" name="password2" id="reg-password-confirm" placeholder="Confirm Password" required>
+            
+            <div style="margin: 10px 0 20px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--dark);">Profile Picture (Optional)</label>
+                <input type="file" name="profile_pic" accept="image/*" style="font-size: 12px; border: none; padding: 0;">
+            </div>
+            
+            <div style="margin-bottom: 15px; background: #f0f7ff; padding: 12px; border-radius: 8px; border: 1px solid #cce5ff;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 5px;">I'm not a robot: {{ captcha_text }}</label>
+                <input type="text" name="captcha" placeholder="Enter answer" required style="margin-bottom: 0;">
+            </div>
+
+            <button type="submit" class="auth-btn">Register Now</button>
+        </form>
+        
+        <div class="auth-footer">
+            Already have an account? <a href="{% url 'login' %}">Sign In</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

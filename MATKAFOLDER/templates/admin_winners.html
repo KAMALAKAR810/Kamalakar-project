@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+    <h2 class="page-title">Winners (PASS) List</h2>
+    
+    {% if latest_result %}
+    <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: #1a1a1a; color: var(--primary-gold); border-radius: 12px; border: 2px solid var(--primary-gold);">
+        <h3 style="margin-top: 0; font-size: 24px;">{{ latest_result.name }} Result</h3>
+        <div style="font-size: 32px; font-weight: 800; letter-spacing: 5px;">
+            {{ latest_result.open_patti }} - {{ latest_result.open_single }} | {{ latest_result.close_single }} - {{ latest_result.close_patti }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="data-panel" style="margin-bottom: 20px;">
+        <form method="GET" style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <select name="game_type" onchange="this.form.submit()">
+                <option value="ALL" {% if selected_game_type == 'ALL' %}selected{% endif %}>-- All Game Types --</option>
+                <option value="SINGLE" {% if selected_game_type == 'SINGLE' %}selected{% endif %}>SINGLE</option>
+                <option value="JODI" {% if selected_game_type == 'JODI' %}selected{% endif %}>JODI</option>
+                <option value="SINGLE_PATTI" {% if selected_game_type == 'SINGLE_PATTI' %}selected{% endif %}>SINGLE PATTI</option>
+                <option value="DOUBLE_PATTI" {% if selected_game_type == 'DOUBLE_PATTI' %}selected{% endif %}>DOUBLE PATTI</option>
+                <option value="TRIPLE_PATTI" {% if selected_game_type == 'TRIPLE_PATTI' %}selected{% endif %}>TRIPLE PATTI</option>
+            </select>
+            <select name="market" onchange="this.form.submit()">
+                <option value="ALL" {% if selected_market_id == 'ALL' %}selected{% endif %}>-- All Markets --</option>
+                {% for m in markets %}
+                    <option value="{{ m.id }}" {% if selected_market_id == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="session" onchange="this.form.submit()">
+                <option value="ALL" {% if selected_session == 'ALL' %}selected{% endif %}>-- All Sections --</option>
+                <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN</option>
+                <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE</option>
+            </select>
+            <a href="{% url 'winners_list' %}" class="btn-gold" style="background: #333; color: #fff !important; text-decoration: none; padding: 10px; border-radius: 4px; display: flex; align-items: center;">RESET</a>
+        </form>
+    </div>
+
+    <div class="data-panel">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>User ID</th>
+                    <th>Mobile</th>
+                    <th>Game Type</th>
+                    <th>Admin Result</th>
+                    <th>Status</th>
+                    <th>Bet Amt</th>
+                    <th>Winning Amt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for w in winners %}
+                <tr>
+                    <td>{{ w.user.username }}</td>
+                    <td>{{ w.user.profile.user_code }}</td>
+                    <td>{{ w.user.profile.mobile }}</td>
+                    <td><span class="game-type-pill">{{ w.game_type }}</span></td>
+                    <td>
+                        <span style="font-weight: 700;">
+                            {% if w.game_type == 'JODI' %}
+                                {{ w.market.open_single }}{{ w.market.close_single }}
+                            {% elif w.session == 'OPEN' %}
+                                {{ w.market.open_patti }}-{{ w.market.open_single }}
+                            {% else %}
+                                {{ w.market.close_single }}-{{ w.market.close_patti }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td><span class="bet-status bet-status--win">PASS</span></td>
+                    <td>₹{{ w.amount }}</td>
+                    <td style="color: #2e7d32; font-weight: 800;">₹{{ w.win_amount }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center;">No winners found for this selection.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

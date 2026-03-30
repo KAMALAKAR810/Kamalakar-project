@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div class="page-shell">
+
+    
+    <div class="row" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div class="col-md-6">
+            <h2 class="page-title" style="text-align: left; border: none; padding: 0; margin: 0 0 6px;">
+                <i class="fa fa-dashboard"></i> Admin Dashboard
+            </h2>
+            <p class="page-sub" style="text-align: left; margin: 0;">Today's overview: <strong>{{ today|date:"D, d M Y" }}</strong></p>
+        </div>
+        <div class="col-md-6 text-right">
+            <a href="#" class="btn-gold" title="Configure route when declare-result flow is ready">
+                <i class="fa fa-bullhorn"></i> Declare new result
+            </a>
+        </div>
+    </div>
+
+    <div class="row text-center" style="margin-bottom: 28px;">
+        <div class="col-md-4" style="margin-bottom: 12px;">
+            <div class="stat-card">
+                <span class="stat-label">Total collection</span>
+                <p class="stat-value">₹{{ total_investment|default:"0" }}</p>
+            </div>
+        </div>
+        <div class="col-md-4" style="margin-bottom: 12px;">
+            <div class="stat-card stat--payout">
+                <span class="stat-label">Total payouts</span>
+                <p class="stat-value">₹{{ total_won|default:"0" }}</p>
+            </div>
+        </div>
+        <div class="col-md-4" style="margin-bottom: 12px;">
+            <div class="stat-card {% if profit >= 0 %}stat--profit{% else %}stat--loss{% endif %}">
+                <span class="stat-label">Net profit</span>
+                <p class="stat-value">₹{{ profit|default:"0" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="data-panel" style="padding: 0; overflow: hidden;">
+        <div class="admin-table-head">
+            <i class="fa fa-list"></i> Market wise collection (pending bets)
+        </div>
+        <div class="table-responsive">
+            <table class="app-table table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Market Name</th>
+                        <th>Game Type</th>
+                        <th>Total Bets</th>
+                        <th>Total Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in market_summary %}
+                    <tr>
+                        <td><strong style="color: var(--dark-bg);">{{ item.market_name }}</strong></td>
+                        <td><span class="game-type-pill">{{ item.game_type }}</span></td>
+                        <td>{{ item.count }}</td>
+                        <td><strong>₹{{ item.total_amount }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center" style="padding: 30px; color: #999;">No active bets found for today.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
