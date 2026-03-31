@@ -64,27 +64,40 @@
     {% endif %}
 
     <div class="data-panel" style="margin-bottom: 20px;">
-        <form method="GET" style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <select name="game_type" onchange="this.form.submit()">
-                <option value="ALL" {% if selected_game_type == 'ALL' %}selected{% endif %}>-- All Game Types --</option>
-                <option value="SINGLE" {% if selected_game_type == 'SINGLE' %}selected{% endif %}>SINGLE</option>
-                <option value="JODI" {% if selected_game_type == 'JODI' %}selected{% endif %}>JODI</option>
-                <option value="SINGLE_PATTI" {% if selected_game_type == 'SINGLE_PATTI' %}selected{% endif %}>SINGLE PATTI</option>
-                <option value="DOUBLE_PATTI" {% if selected_game_type == 'DOUBLE_PATTI' %}selected{% endif %}>DOUBLE PATTI</option>
-                <option value="TRIPLE_PATTI" {% if selected_game_type == 'TRIPLE_PATTI' %}selected{% endif %}>TRIPLE PATTI</option>
-            </select>
-            <select name="market" onchange="this.form.submit()">
-                <option value="ALL" {% if selected_market_id == 'ALL' %}selected{% endif %}>-- All Markets --</option>
-                {% for m in markets %}
-                    <option value="{{ m.id }}" {% if selected_market_id == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
-                {% endfor %}
-            </select>
-            <select name="session" onchange="this.form.submit()">
-                <option value="ALL" {% if selected_session == 'ALL' %}selected{% endif %}>-- All Sections --</option>
-                <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN</option>
-                <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE</option>
-            </select>
-            <a href="{% url 'winners_list' %}" class="btn-gold" style="background: #333; color: #fff !important; text-decoration: none; padding: 10px; border-radius: 4px; display: flex; align-items: center;">RESET</a>
+        <form method="GET" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 5px;">DATE</label>
+                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="bet-input" style="padding: 8px;">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 5px;">GAME TYPE</label>
+                <select name="game_type" onchange="this.form.submit()" class="bet-input" style="padding: 8px;">
+                    <option value="ALL" {% if selected_game_type == 'ALL' %}selected{% endif %}>-- All Types --</option>
+                    <option value="SINGLE" {% if selected_game_type == 'SINGLE' %}selected{% endif %}>SINGLE</option>
+                    <option value="JODI" {% if selected_game_type == 'JODI' %}selected{% endif %}>JODI</option>
+                    <option value="SINGLE_PATTI" {% if selected_game_type == 'SINGLE_PATTI' %}selected{% endif %}>SINGLE PATTI</option>
+                    <option value="DOUBLE_PATTI" {% if selected_game_type == 'DOUBLE_PATTI' %}selected{% endif %}>DOUBLE PATTI</option>
+                    <option value="TRIPLE_PATTI" {% if selected_game_type == 'TRIPLE_PATTI' %}selected{% endif %}>TRIPLE PATTI</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 5px;">MARKET</label>
+                <select name="market" onchange="this.form.submit()" class="bet-input" style="padding: 8px;">
+                    <option value="ALL" {% if selected_market_id == 'ALL' %}selected{% endif %}>-- All Markets --</option>
+                    {% for m in markets %}
+                        <option value="{{ m.id }}" {% if selected_market_id == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 5px;">SECTION</label>
+                <select name="session" onchange="this.form.submit()" class="bet-input" style="padding: 8px;">
+                    <option value="ALL" {% if selected_session == 'ALL' %}selected{% endif %}>-- All Sections --</option>
+                    <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN</option>
+                    <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE</option>
+                </select>
+            </div>
+            <a href="{% url 'winners_list' %}" class="btn-gold" style="background: #333; color: #fff !important; text-decoration: none; padding: 10px 20px; border-radius: 4px; height: 42px; display: flex; align-items: center;">RESET</a>
         </form>
     </div>
 
@@ -92,6 +105,7 @@
         <table class="app-table">
             <thead>
                 <tr>
+                    <th>Date & Time</th>
                     <th>Username</th>
                     <th>User ID</th>
                     <th>Mobile</th>
@@ -105,8 +119,9 @@
             <tbody>
                 {% for w in winners %}
                 <tr>
+                    <td style="font-size: 12px; color: #666;">{{ w.created_at|date:"d M, H:i" }}</td>
                     <td>{{ w.user.username }}</td>
-                    <td>{{ w.user.profile.user_code }}</td>
+                    <td><span style="font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px;">{{ w.user.profile.user_code }}</span></td>
                     <td>{{ w.user.profile.mobile }}</td>
                     <td><span class="game-type-pill">{{ w.game_type }}</span></td>
                     <td>

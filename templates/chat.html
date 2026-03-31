@@ -29,11 +29,23 @@
         padding: 20px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
         background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
     }
+    .date-separator {
+        align-self: center;
+        background: rgba(225, 245, 254, 0.9);
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #546e7a;
+        text-transform: uppercase;
+        margin: 10px 0;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
     .message-bubble {
-        max-width: 75%;
+        max-width: 80%;
         padding: 8px 12px;
         border-radius: 8px;
         font-size: 14px;
@@ -41,51 +53,111 @@
         box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         word-wrap: break-word;
     }
+    .message-image {
+        max-width: 100%;
+        border-radius: 6px;
+        margin-bottom: 5px;
+        cursor: pointer;
+    }
     .sent {
         align-self: flex-end;
         background: #dcf8c6;
         color: #000;
+        border-bottom-right-radius: 2px;
     }
     .received {
         align-self: flex-start;
         background: #fff;
         color: #000;
+        border-bottom-left-radius: 2px;
+    }
+    .auto-delete-warning {
+        font-size: 10px;
+        color: #d32f2f;
+        font-style: italic;
+        margin-bottom: 4px;
+        display: block;
     }
     .message-time {
         font-size: 10px;
         color: #666;
         text-align: right;
         margin-top: 4px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 4px;
     }
 
     .chat-footer {
         padding: 10px;
         background: #f0f2f5;
         display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .footer-row {
+        display: flex;
         gap: 10px;
         align-items: center;
     }
     .chat-input {
         flex: 1;
-        padding: 12px;
+        padding: 12px 15px;
         border-radius: 24px;
-        border: none;
+        border: 1px solid #ddd;
         outline: none;
         font-size: 14px;
+    }
+    .icon-btn {
+        background: none;
+        border: none;
+        color: #54656f;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 5px;
     }
     .send-btn {
         background: #075e54;
         color: white;
         border: none;
-        width: 45px;
-        height: 45px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 18px;
     }
+    
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 20px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px; width: 14px;
+        left: 3px; bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #f44336; }
+    input:checked + .slider:before { transform: translateX(20px); }
 </style>
 
 <div class="chat-container">
@@ -98,18 +170,63 @@
     </div>
     
     <div class="messages-area" id="messages-area">
-        {% for msg in chat_messages %}
-            <div class="message-bubble {% if msg.sender == user %}sent{% else %}received{% endif %}">
-                {{ msg.content }}
-                <div class="message-time">{{ msg.created_at|date:"H:i" }}</div>
+        {% for date, messages in grouped_messages.items %}
+            <div class="date-separator">
+                {% if date == today_date %}TODAY
+                {% elif date == yesterday_date %}YESTERDAY
+                {% else %}{{ date }}{% endif %}
             </div>
+            {% for msg in messages %}
+                <div class="message-bubble {% if msg.sender == user %}sent{% else %}received{% endif %}">
+                    {% if msg.auto_delete %}
+                        <span class="auto-delete-warning"><i class="fas fa-history"></i> This message will delete within 30 min after being read</span>
+                    {% endif %}
+                    
+                    {% if msg.image %}
+                        <img src="{{ msg.image.url }}" class="message-image" onclick="window.open(this.src)">
+                    {% endif %}
+                    
+                    {% if msg.content %}
+                        <div>{{ msg.content }}</div>
+                    {% endif %}
+                    
+                    <div class="message-time">
+                        {{ msg.created_at|date:"H:i" }}
+                        {% if msg.sender == user %}
+                            <i class="fas fa-check-double" style="color: {% if msg.is_read %}#34b7f1{% else %}#999{% endif %}; font-size: 12px;"></i>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
         {% endfor %}
     </div>
 
-    <form id="chat-form" method="POST" class="chat-footer">
+    <form id="chat-form" method="POST" enctype="multipart/form-data" class="chat-footer">
         {% csrf_token %}
-        <input type="text" name="content" id="chat-content" class="chat-input" placeholder="Type a message..." required>
-        <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i></button>
+        
+        {% if user.is_superuser %}
+        <div style="display: flex; align-items: center; gap: 10px; padding: 0 5px; margin-bottom: 5px;">
+            <label class="switch">
+                <input type="checkbox" name="auto_delete">
+                <span class="slider"></span>
+            </label>
+            <span style="font-size: 11px; color: #d32f2f; font-weight: 700;">AUTO-DELETE (30 MIN)</span>
+        </div>
+        {% endif %}
+
+        <div class="footer-row">
+            <label for="image-upload" class="icon-btn">
+                <i class="fas fa-paperclip"></i>
+            </label>
+            <input type="file" name="image" id="image-upload" style="display: none;" accept="image/*">
+            
+            <input type="text" name="content" id="chat-content" class="chat-input" placeholder="Type a message...">
+            
+            <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i></button>
+        </div>
+        <div id="file-preview" style="font-size: 11px; color: #075e54; display: none; padding-left: 40px;">
+            <i class="fas fa-image"></i> Image selected: <span id="file-name"></span>
+        </div>
     </form>
 </div>
 
@@ -117,27 +234,29 @@
     const msgArea = document.getElementById('messages-area');
     msgArea.scrollTop = msgArea.scrollHeight;
 
+    const fileInput = document.getElementById('image-upload');
+    const filePreview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            filePreview.style.display = 'block';
+            fileName.innerText = this.files[0].name;
+        } else {
+            filePreview.style.display = 'none';
+        }
+    });
+
     const chatForm = document.getElementById('chat-form');
     chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
         const input = document.getElementById('chat-content');
-        const content = input.value;
-        if (!content) return;
-
-        const formData = new FormData(chatForm);
-        input.value = '';
-
-        try {
-            await fetch(window.location.href, {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: formData
-            });
-            // Simplified: reload to show new message or append dynamically
-            location.reload();
-        } catch (err) {
-            console.error('Chat error:', err);
+        if (!input.value && !fileInput.files.length) {
+            e.preventDefault();
+            return;
         }
+        
+        // Let the form submit normally for image uploads to handle multipart easily
+        // Or we could use Fetch with FormData if preferred.
     });
 </script>
 {% endblock %}

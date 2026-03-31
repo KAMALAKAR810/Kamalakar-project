@@ -28,9 +28,29 @@
                 <label style="display: block; font-weight: 700; margin-bottom: 8px;">Withdraw Amount (Coins) *</label>
                 <input type="number" name="amount" class="bet-input" placeholder="Min ₹1" min="1" max="{{ user.wallet.balance }}" required>
             </div>
-            <div class="form-group" style="margin-bottom: 30px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">UPI ID (Optional)</label>
+
+            <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                <p style="font-size: 13px; color: #856404; margin: 0;"><strong>Mandatory:</strong> "Name as per Bank" is strictly required. Please provide at least one additional detail (UPI ID, Mobile, or Account) for verification.</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Name as per Bank <span style="color: var(--danger);">*</span></label>
+                <input type="text" name="bank_name" class="bet-input" placeholder="Full name as in bank record" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">UPI ID</label>
                 <input type="text" name="upi_id" class="bet-input" placeholder="example@upi">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Mobile Number</label>
+                <input type="text" name="mobile_number" class="bet-input" placeholder="10-digit mobile number">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Bank Account Number</label>
+                <input type="text" name="bank_account" class="bet-input" placeholder="Account number">
             </div>
 
             <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; font-size: 16px;">SUBMIT WITHDRAWAL REQUEST</button>

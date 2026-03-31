@@ -31,6 +31,9 @@ urlpatterns = [
 
     # --- Payment ---
     path("payment/", views.payment_page, name="payment"),
+    path("admin-payments/", views.admin_payment_management, name="admin_payment_management"),
+    path("admin-user-activity/", views.admin_user_activity, name="admin_user_activity"),
+    path("delete-bet/<int:bet_id>/", views.delete_bet, name="delete_bet"),
     path("wallet/", views.wallet_view, name="wallet"),
     path("wallet-history/", views.wallet_history_view, name="wallet_history"),
     path("notifications/", views.notifications_view, name="notifications"),

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime, timedelta
+import uuid
 
 # --- CHOICES ---
 
@@ -61,8 +62,11 @@ class Profile(models.Model):
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    content = models.TextField()
+    content = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
     is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    auto_delete = models.BooleanField(default=False, help_text="If True, delete 30 mins after being read")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -206,12 +210,31 @@ class Bet(models.Model):
     win_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     is_credited = models.BooleanField(default=False, help_text="True if winning amount is added to wallet")
     credited_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.game_type} | {self.market.name} | {self.number}"
+
+class UserActivity(models.Model):
+    ACTIVITY_TYPES = (
+        ('BET_DELETE', 'Bet Deleted'),
+        ('CLEANUP', 'Data Cleanup'),
+        ('OTHER', 'Other'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.activity_type} - {self.created_at}"
 
 
 class Transaction(models.Model):
@@ -245,6 +268,43 @@ class Notification(models.Model):
         return f"Notification for {self.user.username}: {self.title}"
 
 
+class PaymentSettings(models.Model):
+    upi_id = models.CharField(max_length=255, default="yourdefault@upi")
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Active UPI: {self.upi_id}"
+
+class DepositRequest(models.Model):
+    """
+    User deposit requests via UTR/Transaction ID.
+    """
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='deposits')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    utr_number = models.CharField(max_length=50, unique=True)
+    txn_ref = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - ₹{self.amount} (UTR: {self.utr_number})"
+
+"""
+class SiteSettings(models.Model):
+    is_captcha_enabled = models.BooleanField(default=False)  
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Site Settings (Captcha: {self.is_captcha_enabled})"
+"""
+
 class WithdrawalRequest(models.Model):
     """
     Task 13: Withdrawal requests from user.
@@ -257,6 +317,9 @@ class WithdrawalRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='withdrawals')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     upi_id = models.CharField(max_length=100, blank=True, null=True)
+    mobile_number = models.CharField(max_length=15, blank=True, null=True)
+    bank_account = models.CharField(max_length=50, blank=True, null=True)
+    bank_name = models.CharField(max_length=100, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

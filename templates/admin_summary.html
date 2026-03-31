@@ -116,7 +116,52 @@
         </div>
     </div>
 
+    <!-- 30-Day Cleanup Section -->
+    <div class="data-panel" style="margin-bottom: 30px; padding: 25px; border-left: 5px solid var(--danger);">
+        <h3 class="section-title" style="color: var(--danger);"><i class="fas fa-trash-alt"></i> 30-Day System Cleanup</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <p style="color: #666; font-size: 14px; max-width: 800px; margin: 0;">
+                Clicking this will permanently delete <strong>all data older than 30 days</strong>, including market history, user bets, chat support history, payments, and withdrawals. This keeps the database fast and secure.
+            </p>
+            <form method="POST" onsubmit="return confirm('ARE YOU ABSOLUTELY SURE? This will delete all history data older than 30 days and cannot be undone.')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cleanup_30days">
+                <button type="submit" class="btn-gold" style="background: var(--danger); border: none; padding: 12px 30px;">
+                    APPROVE 30-DAY CLEANUP
+                </button>
+            </form>
+        </div>
+    </div>
+
     <div class="dashboard-tables">
+        <div class="data-panel">
+            <h3 class="section-title"><i class="fas fa-history"></i> Recent User Activity</h3>
+            <div style="overflow-x: auto;">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for act in recent_activities %}
+                        <tr>
+                            <td>{{ act.user.username }}</td>
+                            <td>
+                                <span class="game-type-pill" style="font-size: 10px; padding: 2px 6px;">{{ act.activity_type }}</span>
+                            </td>
+                            <td style="font-size: 12px; color: #888;">{{ act.created_at|date:"H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" style="text-align: center; color: #999;">No recent activity</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <a href="{% url 'admin_user_activity' %}" style="display: block; text-align: center; margin-top: 15px; font-size: 13px; color: var(--primary); font-weight: 600;">View All Activity <i class="fas fa-arrow-right"></i></a>
+        </div>
         <!-- Market Summary -->
         <div class="data-panel" style="padding: 25px;">
             <h3 class="section-title"><i class="fas fa-list-ul"></i> Market Wise Performance (Today)</h3>

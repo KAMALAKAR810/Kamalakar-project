@@ -74,8 +74,12 @@
     <p class="page-sub">Comprehensive view of all bets placed in selected market session.</p>
     
     <div class="data-panel" style="margin-bottom: 25px; border-radius: 15px; border: 1px solid #eee;">
-        <form method="GET" style="display: flex; gap: 20px; flex-wrap: wrap; background: none; border: none; padding: 10px;">
-            <div style="flex: 1; min-width: 250px;">
+        <form method="GET" style="display: flex; gap: 20px; flex-wrap: wrap; background: none; border: none; padding: 10px; align-items: flex-end;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">DATE</label>
+                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
+            </div>
+            <div style="flex: 1; min-width: 200px;">
                 <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">MARKET</label>
                 <select name="market" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
                     <option value="">-- Select Market --</option>
@@ -84,13 +88,14 @@
                     {% endfor %}
                 </select>
             </div>
-            <div style="flex: 1; min-width: 250px;">
+            <div style="flex: 1; min-width: 200px;">
                 <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">SESSION</label>
                 <select name="session" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
                     <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN SESSION</option>
                     <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE SESSION</option>
                 </select>
             </div>
+            <a href="{% url 'organize_data' %}" class="btn-gold" style="background: #333; text-decoration: none; padding: 12px 20px; border-radius: 10px; height: 45px; display: flex; align-items: center;">RESET</a>
         </form>
     </div>
 

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-shell">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div>
+            <h2 class="page-title" style="margin: 0; border: none; text-align: left;">User Activity Log</h2>
+            <p class="page-sub" style="margin: 0; text-align: left;">Monitor system actions like bet deletions</p>
+        </div>
+    </div>
+
+    <div class="data-panel">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>User ID</th>
+                    <th>Activity Type</th>
+                    <th>Description</th>
+                    <th>Date & Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for act in activities %}
+                <tr>
+                    <td>
+                        <span style="font-weight: bold;">{{ act.user.username }}</span>
+                    </td>
+                    <td><span style="font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px;">{{ act.user.profile.user_code }}</span></td>
+                    <td>
+                        <span class="game-type-pill" style="background: {% if act.activity_type == 'BET_DELETE' %}#ffebee; color: #c62828;{% elif act.activity_type == 'CLEANUP' %}#e3f2fd; color: #1565c0;{% else %}#eee;{% endif %}">
+                            {{ act.activity_type }}
+                        </span>
+                    </td>
+                    <td>{{ act.description }}</td>
+                    <td style="font-size: 13px; color: #666;">
+                        {{ act.created_at|date:"d M Y, H:i:s" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: #999;">No activities logged yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

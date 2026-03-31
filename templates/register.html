@@ -150,13 +150,18 @@
             <div style="margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
                 <input type="checkbox" id="terms_agree" name="terms_agree" style="width: auto; margin-top: 4px;" required>
                 <label for="terms_agree" style="font-size: 13px; color: var(--gray); cursor: pointer;">
-                    I agree to the <a href="#" style="color: var(--primary); font-weight: 600;">Terms and Conditions</a> and privacy policy.
+                    I agree to the <a href="javascript:void(0)" onclick="openTerms()" style="color: var(--primary); font-weight: 600;">Terms and Conditions</a> and privacy policy.
                 </label>
             </div>
             
+            {% comment %}
+            {% if enable_captcha %}
             <div style="margin-bottom: 20px; display: flex; justify-content: center;">
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                 <div class="g-recaptcha" data-sitekey="6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE"></div>
             </div>
+            {% endif %}
+            {% endcomment %}
 
             <button type="submit" class="auth-btn">Register Now</button>
         </form>

@@ -1,6 +1,13 @@
 from django.contrib import admin
 from django.utils import timezone
-from .models import Profile, Wallet, Market, Bet, Transaction, RegistrationCounter, Message, Notification
+from .models import Profile, Wallet, Market, Bet, Transaction, RegistrationCounter, Message, Notification, PaymentSettings, WithdrawalRequest, DepositRequest, UserActivity
+
+
+@admin.register(UserActivity)
+class UserActivityAdmin(admin.ModelAdmin):
+    list_display = ('user', 'activity_type', 'created_at')
+    list_filter = ('activity_type', 'created_at')
+    search_fields = ('user__username', 'description')
 
 
 # --- INLINES ---
@@ -110,3 +117,32 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'title', 'is_read', 'created_at')
     list_filter = ('is_read', 'created_at')
     search_fields = ('title', 'message', 'user__username')
+
+
+@admin.register(PaymentSettings)
+class PaymentSettingsAdmin(admin.ModelAdmin):
+    list_display = ('upi_id', 'is_active', 'updated_at')
+    list_editable = ('is_active',)
+
+
+"""
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'is_captcha_enabled', 'updated_at')
+    list_editable = ('is_captcha_enabled',)
+    list_display_links = ('id',)
+"""
+
+
+@admin.register(DepositRequest)
+class DepositRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'utr_number', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username', 'utr_number')
+
+
+@admin.register(WithdrawalRequest)
+class WithdrawalRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username', 'upi_id', 'mobile_number', 'bank_account')

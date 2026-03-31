@@ -1,8 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-shell">
-    <h2 class="page-title">Admin Chat Support</h2>
-    <p class="page-sub">Message users and provide support</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div>
+            <h2 class="page-title" style="margin: 0; border: none; text-align: left;">Admin Chat Support</h2>
+            <p class="page-sub" style="margin: 0; text-align: left;">Message users and provide support</p>
+        </div>
+        
+        <form method="GET" style="display: flex; gap: 10px;">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search Username or ID..." class="bet-input" style="width: 250px; padding: 10px;">
+            <button type="submit" class="btn-gold" style="padding: 10px 20px;">Search</button>
+            {% if search_query %}
+                <a href="{% url 'admin_chat_list' %}" class="btn-gold" style="background: #333; text-decoration: none;">Clear</a>
+            {% endif %}
+        </form>
+    </div>
 
     <div class="data-panel">
         <table class="app-table">
@@ -12,6 +24,7 @@
                     <th>Username</th>
                     <th>User ID</th>
                     <th>Phone Number</th>
+                    <th>Last Message</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -23,17 +36,20 @@
                         <span style="margin-left: 10px; font-weight: bold;">{{ user.first_name }}</span>
                     </td>
                     <td>{{ user.username }}</td>
-                    <td>{{ user.profile.user_code }}</td>
+                    <td><span style="font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px;">{{ user.profile.user_code }}</span></td>
                     <td>{{ user.profile.mobile }}</td>
+                    <td style="font-size: 12px; color: #666;">
+                        {{ user.last_message_at|date:"d M, H:i"|default:"No date" }}
+                    </td>
                     <td>
-                        <a href="{% url 'admin_chat_user' user.id %}" class="btn-gold">
+                        <a href="{% url 'admin_chat_user' user.id %}" class="btn-gold" style="padding: 8px 15px; font-size: 13px;">
                             <i class="fa fa-comments"></i> Open Chat
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" style="text-align: center;">No chat history found. Go to User Management to start a chat.</td>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #999;">No chat history found. Go to User Management to start a chat.</td>
                 </tr>
                 {% endfor %}
             </tbody>

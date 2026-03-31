@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "MATKAAPP",
-    "django_recaptcha",
+    # "django_recaptcha",
 ]
 
 MIDDLEWARE = [
@@ -133,11 +133,11 @@ LOGOUT_REDIRECT_URL = "index"  # Where to redirect after logout
 
 
 # Google reCAPTCHA Keys
-RECAPTCHA_PUBLIC_KEY = "6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE"
-RECAPTCHA_PRIVATE_KEY = "6LdYKZ0sAAAAAF_zdko28ow4I90nSwvU_u9myv7T"
+# RECAPTCHA_PUBLIC_KEY = "6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE"
+# RECAPTCHA_PRIVATE_KEY = "6LdYKZ0sAAAAAF_zdko28ow4I90nSwvU_u9myv7T"
 
 # Optional: PythonAnywhere usually works fine, but you can force
 # the use of HTTPS for the verification request:
-RECAPTCHA_USE_SSL = True
-RECAPTCHA_VERIFY_TIMEOUT = 10
-RECAPTCHA_OPTIONS = {"theme": "light"}  # for django-recaptcha
+# RECAPTCHA_USE_SSL = True
+# RECAPTCHA_VERIFY_TIMEOUT = 10
+# RECAPTCHA_OPTIONS = {"theme": "light"}  # for django-recaptcha

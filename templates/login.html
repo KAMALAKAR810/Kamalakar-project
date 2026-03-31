@@ -105,6 +105,13 @@
                 <i class="fas fa-eye toggle-password" id="togglePassword"></i>
             </div>
 
+            {% comment %}
+            {% if enable_captcha %}
+                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                <div class="g-recaptcha" data-sitekey="6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE" style="margin-bottom: 15px;"></div>
+            {% endif %}
+            {% endcomment %}
+
             <button type="submit" class="auth-btn">Sign In</button>
         </form>
         

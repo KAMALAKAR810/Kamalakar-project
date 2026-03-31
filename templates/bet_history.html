@@ -49,11 +49,12 @@
                     <th>Amount</th>
                     <th>Status</th>
                     <th>Win Amount</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for bet in user_bets %}
-                <tr>
+                <tr id="bet-row-{{ bet.id }}">
                     <td>{{ bet.date|date:"d-m-Y" }}</td>
                     <td>{{ bet.market.name }}</td>
                     <td><span class="status-badge {% if bet.session == 'OPEN' %}open{% else %}closed{% endif %}">{{ bet.session }}</span></td>
@@ -61,12 +62,23 @@
                     <td><strong style="color: var(--primary); font-size: 16px;">{{ bet.number }}</strong></td>
                     <td style="font-weight: 600;">₹{{ bet.amount }}</td>
                     <td>
-                        <span class="status-badge {% if bet.status == 'WIN' %}open{% elif bet.status == 'LOSS' %}closed{% endif %}">
-                            {{ bet.status }}
-                        </span>
+                        {% if bet.is_deleted %}
+                            <span class="status-badge closed">DELETED</span>
+                        {% else %}
+                            <span class="status-badge {% if bet.status == 'WIN' %}open{% elif bet.status == 'LOSS' %}closed{% endif %}">
+                                {{ bet.status }}
+                            </span>
+                        {% endif %}
                     </td>
                     <td style="font-weight: 700; color: var(--success);">
                         {% if bet.status == 'WIN' %}₹{{ bet.win_amount }}{% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if not bet.is_deleted and bet.status == 'PENDING' %}
+                            <button onclick="deleteBet({{ bet.id }})" class="btn-gold" style="background: var(--danger); padding: 5px 10px; font-size: 11px; border: none;">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -89,4 +101,34 @@
     {% endif %}
     </div>
 </div>
+
+<script>
+function deleteBet(betId) {
+    if (!confirm('Are you sure you want to delete this bet? You can delete up to 3 bets per day within 24 hours of placement.')) {
+        return;
+    }
+    
+    fetch(`/delete-bet/${betId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showModal("Success", data.message, "success");
+            // Reload after a short delay
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showModal("Error", data.message, "error");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showModal("Error", "An unexpected error occurred.", "error");
+    });
+}
+</script>
 {% endblock %}

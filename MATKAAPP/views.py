@@ -1,8 +1,8 @@
+from datetime import timedelta
 from decimal import Decimal
 import json
 import re
 import random
-from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -16,10 +16,11 @@ from django.http import JsonResponse
 # FIX: Renamed import to 'db_transaction' to avoid name collision with the
 # local variable 'transaction' used inside place_bet and the Transaction model.
 from django.db import transaction as db_transaction
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from django.utils import timezone
 
-from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory
+from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity
+import uuid
 
 def create_notification(user, title, message):
     Notification.objects.create(user=user, title=title, message=message)
@@ -37,7 +38,22 @@ def wallet_view(request):
     if request.method == 'POST':
         amount = Decimal(request.POST.get('amount', 0))
         upi_id = request.POST.get('upi_id', '').strip()
+        mobile_number = request.POST.get('mobile_number', '').strip()
+        bank_account = request.POST.get('bank_account', '').strip()
+        bank_name = request.POST.get('bank_name', '').strip()
         
+        # Validation: At least two fields are mandatory, but Bank Name is strictly required
+        if not bank_name:
+            messages.error(request, "Name as per Bank is mandatory for withdrawal.")
+            return redirect('wallet')
+
+        provided_fields = [upi_id, mobile_number, bank_account]
+        count_provided = sum(1 for field in provided_fields if field)
+        
+        if count_provided < 1:
+            messages.error(request, "Please provide at least one additional detail (UPI ID, Mobile Number, or Bank Account) along with your Bank Name.")
+            return redirect('wallet')
+
         if amount < 1:
             messages.error(request, "Minimum withdrawal amount is ₹1.")
             return redirect('wallet')
@@ -54,14 +70,17 @@ def wallet_view(request):
             WithdrawalRequest.objects.create(
                 user=request.user,
                 amount=amount,
-                upi_id=upi_id
+                upi_id=upi_id,
+                mobile_number=mobile_number,
+                bank_account=bank_account,
+                bank_name=bank_name
             )
             
             Transaction.objects.create(
                 wallet=wallet,
                 amount=amount,
                 txn_type='WITHDRAWAL',
-                description=f"Withdrawal Request: {upi_id}"
+                description=f"Withdrawal Request: {upi_id or mobile_number or bank_account}"
             )
             
             # Notification (Task 14)
@@ -142,19 +161,27 @@ def _markets_betting_payload():
 
 def _get_admin_notifications(request):
     """Context processor for admin notification dots. Must accept 'request'."""
+    # settings_obj = SiteSettings.objects.first()
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
+    
+    context = {
+        'enable_captcha': enable_captcha
+    }
+    
     if request.user.is_authenticated:
         unread_count = Message.objects.filter(receiver=request.user, is_read=False).count()
         if request.user.is_superuser:
-            return {
+            context.update({
                 'new_users': Profile.objects.filter(is_new=True).exists(),
                 'unread_msgs': unread_count
-            }
+            })
         else:
-            return {
+            context.update({
                 'unread_notifs': Notification.objects.filter(user=request.user, is_read=False).count(),
                 'unread_msgs': unread_count
-            }
-    return {}
+            })
+    return context
 
 
 # --- PATTI NUMBER GROUPS ---
@@ -196,6 +223,10 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('index')
     
+    # settings_obj = SiteSettings.objects.first()
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
+
     if request.method == 'POST':
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
         is_ajax = request.content_type == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -205,11 +236,39 @@ def login_view(request):
                 data = json.loads(request.body)
                 user_n = data.get('username')
                 psw = data.get('password')
+                # recaptcha_response = data.get('g-recaptcha-response')
             except json.JSONDecodeError:
                 return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'})
         else:
             user_n = request.POST.get('username')
             psw = request.POST.get('password')
+            # recaptcha_response = request.POST.get('g-recaptcha-response')
+
+        # Google reCAPTCHA Verification (Commented out)
+        """
+        if enable_captcha:
+            import requests
+            from django.conf import settings
+            
+            verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+            verify_data = {
+                'secret': settings.RECAPTCHA_PRIVATE_KEY,
+                'response': recaptcha_response
+            }
+            
+            try:
+                verify_response = requests.post(verify_url, data=verify_data, timeout=5)
+                verify_result = verify_response.json()
+                
+                if not verify_result.get('success'):
+                    if is_ajax:
+                        return JsonResponse({'status': 'error', 'message': "Please complete the 'I'm not a robot' verification."})
+                    messages.error(request, "Please complete the 'I'm not a robot' verification.")
+                    return render(request, 'login.html', {'enable_captcha': enable_captcha})
+            except Exception:
+                # Fail open strategy for better UX if Google is down
+                pass
+        """
 
         user = authenticate(request, username=user_n, password=psw)
         
@@ -246,9 +305,9 @@ def login_view(request):
                 return JsonResponse({'status': 'error', 'message': 'Invalid username or password.'})
             
             messages.error(request, "Invalid username or password.")
-            return render(request, 'login.html')
+            return render(request, 'login.html', {'enable_captcha': enable_captcha})
 
-    return render(request, 'login.html')
+    return render(request, 'login.html', {'enable_captcha': enable_captcha})
 
 
 def logout_view(request):
@@ -277,11 +336,15 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect('index')
 
+    # settings_obj = SiteSettings.objects.first()
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
+
     if request.method == 'POST':
         # Honeypot — bots often fill hidden fields
         if request.POST.get("website", "").strip():
             messages.error(request, "Registration could not be completed.")
-            return render(request, 'register.html')
+            return render(request, 'register.html', {'enable_captcha': enable_captcha})
 
         name = (request.POST.get('name') or '').strip()
         user_n = (request.POST.get('username') or '').strip()
@@ -291,55 +354,59 @@ def register_view(request):
         
         # Google reCAPTCHA Verification (Commented out)
         """
-        recaptcha_response = request.POST.get('g-recaptcha-response')
-        import requests
-        from django.conf import settings
-        
-        verify_url = 'https://www.google.com/recaptcha/api/siteverify'
-        verify_data = {
-            'secret': settings.RECAPTCHA_PRIVATE_KEY,
-            'response': recaptcha_response
-        }
-        
-        verify_response = requests.post(verify_url, data=verify_data)
-        verify_result = verify_response.json()
-        
-        if not verify_result.get('success'):
-            messages.error(request, "Please complete the 'I'm not a robot' verification.")
-            return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob
-            })
+        if enable_captcha:
+            recaptcha_response = request.POST.get('g-recaptcha-response')
+            import requests
+            from django.conf import settings
+            
+            verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+            verify_data = {
+                'secret': settings.RECAPTCHA_PRIVATE_KEY,
+                'response': recaptcha_response
+            }
+            
+            try:
+                verify_response = requests.post(verify_url, data=verify_data, timeout=5)
+                verify_result = verify_response.json()
+                
+                if not verify_result.get('success'):
+                    messages.error(request, "Please complete the 'I'm not a robot' verification.")
+                    return render(request, 'register.html', {
+                        'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
+                    })
+            except Exception:
+                pass
         """
 
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
             return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob
+                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if psw != psw2:
             messages.error(request, "Passwords do not match.")
             return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob
+                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         mobile_digits, mobile_err = _normalize_indian_mobile(mob)
         if mobile_err:
             messages.error(request, mobile_err)
             return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob
+                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if User.objects.filter(username__iexact=user_n).exists():
             messages.error(request, "Username already taken.")
             return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob
+                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if Profile.objects.filter(mobile=mobile_digits).exists():
             messages.error(request, "This mobile number is already registered.")
             return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob
+                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         candidate = User(username=user_n, first_name=name)
@@ -349,7 +416,7 @@ def register_view(request):
             for msg in e.messages:
                 messages.error(request, msg)
             return render(request, 'register.html', {
-                'name': name, 'username': user_n, 'mobile': mob
+                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         try:
@@ -376,14 +443,14 @@ def register_view(request):
 
         except IntegrityError:
             messages.error(request, "Username or mobile is already in use. Please try again.")
-            return render(request, 'register.html')
+            return render(request, 'register.html', {'enable_captcha': enable_captcha})
 
         messages.success(
             request,
             f"Registration successful! Welcome to ChangeLifeWithNumbers {user_n}. You can log in now.",
         )
         return redirect('login')
-    return render(request, 'register.html')
+    return render(request, 'register.html', {'enable_captcha': enable_captcha})
 
 
 # --- BASIC PAGES ---
@@ -844,19 +911,24 @@ def calculate_winners(market, session_to_calculate=None):
 @login_required
 def jodi_winners_view(request):
     """
-    Task 15: Separate Jodi winners view.
+    Task 15: Separate Jodi winners view with date and market filters.
     """
     market_id = request.GET.get('market', 'ALL')
+    date_filter = request.GET.get('date', '')
+    
     winners = Bet.objects.filter(game_type='JODI', status='WIN').select_related('user', 'user__profile', 'market').order_by('-created_at')
     
     if market_id != 'ALL':
         winners = winners.filter(market_id=market_id)
+    if date_filter:
+        winners = winners.filter(created_at__date=date_filter)
         
     markets = Market.objects.all()
     return render(request, 'jodi_winners.html', {
         'winners': winners,
         'markets': markets,
         'selected_market_id': market_id,
+        'selected_date': date_filter
     })
 
 
@@ -866,6 +938,7 @@ def winners_list(request):
     game_type = request.GET.get('game_type', 'ALL')
     market_id = request.GET.get('market', 'ALL')
     session = request.GET.get('session', 'ALL')
+    date_filter = request.GET.get('date', '')
     
     winners = Bet.objects.filter(status='WIN').select_related('user', 'user__profile', 'market')
     
@@ -875,9 +948,11 @@ def winners_list(request):
         winners = winners.filter(market_id=market_id)
     if session != 'ALL':
         winners = winners.filter(session=session)
+    if date_filter:
+        winners = winners.filter(created_at__date=date_filter)
         
     # Order by winning amount descending
-    winners = winners.order_by('-win_amount')
+    winners = winners.order_by('-created_at')
     
     markets = Market.objects.all()
     
@@ -894,22 +969,27 @@ def winners_list(request):
         'latest_result': latest_result,
         'selected_game_type': game_type,
         'selected_market_id': market_id,
-        'selected_session': session
+        'selected_session': session,
+        'selected_date': date_filter
     })
 
 
 @user_passes_test(lambda u: u.is_superuser)
 def organize_data_view(request):
-    """Admin view for organized market data filtering."""
+    """Admin view for organized market data filtering by market, session and date."""
     markets = Market.objects.all()
     selected_market_id = request.GET.get('market')
     selected_session = request.GET.get('session', 'OPEN')
+    selected_date = request.GET.get('date', '') # Default to empty for 'All'
     
     game_data = {gt: [] for gt in ['SINGLE', 'JODI', 'SINGLE_PATTI', 'DOUBLE_PATTI', 'TRIPLE_PATTI']}
     
     if selected_market_id:
         market = Market.objects.get(id=selected_market_id)
-        bets = Bet.objects.filter(market=market, session=selected_session)
+        bets = Bet.objects.filter(market=market, session=selected_session, is_deleted=False)
+        
+        if selected_date:
+            bets = bets.filter(created_at__date=selected_date)
         
         from django.db.models import Sum, Count
         stats = bets.values('number', 'game_type').annotate(
@@ -944,6 +1024,7 @@ def organize_data_view(request):
         'markets': markets,
         'selected_market_id': selected_market_id,
         'selected_session': selected_session,
+        'selected_date': selected_date,
         'table_rows': table_rows,
     })
 
@@ -1011,29 +1092,56 @@ def admin_report(request):
     })
 
 
-@user_passes_test(lambda u: u.is_staff)
+@user_passes_test(lambda u: u.is_superuser)
 def admin_summary(request):
-    """
-    Professional Dashboard for Admins.
-    """
-    from .models import User, Wallet, WithdrawalRequest, Transaction
-    from django.db.models import Sum, Count, Q
-    from django.utils import timezone
-    
-    today = timezone.now().date()
-    
-    # Core Stats
+    """Admin dashboard overview with 30-day cleanup."""
+    if request.method == 'POST' and request.POST.get('action') == 'cleanup_30days':
+        # Logic for 30-day cleanup
+        cutoff_date = timezone.now() - timedelta(days=30)
+        
+        with db_transaction.atomic():
+            # 1. Archive & Delete MarketHistory older than 30 days
+            MarketHistory.objects.filter(archived_at__lt=cutoff_date).delete()
+            
+            # 2. Delete Admin Chat (Messages) older than 30 days
+            Message.objects.filter(created_at__lt=cutoff_date).delete()
+            
+            # 3. Delete User Bets older than 30 days
+            Bet.objects.filter(created_at__lt=cutoff_date).delete()
+            
+            # 4. Delete Payment Approval History (DepositRequest) older than 30 days
+            DepositRequest.objects.filter(created_at__lt=cutoff_date).delete()
+            
+            # 5. Delete Withdrawal Requests older than 30 days
+            WithdrawalRequest.objects.filter(created_at__lt=cutoff_date).delete()
+            
+            # 6. Delete Notifications older than 30 days
+            Notification.objects.filter(created_at__lt=cutoff_date).delete()
+            
+            # Log this cleanup activity
+            UserActivity.objects.create(
+                user=request.user,
+                activity_type='CLEANUP',
+                description=f"Admin performed 30-day data cleanup for data before {cutoff_date.strftime('%Y-%m-%d %H:%M')}"
+            )
+            
+        messages.success(request, f"Successfully cleaned up all data older than 30 days (before {cutoff_date.strftime('%d %b %Y')}).")
+        return redirect('admin_summary')
+
     total_users = User.objects.exclude(is_superuser=True).count()
-    total_wallet_balance = Wallet.objects.aggregate(Sum('balance'))['balance__sum'] or 0
     
-    # Today's activity
-    today_bets = Bet.objects.filter(created_at__date=today)
+    # Financial Stats
+    today = timezone.now().date()
+    today_bets = Bet.objects.filter(created_at__date=today, is_deleted=False)
     today_collection = today_bets.aggregate(Sum('amount'))['amount__sum'] or 0
     today_payouts = today_bets.aggregate(Sum('win_amount'))['win_amount__sum'] or 0
     today_profit = today_collection - today_payouts
     
-    # Pending Withdrawals
     pending_withdrawals = WithdrawalRequest.objects.filter(status='PENDING').count()
+    pending_deposits = DepositRequest.objects.filter(status='PENDING').count()
+    
+    # Recent activities
+    recent_activities = UserActivity.objects.all()[:10]
     
     # Market Summary for Today
     market_summary = today_bets.values('market__name', 'game_type').annotate(
@@ -1047,14 +1155,119 @@ def admin_summary(request):
     return render(request, "admin_summary.html", {
         "today": today,
         "total_users": total_users,
-        "total_wallet_balance": total_wallet_balance,
         "today_collection": today_collection,
         "today_payouts": today_payouts,
         "today_profit": today_profit,
         "pending_withdrawals": pending_withdrawals,
+        "pending_deposits": pending_deposits,
         "market_summary": market_summary,
-        "recent_txns": recent_txns
+        "recent_txns": recent_txns,
+        "recent_activities": recent_activities
     })
+
+
+@login_required
+def delete_bet(request, bet_id):
+    """User can delete their own bet with specific restrictions."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'})
+        
+    bet = get_object_or_404(Bet, id=bet_id, user=request.user)
+    
+    # 1. Check if already deleted
+    if bet.is_deleted:
+        return JsonResponse({'status': 'error', 'message': 'This bet is already deleted.'})
+        
+    # 2. Check if within 24 hours of placement
+    if timezone.now() > bet.created_at + timedelta(hours=24):
+        return JsonResponse({'status': 'error', 'message': 'Bets can only be deleted within 24 hours of placement.'})
+        
+    # 3. Check if market is still open and not in lockout (last 10 mins)
+    market = bet.market
+    if not market.is_betting_allowed(bet.session):
+        return JsonResponse({'status': 'error', 'message': 'Betting is locked. You cannot delete bets in the last 10 minutes or after market close.'})
+        
+    # 4. Check if result is already declared
+    if bet.session == 'OPEN':
+        if market.open_single or market.open_patti:
+            return JsonResponse({'status': 'error', 'message': 'Result already declared for this session. Cannot delete bet.'})
+    else:
+        if market.close_single or market.close_patti:
+            return JsonResponse({'status': 'error', 'message': 'Result already declared for this session. Cannot delete bet.'})
+            
+    # 5. Check daily limit (3 bets per day)
+    today_deleted_count = Bet.objects.filter(
+        user=request.user, 
+        is_deleted=True, 
+        deleted_at__date=timezone.now().date()
+    ).count()
+    
+    if today_deleted_count >= 3:
+        return JsonResponse({'status': 'error', 'message': 'Daily deletion limit (3 bets) reached.'})
+        
+    # Perform deletion
+    with db_transaction.atomic():
+        bet.is_deleted = True
+        bet.deleted_at = timezone.now()
+        bet.status = 'REJECTED' # Mark as rejected to avoid win calculation
+        bet.save()
+        
+        # Log activity for admin
+        UserActivity.objects.create(
+            user=request.user,
+            activity_type='BET_DELETE',
+            description=f"Deleted {bet.game_type} bet of ₹{bet.amount} on {market.name} ({bet.session})"
+        )
+        
+    return JsonResponse({'status': 'success', 'message': 'Bet deleted successfully. Refund will be credited to your wallet in 10 minutes after verification.'})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_user_activity(request):
+    """Admin view to monitor all user activities including bet deletions."""
+    activities = UserActivity.objects.select_related('user', 'user__profile').all().order_by('-created_at')
+    
+    # Process pending refunds for deleted bets (Task 4)
+    # This logic checks for deleted bets that are older than 10 mins and not yet refunded.
+    # We find transactions to see if a refund was already issued.
+    ten_mins_ago = timezone.now() - timedelta(minutes=10)
+    pending_refund_bets = Bet.objects.filter(
+        is_deleted=True, 
+        deleted_at__lte=ten_mins_ago,
+        status='REJECTED' # REJECTED means deleted but not yet refunded in our logic
+    )
+    
+    refund_count = 0
+    for bet in pending_refund_bets:
+        # Check if already refunded by looking for a transaction
+        exists = Transaction.objects.filter(
+            wallet__user=bet.user,
+            txn_type='DEPOSIT',
+            description__icontains=f"Refund for Deleted Bet #{bet.id}"
+        ).exists()
+        
+        if not exists:
+            with db_transaction.atomic():
+                wallet = bet.user.wallet
+                wallet.balance += Decimal(str(bet.amount))
+                wallet.save()
+                
+                Transaction.objects.create(
+                    wallet=wallet,
+                    amount=Decimal(str(bet.amount)),
+                    txn_type='DEPOSIT',
+                    description=f"Refund for Deleted Bet #{bet.id} ({bet.game_type})"
+                )
+                
+                # Update status so we don't process it again
+                bet.status = 'LOSS' # Using LOSS as a final processed state for deleted bets
+                bet.save()
+                refund_count += 1
+                
+    if refund_count > 0:
+        messages.info(request, f"Processed {refund_count} pending bet refunds automatically.")
+
+    return render(request, 'admin_user_activity.html', {'activities': activities})
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -1068,35 +1281,76 @@ def admin_user_management(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_chat_list(request):
-    """Page 2: WhatsApp style chat list - only show users with existing messages."""
+    """Page 2: WhatsApp style chat list with search and date info."""
+    search_query = request.GET.get('search', '').strip()
+    
     # Task 1: Hide chat column (user) if no messages exist
-    users = User.objects.exclude(is_superuser=True).filter(
+    users_qs = User.objects.exclude(is_superuser=True).filter(
         Q(received_messages__sender=request.user) | Q(sent_messages__receiver=request.user)
     ).distinct()
-    return render(request, 'admin_chat_list.html', {'users': users})
+    
+    if search_query:
+        users_qs = users_qs.filter(
+            Q(username__icontains=search_query) | 
+            Q(profile__user_code__icontains=search_query)
+        )
+        
+    # Annotate with last message time
+    from django.db.models import Max
+    users = users_qs.annotate(
+        last_message_at=Max('received_messages__created_at')
+    ).order_by('-last_message_at')
+    
+    return render(request, 'admin_chat_list.html', {
+        'users': users,
+        'search_query': search_query
+    })
 
 
 @login_required
 def chat_view(request, user_id=None):
-    """Unified chat view for User-Admin messaging."""
+    """Unified chat view for User-Admin messaging with image support and auto-delete."""
     if request.user.is_superuser:
         if not user_id:
             return redirect('admin_chat_list')
         other_user = User.objects.get(id=user_id)
         # Mark messages as read when admin opens the chat
-        Message.objects.filter(sender=other_user, receiver=request.user, is_read=False).update(is_read=True)
+        Message.objects.filter(sender=other_user, receiver=request.user, is_read=False).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
     else:
         # Normal user can only chat with admin
         other_user = User.objects.filter(is_superuser=True).first()
         if not other_user:
             return redirect('error')
         # Mark admin's messages as read when user opens the chat
-        Message.objects.filter(sender=other_user, receiver=request.user, is_read=False).update(is_read=True)
+        Message.objects.filter(sender=other_user, receiver=request.user, is_read=False).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
+
+    # Perform background cleanup of auto-deleted messages (older than 30 mins)
+    thirty_mins_ago = timezone.now() - timedelta(minutes=30)
+    Message.objects.filter(
+        auto_delete=True,
+        is_read=True,
+        read_at__lte=thirty_mins_ago
+    ).delete()
 
     if request.method == 'POST':
         content = request.POST.get('content')
-        if content:
-            Message.objects.create(sender=request.user, receiver=other_user, content=content)
+        image = request.FILES.get('image')
+        auto_delete = request.POST.get('auto_delete') == 'on' if request.user.is_superuser else False
+        
+        if content or image:
+            Message.objects.create(
+                sender=request.user, 
+                receiver=other_user, 
+                content=content,
+                image=image,
+                auto_delete=auto_delete
+            )
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'status': 'success'})
             return redirect('chat') if not request.user.is_superuser else redirect('admin_chat_user', user_id=other_user.id)
@@ -1107,9 +1361,20 @@ def chat_view(request, user_id=None):
         (Q(sender=other_user) & Q(receiver=request.user))
     ).order_by('created_at')
 
+    # Group messages by date for WhatsApp style display
+    from collections import OrderedDict
+    grouped_messages = {}
+    for msg in messages_list:
+        date_str = msg.created_at.date().strftime('%Y-%m-%d')
+        if date_str not in grouped_messages:
+            grouped_messages[date_str] = []
+        grouped_messages[date_str].append(msg)
+
     return render(request, 'chat.html', {
         'other_user': other_user,
-        'chat_messages': messages_list
+        'grouped_messages': grouped_messages,
+        'today_date': timezone.now().date().strftime('%Y-%m-%d'),
+        'yesterday_date': (timezone.now() - timedelta(days=1)).date().strftime('%Y-%m-%d'),
     })
 
 
@@ -1126,14 +1391,163 @@ def send_welcome_msg(request, user_id):
 
 @login_required
 def payment_page(request):
-    """Payment form with QR popup."""
+    """Payment form with QR popup and UTR submission."""
+    if request.method == 'POST':
+        # Handle UTR submission
+        amount = Decimal(request.POST.get('amount', 0))
+        utr_number = request.POST.get('utr_number', '').strip()
+        txn_ref = request.POST.get('txn_ref', '').strip()
+        
+        if not utr_number or len(utr_number) < 10:
+            return JsonResponse({'status': 'error', 'message': 'Please enter a valid 12-digit UTR.'})
+            
+        if amount < 100:
+            return JsonResponse({'status': 'error', 'message': 'Minimum amount is ₹100.'})
+            
+        # Check if UTR already exists
+        if DepositRequest.objects.filter(utr_number=utr_number).exists():
+            return JsonResponse({'status': 'error', 'message': 'This UTR has already been submitted.'})
+            
+        DepositRequest.objects.create(
+            user=request.user,
+            amount=amount,
+            utr_number=utr_number,
+            txn_ref=txn_ref,
+            status='PENDING'
+        )
+        
+        # Notify admin or log
+        return JsonResponse({'status': 'success', 'message': 'UTR submitted successfully! Your wallet will be updated after verification.'})
+
     # Ensure profile exists to avoid RelatedObjectDoesNotExist
     profile, created = Profile.objects.get_or_create(user=request.user)
+    
+    # Get the latest active UPI ID from the database
+    config = PaymentSettings.objects.filter(is_active=True).last()
+    upi_id = config.upi_id if config else 'default@upi' # Fallback
+    
+    # Generate a unique transaction reference for tracking
+    txn_ref = f"TXN-{uuid.uuid4().hex[:8].upper()}"
+
     return render(request, 'payment.html', {
         'username': request.user.username,
         'mobile': profile.mobile or "Not set",
         'user_code': profile.user_code or "N/A",
-        'upi_id': '8217228766@ibl'
+        'upi_id': upi_id,
+        'txn_ref': txn_ref
+    })
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_payment_management(request):
+    """Admin view to manage UPI ID and approve deposits."""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'update_upi':
+            upi_id = request.POST.get('upi_id')
+            if upi_id:
+                # Deactivate others and create new
+                PaymentSettings.objects.all().update(is_active=False)
+                PaymentSettings.objects.create(upi_id=upi_id, is_active=True)
+                messages.success(request, f"Active UPI ID updated to {upi_id}")
+            return redirect('admin_payment_management')
+            
+        elif action == 'approve_deposit':
+            req_id = request.POST.get('request_id')
+            try:
+                deposit = DepositRequest.objects.get(id=req_id, status='PENDING')
+                with db_transaction.atomic():
+                    deposit.status = 'APPROVED'
+                    deposit.save()
+                    
+                    # Add balance to user wallet
+                    wallet, _ = Wallet.objects.get_or_create(user=deposit.user)
+                    wallet.balance += deposit.amount
+                    wallet.save()
+                    
+                    # Create transaction log
+                    Transaction.objects.create(
+                        wallet=wallet,
+                        amount=deposit.amount,
+                        txn_type='DEPOSIT',
+                        description=f"Deposit via UTR: {deposit.utr_number}"
+                    )
+                    
+                    # Create notification
+                    create_notification(
+                        deposit.user,
+                        "Deposit Approved",
+                        f"Your deposit of ₹{deposit.amount} has been approved and added to your wallet."
+                    )
+                messages.success(request, f"Deposit of ₹{deposit.amount} approved for {deposit.user.username}")
+            except DepositRequest.DoesNotExist:
+                messages.error(request, "Request not found or already processed.")
+            return redirect('admin_payment_management')
+            
+        elif action == 'reject_deposit':
+            req_id = request.POST.get('request_id')
+            try:
+                deposit = DepositRequest.objects.get(id=req_id, status='PENDING')
+                deposit.status = 'REJECTED'
+                deposit.save()
+                messages.warning(request, f"Deposit rejected for {deposit.user.username}")
+            except DepositRequest.DoesNotExist:
+                messages.error(request, "Request not found or already processed.")
+            return redirect('admin_payment_management')
+
+        elif action == 'auto_approve':
+            utr_number = request.POST.get('utr_number', '').strip()
+            if not utr_number:
+                messages.error(request, "Please enter a UTR number.")
+                return redirect('admin_payment_management')
+                
+            try:
+                # Find the pending request with this UTR
+                deposit = DepositRequest.objects.get(utr_number=utr_number, status='PENDING')
+                with db_transaction.atomic():
+                    deposit.status = 'APPROVED'
+                    deposit.save()
+                    
+                    wallet, _ = Wallet.objects.get_or_create(user=deposit.user)
+                    wallet.balance += deposit.amount
+                    wallet.save()
+                    
+                    Transaction.objects.create(
+                        wallet=wallet,
+                        amount=deposit.amount,
+                        txn_type='DEPOSIT',
+                        description=f"Auto-Approved Deposit UTR: {deposit.utr_number}"
+                    )
+                    
+                    create_notification(
+                        deposit.user,
+                        "Deposit Auto-Approved",
+                        f"Your deposit of ₹{deposit.amount} was auto-approved via UTR verification."
+                    )
+                messages.success(request, f"UTR {utr_number} auto-approved! ₹{deposit.amount} added to {deposit.user.username}'s wallet.")
+            except DepositRequest.DoesNotExist:
+                messages.error(request, f"No pending request found with UTR {utr_number}")
+            return redirect('admin_payment_management')
+
+    # Get active UPI
+    active_config = PaymentSettings.objects.filter(is_active=True).last()
+    
+    # Filter pending deposits
+    utr_search = request.GET.get('utr_search', '')
+    pending_deposits = DepositRequest.objects.filter(status='PENDING').order_by('-created_at')
+    if utr_search:
+        pending_deposits = pending_deposits.filter(utr_number__icontains=utr_search)
+        
+    # Get approved history
+    recent_approved = DepositRequest.objects.filter(status='APPROVED').order_by('-updated_at')[:20]
+
+    return render(request, 'admin_payment_management.html', {
+        'active_upi': active_config.upi_id if active_config else '',
+        'pending_deposits': pending_deposits,
+        'recent_approved': recent_approved,
+        'utr_search': utr_search,
+        'today': timezone.now()
     })
 
 
@@ -1226,12 +1640,16 @@ from django.shortcuts import render
 from .forms import MyContactForm
 
 def contact_view(request):
+    # settings_obj = SiteSettings.objects.first()
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
+    
     if request.method == 'POST':
         form = MyContactForm(request.POST)
         if form.is_valid():
-            # If we are here, Google has already confirmed they are human!
+            # If we are here, Google has already confirmed they are human (if enabled)!
             return render(request, 'success.html')
     else:
         form = MyContactForm()
     
-    return render(request, 'contact.html', {'form': form})
+    return render(request, 'contact.html', {'form': form, 'enable_captcha': enable_captcha})
