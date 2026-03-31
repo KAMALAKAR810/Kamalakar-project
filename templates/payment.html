@@ -77,120 +77,24 @@
         <input type="number" id="pay-amount" placeholder="Enter amount e.g. 1000" min="100">
     </div>
 
-    <button type="button" onclick="generateQR()" class="gold-btn" style="width: 100%; margin-top: 15px;">
-        Generate Secure QR
-    </button>
-</div>
-
-<!-- QR Modal -->
-<div id="qr-modal" class="qr-modal">
-    <div class="qr-content" style="max-height: 90vh; overflow-y: auto;">
-        <h3 style="color: #000; margin-top: 0;">Scan to Pay</h3>
-        <p style="color: #666; font-size: 14px;">Amount: ₹<span id="qr-amount-text">0</span></p>
-        
-        <div class="qr-image" id="qr-container">
-            <!-- QR code image will go here -->
-             <img id="qr-img" src="" style="width: 100%; height: 100%;" alt="QR Code">
-        </div>
-        
-        <p style="font-size: 12px; color: #888; margin: 10px 0;">
-            <i class="fa fa-lock"></i> Secured & Untrackable Transaction
-        </p>
-
-        <div id="verification-step" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
-            <p style="font-size: 12px; color: #d9534f;"><b>Step 2:</b> After paying, enter the 12-digit UTR/Transaction ID below:</p>
-            <input type="text" id="utr_number" placeholder="Enter 12-digit UTR" style="width: 80%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px;">
-            <button onclick="submitUTR()" class="gold-btn" style="padding: 8px; width: 80%; font-size: 13px;">Submit for Verification</button>
-        </div>
-        
-        <button onclick="closeQR()" class="gold-btn" style="background: #333; color: #fff; margin-top: 15px;">Close</button>
-    </div>
+    <form id="amount-form" method="POST" action="{% url 'payment' %}">
+        {% csrf_token %}
+        <input type="hidden" name="amount" id="hidden-amount">
+        <button type="submit" class="gold-btn" style="width: 100%; margin-top: 15px;">
+            GENERATE QR & PAY
+        </button>
+    </form>
 </div>
 
 <script>
-    function generateQR() {
+    document.getElementById('amount-form').onsubmit = function(e) {
         const amt = document.getElementById('pay-amount').value;
-        const upiId = '{{ upi_id }}';
-        const txnRef = '{{ txn_ref }}';
-
         if (!amt || amt < 100) {
+            e.preventDefault();
             alert("Please enter a valid amount (Min ₹100)");
-            return;
+            return false;
         }
-
-        // Security: Ensure UPI ID exists
-        if (upiId === 'default@upi' || upiId === "") {
-            alert("Payment system is temporarily down. Please try later.");
-            return;
-        }
-
-        document.getElementById('qr-amount-text').innerText = amt;
-        
-        // TN (Transaction Note) is critical for matching payments to users later
-        const upiUrl = `upi://pay?pa=${upiId}&pn=SERVICE&am=${amt}&cu=INR&tn=${txnRef}`;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUrl)}`;
-        
-        const qrImg = document.getElementById('qr-img');
-        
-        // Handle loading failures (Network issues)
-        qrImg.onerror = function() {
-            alert("Failed to load QR code. Please check your internet connection.");
-        };
-
-        qrImg.src = qrUrl;
-        document.getElementById('qr-modal').style.display = 'flex';
-    }
-
-    function closeQR() {
-        document.getElementById('qr-modal').style.display = 'none';
-    }
-
-    function submitUTR() {
-        const utr = document.getElementById('utr_number').value;
-        const amt = document.getElementById('pay-amount').value;
-        const txnRef = '{{ txn_ref }}';
-
-        if (!utr || utr.length < 10) {
-            alert("Please enter a valid 12-digit UTR/Transaction ID.");
-            return;
-        }
-        
-        // Show loading
-        const submitBtn = document.querySelector('#verification-step button');
-        const originalText = submitBtn.innerText;
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Submitting...";
-
-        const formData = new FormData();
-        formData.append('utr_number', utr);
-        formData.append('amount', amt);
-        formData.append('txn_ref', txnRef);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-        fetch("{% url 'payment' %}", {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showModal("Success", data.message, "success");
-                closeQR();
-            } else {
-                alert(data.message);
-                submitBtn.disabled = false;
-                submitBtn.innerText = originalText;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("An error occurred. Please try again.");
-            submitBtn.disabled = false;
-            submitBtn.innerText = originalText;
-        });
-    }
+        document.getElementById('hidden-amount').value = amt;
+    };
 </script>
 {% endblock %}

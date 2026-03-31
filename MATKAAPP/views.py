@@ -1391,9 +1391,27 @@ def send_welcome_msg(request, user_id):
 
 @login_required
 def payment_page(request):
-    """Payment form with QR popup and UTR submission."""
+    """Payment form with QR redirect and UTR submission."""
     if request.method == 'POST':
-        # Handle UTR submission
+        # 1. Handle Amount Submission (Initial step)
+        if 'amount' in request.POST and 'utr_number' not in request.POST:
+            amount = request.POST.get('amount')
+            txn_ref = f"TXN-{uuid.uuid4().hex[:8].upper()}"
+            
+            # Get UPI config
+            config = PaymentSettings.objects.filter(is_active=True).last()
+            upi_id = config.upi_id if config else 'default@upi'
+            
+            # Generate UPI URL
+            upi_url = f"upi://pay?pa={upi_id}&pn=SERVICE&am={amount}&cu=INR&tn={txn_ref}"
+            
+            return render(request, 'payment_qr.html', {
+                'amount': amount,
+                'txn_ref': txn_ref,
+                'upi_url': upi_url
+            })
+
+        # 2. Handle UTR submission (Final step from payment_qr.html)
         amount = Decimal(request.POST.get('amount', 0))
         utr_number = request.POST.get('utr_number', '').strip()
         txn_ref = request.POST.get('txn_ref', '').strip()
@@ -1416,25 +1434,14 @@ def payment_page(request):
             status='PENDING'
         )
         
-        # Notify admin or log
         return JsonResponse({'status': 'success', 'message': 'UTR submitted successfully! Your wallet will be updated after verification.'})
 
-    # Ensure profile exists to avoid RelatedObjectDoesNotExist
-    profile, created = Profile.objects.get_or_create(user=request.user)
-    
-    # Get the latest active UPI ID from the database
-    config = PaymentSettings.objects.filter(is_active=True).last()
-    upi_id = config.upi_id if config else 'default@upi' # Fallback
-    
-    # Generate a unique transaction reference for tracking
-    txn_ref = f"TXN-{uuid.uuid4().hex[:8].upper()}"
-
+    # Standard GET: Show initial amount entry form
+    profile, _ = Profile.objects.get_or_create(user=request.user)
     return render(request, 'payment.html', {
         'username': request.user.username,
         'mobile': profile.mobile or "Not set",
-        'user_code': profile.user_code or "N/A",
-        'upi_id': upi_id,
-        'txn_ref': txn_ref
+        'user_code': profile.user_code or "N/A"
     })
 
 

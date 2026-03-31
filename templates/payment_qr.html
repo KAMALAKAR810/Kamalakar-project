@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .qr-container-full {
+        background: #fff;
+        border-radius: 20px;
+        padding: 40px 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        max-width: 500px;
+        margin: 20px auto;
+        text-align: center;
+        border: 2px solid #eee;
+    }
+    .qr-box {
+        width: 250px;
+        height: 250px;
+        margin: 20px auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 12px;
+        background: #fff;
+    }
+    .qr-box img {
+        width: 100%;
+        height: 100%;
+    }
+    .payment-steps {
+        text-align: left;
+        margin: 30px 0;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 12px;
+    }
+    .step-item {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .step-num {
+        background: var(--primary);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+    .step-text {
+        font-size: 14px;
+        color: #444;
+        line-height: 1.4;
+    }
+    .utr-input-group {
+        margin-top: 25px;
+        border-top: 2px dashed #ddd;
+        padding-top: 25px;
+    }
+    .restricted-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255,255,255,0.9);
+        z-index: 20000;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+    }
+</style>
+
+<div class="qr-container-full">
+    <h2 style="color: var(--primary); margin-bottom: 5px;">Complete Your Payment</h2>
+    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Do not close or refresh this page until finished.</p>
+
+    <div style="font-size: 28px; font-weight: 800; color: #333; margin-bottom: 5px;">₹{{ amount }}</div>
+    <div style="font-size: 12px; color: #888; margin-bottom: 20px;">Transaction Ref: {{ txn_ref }}</div>
+
+    <div class="qr-box">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ upi_url|urlencode }}" alt="Payment QR">
+    </div>
+
+    <div style="margin: 20px 0;">
+        <a href="{{ upi_url }}" class="btn-gold" style="width: 100%; background: #075e54; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;">
+            <i class="fas fa-mobile-alt"></i> PAY VIA UPI APP
+        </a>
+        <p style="font-size: 11px; color: #888; margin-top: 8px;">(PhonePe, Google Pay, Paytm, etc.)</p>
+    </div>
+
+    <div class="payment-steps">
+        <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text">Scan the QR code or click <b>Pay via UPI App</b> to pay <b>₹{{ amount }}</b>.</div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text">After successful payment, copy the <b>12-digit UTR/Transaction ID</b> from your app.</div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text">Enter the UTR below and click <b>Verify Payment</b> to add coins to your wallet.</div>
+        </div>
+    </div>
+
+    <div class="utr-input-group">
+        <label style="display: block; text-align: left; font-weight: 700; margin-bottom: 10px; color: #d32f2f;">Enter 12-Digit UTR Number <span style="color: red;">*</span></label>
+        <input type="text" id="final_utr" placeholder="e.g. 123456789012" class="bet-input" style="border: 2px solid #ddd; font-size: 18px; letter-spacing: 2px; text-align: center;">
+        <button onclick="submitFinalUTR()" class="btn-gold" style="width: 100%; margin-top: 15px; padding: 15px; font-size: 16px;">VERIFY PAYMENT</button>
+    </div>
+</div>
+
+<!-- Navigation Restriction Overlay -->
+<div id="nav-lock-overlay" class="restricted-overlay">
+    <i class="fas fa-lock" style="font-size: 50px; color: var(--danger); margin-bottom: 20px;"></i>
+    <h3>Payment in Progress</h3>
+    <p>Please provide the UTR number to complete your transaction and unlock navigation.</p>
+    <button onclick="hideLock()" class="btn-gold" style="margin-top: 20px; padding: 10px 30px;">I'll provide UTR now</button>
+</div>
+
+<script>
+    // Prevent back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+        showLock();
+        history.go(1);
+    };
+
+    // Prevent page refresh / close
+    window.onbeforeunload = function() {
+        return "Your payment is in progress. Please do not leave this page until you provide the UTR number.";
+    };
+
+    function showLock() {
+        document.getElementById('nav-lock-overlay').style.display = 'flex';
+    }
+    function hideLock() {
+        document.getElementById('nav-lock-overlay').style.display = 'none';
+    }
+
+    function submitFinalUTR() {
+        const utr = document.getElementById('final_utr').value.trim();
+        if (!utr || utr.length < 10) {
+            showModal("Error", "Please enter a valid 12-digit UTR/Transaction ID.", "error");
+            return;
+        }
+
+        showLoading(true);
+        const formData = new FormData();
+        formData.append('utr_number', utr);
+        formData.append('amount', '{{ amount }}');
+        formData.append('txn_ref', '{{ txn_ref }}');
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'payment' %}", {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            showLoading(false);
+            if (data.status === 'success') {
+                // Disable refresh prevention before redirecting
+                window.onbeforeunload = null;
+                showModal("Success", data.message, "success", () => {
+                    window.location.href = "{% url 'index' %}";
+                });
+            } else {
+                showModal("Error", data.message, "error");
+            }
+        })
+        .catch(err => {
+            showLoading(false);
+            showModal("Error", "Server error. Please try again.", "error");
+        });
+    }
+
+    // Hide standard navbar on this page
+    document.addEventListener('DOMContentLoaded', () => {
+        const nav = document.querySelector('.nav-bar');
+        const header = document.querySelector('.header');
+        const footer = document.querySelector('.footer');
+        if(nav) nav.style.display = 'none';
+        if(header) header.style.display = 'none';
+        if(footer) footer.style.display = 'none';
+    });
+</script>
+{% endblock %}
