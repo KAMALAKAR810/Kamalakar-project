@@ -269,7 +269,7 @@ class Notification(models.Model):
 
 
 class PaymentSettings(models.Model):
-    upi_id = models.CharField(max_length=255, default="yourdefault@upi")
+    upi_id = models.CharField(max_length=255, default="8217228766")
     payee_name = models.CharField(max_length=255, default="Payee Name", help_text="Should match the name registered with the bank/UPI ID")
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)

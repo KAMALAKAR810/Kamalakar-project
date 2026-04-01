@@ -1401,11 +1401,11 @@ def payment_page(request):
             
             # Get UPI config
             config = PaymentSettings.objects.filter(is_active=True).last()
-            upi_id = config.upi_id if config else 'default@upi'
+            upi_id = config.upi_id if config else '8217228766'
             payee_name = config.payee_name if config else 'SERVICE'
             
             # Generate UPI URL with natural note
-            upi_url = f"upi://pay?pa={upi_id}&pn={payee_name}&am={amount}&cu=INR&tn=Ref{txn_ref}"
+            upi_url = f"upi://pay?pa={upi_id}&pn={payee_name}&am={amount}&cu=INR"
             
             return render(request, 'payment_qr.html', {
                 'amount': amount,

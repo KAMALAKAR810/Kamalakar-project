@@ -115,7 +115,7 @@
         
         // Generate UPI QR link using hidden UPI field
         const upiId = document.getElementById('upi-id').value;
-        const upiUrl = `upi://pay?pa=${upiId}&pn=MATKA%20PLAY&am=${amt}&cu=INR&tn=Wallet%20Recharge`;
+        const upiUrl = `upi://pay?pa=${upiId}&pn=MATKA%20PLAY&am=${amt}&cu=INR`;
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUrl)}`;
         
         document.getElementById('qr-img').src = qrUrl;
