@@ -126,15 +126,22 @@
         <div class="admin-title">
             <i class="fas fa-qrcode"></i> UPI Configuration
         </div>
-        <form method="POST" style="display: flex; gap: 10px; align-items: flex-end;">
+        <form method="POST" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_upi">
-            <div style="flex: 1;">
+            <div style="flex: 1; min-width: 200px;">
                 <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Active UPI ID</label>
                 <input type="text" name="upi_id" value="{{ active_upi }}" class="bet-input" placeholder="e.g. yourname@upi" required>
             </div>
-            <button type="submit" class="btn-gold" style="padding: 14px 25px;">Update UPI ID</button>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Payee Name (Bank Name)</label>
+                <input type="text" name="payee_name" value="{{ active_payee }}" class="bet-input" placeholder="e.g. KAMALAKAR" required>
+            </div>
+            <button type="submit" class="btn-gold" style="padding: 14px 25px;">Update Config</button>
         </form>
+        <p style="font-size: 11px; color: #d32f2f; margin-top: 10px;">
+            <i class="fas fa-exclamation-triangle"></i> <b>Important:</b> Payee Name must match the legal name registered with the UPI ID to avoid "Security Reasons" declines in apps like PhonePe.
+        </p>
     </div>
 
     <!-- Auto Approval -->

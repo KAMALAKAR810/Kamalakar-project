@@ -1396,14 +1396,16 @@ def payment_page(request):
         # 1. Handle Amount Submission (Initial step)
         if 'amount' in request.POST and 'utr_number' not in request.POST:
             amount = request.POST.get('amount')
-            txn_ref = f"TXN-{uuid.uuid4().hex[:8].upper()}"
+            # Use a simpler reference format to avoid security flags in UPI apps
+            txn_ref = uuid.uuid4().hex[:8].upper()
             
             # Get UPI config
             config = PaymentSettings.objects.filter(is_active=True).last()
             upi_id = config.upi_id if config else 'default@upi'
+            payee_name = config.payee_name if config else 'SERVICE'
             
-            # Generate UPI URL
-            upi_url = f"upi://pay?pa={upi_id}&pn=SERVICE&am={amount}&cu=INR&tn={txn_ref}"
+            # Generate UPI URL with natural note
+            upi_url = f"upi://pay?pa={upi_id}&pn={payee_name}&am={amount}&cu=INR&tn=Ref{txn_ref}"
             
             return render(request, 'payment_qr.html', {
                 'amount': amount,
@@ -1453,11 +1455,12 @@ def admin_payment_management(request):
         
         if action == 'update_upi':
             upi_id = request.POST.get('upi_id')
+            payee_name = request.POST.get('payee_name', 'SERVICE')
             if upi_id:
                 # Deactivate others and create new
                 PaymentSettings.objects.all().update(is_active=False)
-                PaymentSettings.objects.create(upi_id=upi_id, is_active=True)
-                messages.success(request, f"Active UPI ID updated to {upi_id}")
+                PaymentSettings.objects.create(upi_id=upi_id, payee_name=payee_name, is_active=True)
+                messages.success(request, f"Active UPI ID updated to {upi_id} ({payee_name})")
             return redirect('admin_payment_management')
             
         elif action == 'approve_deposit':
@@ -1551,6 +1554,7 @@ def admin_payment_management(request):
 
     return render(request, 'admin_payment_management.html', {
         'active_upi': active_config.upi_id if active_config else '',
+        'active_payee': active_config.payee_name if active_config else '',
         'pending_deposits': pending_deposits,
         'recent_approved': recent_approved,
         'utr_search': utr_search,
