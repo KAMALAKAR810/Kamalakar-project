@@ -1396,8 +1396,6 @@ def payment_page(request):
         # 1. Handle Amount Submission (Initial step)
         if 'amount' in request.POST and 'utr_number' not in request.POST:
             amount = request.POST.get('amount')
-            # Use a simpler reference format to avoid security flags in UPI apps
-            txn_ref = uuid.uuid4().hex[:8].upper()
             
             # Get UPI config
             config = PaymentSettings.objects.filter(is_active=True).last()
@@ -1409,14 +1407,12 @@ def payment_page(request):
             
             return render(request, 'payment_qr.html', {
                 'amount': amount,
-                'txn_ref': txn_ref,
                 'upi_url': upi_url
             })
 
         # 2. Handle UTR submission (Final step from payment_qr.html)
         amount = Decimal(request.POST.get('amount', 0))
         utr_number = request.POST.get('utr_number', '').strip()
-        txn_ref = request.POST.get('txn_ref', '').strip()
         
         if not utr_number or len(utr_number) < 10:
             return JsonResponse({'status': 'error', 'message': 'Please enter a valid 12-digit UTR.'})
@@ -1432,7 +1428,6 @@ def payment_page(request):
             user=request.user,
             amount=amount,
             utr_number=utr_number,
-            txn_ref=txn_ref,
             status='PENDING'
         )
         

@@ -181,7 +181,6 @@
                         <th>Mobile</th>
                         <th>Amount</th>
                         <th>UTR Number</th>
-                        <th>TXN Ref</th>
                         <th>Date</th>
                         <th>Action</th>
                     </tr>
@@ -194,7 +193,6 @@
                         <td>{{ req.user.profile.mobile }}</td>
                         <td style="font-weight: 700; color: #2e7d32;">₹{{ req.amount }}</td>
                         <td style="font-family: monospace;">{{ req.utr_number }}</td>
-                        <td><small>{{ req.txn_ref }}</small></td>
                         <td>{{ req.created_at|date:"d M, H:i" }}</td>
                         <td style="display: flex; gap: 5px;">
                             <form method="POST" style="display: inline;">

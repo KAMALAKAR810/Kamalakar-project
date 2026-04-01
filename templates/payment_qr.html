@@ -78,7 +78,6 @@
     <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Do not close or refresh this page until finished.</p>
 
     <div style="font-size: 28px; font-weight: 800; color: #333; margin-bottom: 5px;">₹{{ amount }}</div>
-    <div style="font-size: 12px; color: #888; margin-bottom: 20px;">Transaction Ref: {{ txn_ref }}</div>
 
     <div class="qr-box">
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ upi_url|urlencode }}" alt="Payment QR">
@@ -152,7 +151,6 @@
         const formData = new FormData();
         formData.append('utr_number', utr);
         formData.append('amount', '{{ amount }}');
-        formData.append('txn_ref', '{{ txn_ref }}');
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
         fetch("{% url 'payment' %}", {
