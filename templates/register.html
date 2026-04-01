@@ -153,13 +153,6 @@
                     I agree to the <a href="javascript:void(0)" onclick="openTerms()" style="color: var(--primary); font-weight: 600;">Terms and Conditions</a> and privacy policy.
                 </label>
             </div>
-            
-            {% if enable_captcha %}
-            <div style="margin-bottom: 20px; display: flex; justify-content: center;">
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-                <div class="g-recaptcha" data-sitekey="6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE"></div>
-            </div>
-            {% endif %}
 
             <button type="submit" class="auth-btn">Register Now</button>
         </form>
@@ -194,14 +187,7 @@
 
     const registerForm = document.getElementById('register-form');
     registerForm.addEventListener('submit', function (e) {
-        {% if enable_captcha %}
-        const response = grecaptcha.getResponse();
-        if (response.length === 0) {
-            e.preventDefault();
-            showModal("Verification Required", "Please complete the 'I'm not a robot' verification.", "warning");
-            return false;
-        }
-        {% endif %}
+        // reCAPTCHA is now global in base.html
     });
 </script>
 {% endblock %}

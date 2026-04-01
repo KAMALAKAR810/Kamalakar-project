@@ -231,41 +231,8 @@ def login_view(request):
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
         is_ajax = request.content_type == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         
-        if is_ajax:
-            try:
-                data = json.loads(request.body)
-                user_n = data.get('username')
-                psw = data.get('password')
-                recaptcha_response = data.get('g-recaptcha-response')
-            except json.JSONDecodeError:
-                return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'})
-        else:
-            user_n = request.POST.get('username')
-            psw = request.POST.get('password')
-            recaptcha_response = request.POST.get('g-recaptcha-response')
-
-        # Google reCAPTCHA Verification
-        if enable_captcha:
-            verify_url = 'https://www.google.com/recaptcha/api/siteverify'
-            verify_data = {
-                'secret': settings.RECAPTCHA_PRIVATE_KEY,
-                'response': recaptcha_response
-            }
-            
-            try:
-                verify_response = requests.post(verify_url, data=verify_data, timeout=5)
-                verify_result = verify_response.json()
-                
-                if not verify_result.get('success'):
-                    error_codes = verify_result.get('error-codes', [])
-                    msg = f"Verification failed: {', '.join(error_codes)}" if error_codes else "Please complete the 'I'm not a robot' verification."
-                    if is_ajax:
-                        return JsonResponse({'status': 'error', 'message': msg})
-                    messages.error(request, msg)
-                    return render(request, 'login.html', {'enable_captcha': enable_captcha})
-            except Exception:
-                # Fail open strategy for better UX if Google is down
-                pass
+        user_n = request.POST.get('username')
+        psw = request.POST.get('password')
 
         user = authenticate(request, username=user_n, password=psw)
         
@@ -348,30 +315,6 @@ def register_view(request):
         psw2 = request.POST.get('password2') or ''
         mob = request.POST.get('mobile') or ''
         
-        # Google reCAPTCHA Verification
-        if enable_captcha:
-            recaptcha_response = request.POST.get('g-recaptcha-response')
-            
-            verify_url = 'https://www.google.com/recaptcha/api/siteverify'
-            verify_data = {
-                'secret': settings.RECAPTCHA_PRIVATE_KEY,
-                'response': recaptcha_response
-            }
-            
-            try:
-                verify_response = requests.post(verify_url, data=verify_data, timeout=5)
-                verify_result = verify_response.json()
-                
-                if not verify_result.get('success'):
-                    error_codes = verify_result.get('error-codes', [])
-                    msg = f"Verification failed: {', '.join(error_codes)}" if error_codes else "Please complete the 'I'm not a robot' verification."
-                    messages.error(request, msg)
-                    return render(request, 'register.html', {
-                        'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
-                    })
-            except Exception:
-                pass
-
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
             return render(request, 'register.html', {

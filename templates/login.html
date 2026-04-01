@@ -105,11 +105,6 @@
                 <i class="fas fa-eye toggle-password" id="togglePassword"></i>
             </div>
 
-            {% if enable_captcha %}
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-                <div class="g-recaptcha" data-sitekey="6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE" style="margin-bottom: 15px;"></div>
-            {% endif %}
-
             <button type="submit" class="auth-btn">Sign In</button>
         </form>
         
@@ -134,14 +129,7 @@
     // Handle AJAX login if needed, or just standard form
     const loginForm = document.getElementById('login-form');
     loginForm.addEventListener('submit', function (e) {
-        {% if enable_captcha %}
-        const response = grecaptcha.getResponse();
-        if (response.length === 0) {
-            e.preventDefault();
-            showModal("Verification Required", "Please complete the 'I'm not a robot' verification.", "warning");
-            return false;
-        }
-        {% endif %}
+        // reCAPTCHA is now global in base.html
     });
 </script>
 {% endblock %}
