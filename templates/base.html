@@ -1122,44 +1122,6 @@
     </div>
 </footer>
 
-{% comment %}
-{% if enable_captcha %}
-<!-- reCAPTCHA Overlay -->
-<div id="captcha-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); z-index: 99999; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;">
-    <img src="{% static 'logo.jpeg' %}" style="height: 100px; margin-bottom: 30px; border-radius: 12px;">
-    <h1 style="margin-bottom: 10px;">Security Verification</h1>
-    <p style="margin-bottom: 30px; opacity: 0.8;">Please verify that you are a human to enter ChangeLifeWithNumbers</p>
-    <div id="captcha-box" style="background: white; color: black; padding: 30px; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 100%; max-width: 350px; display: flex; flex-direction: column; align-items: center;">
-        <div class="g-recaptcha" data-sitekey="6LdYKZ0sAAAAAHT1xbF09a23Ffald_2NEdneo_LE" data-callback="onCaptchaSuccess"></div>
-        <p id="captcha-error" style="color: red; font-size: 12px; margin-top: 10px; display: none;">Please complete the verification.</p>
-    </div>
-</div>
-
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-<script>
-    // Google reCAPTCHA Verification
-    function initCaptcha() {
-        if (!sessionStorage.getItem('human_verified')) {
-            document.getElementById('captcha-overlay').style.display = 'flex';
-        }
-    }
-
-    function onCaptchaSuccess(token) {
-        if (token) {
-            sessionStorage.setItem('human_verified', 'true');
-            // Small delay to show the checkmark before hiding
-            setTimeout(() => {
-                document.getElementById('captcha-overlay').style.display = 'none';
-            }, 500);
-        }
-    }
-
-    window.addEventListener('DOMContentLoaded', initCaptcha);
-</script>
-{% endif %}
-{% endcomment %}
-
 <!-- Terms and Conditions Modal -->
 <div id="terms-modal" class="terms-modal">
     <div class="terms-content">

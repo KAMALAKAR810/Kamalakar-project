@@ -18,8 +18,10 @@ from django.http import JsonResponse
 from django.db import transaction as db_transaction
 from django.db.models import Sum, Q, Count
 from django.utils import timezone
+import requests
+from django.conf import settings
 
-from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity
+from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
 import uuid
 
 def create_notification(user, title, message):
@@ -161,9 +163,8 @@ def _markets_betting_payload():
 
 def _get_admin_notifications(request):
     """Context processor for admin notification dots. Must accept 'request'."""
-    # settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    settings_obj = SiteSettings.objects.first()
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
     
     context = {
         'enable_captcha': enable_captcha
@@ -223,9 +224,8 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('index')
     
-    # settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    settings_obj = SiteSettings.objects.first()
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
 
     if request.method == 'POST':
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
@@ -236,20 +236,16 @@ def login_view(request):
                 data = json.loads(request.body)
                 user_n = data.get('username')
                 psw = data.get('password')
-                # recaptcha_response = data.get('g-recaptcha-response')
+                recaptcha_response = data.get('g-recaptcha-response')
             except json.JSONDecodeError:
                 return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'})
         else:
             user_n = request.POST.get('username')
             psw = request.POST.get('password')
-            # recaptcha_response = request.POST.get('g-recaptcha-response')
+            recaptcha_response = request.POST.get('g-recaptcha-response')
 
-        # Google reCAPTCHA Verification (Commented out)
-        """
+        # Google reCAPTCHA Verification
         if enable_captcha:
-            import requests
-            from django.conf import settings
-            
             verify_url = 'https://www.google.com/recaptcha/api/siteverify'
             verify_data = {
                 'secret': settings.RECAPTCHA_PRIVATE_KEY,
@@ -261,14 +257,15 @@ def login_view(request):
                 verify_result = verify_response.json()
                 
                 if not verify_result.get('success'):
+                    error_codes = verify_result.get('error-codes', [])
+                    msg = f"Verification failed: {', '.join(error_codes)}" if error_codes else "Please complete the 'I'm not a robot' verification."
                     if is_ajax:
-                        return JsonResponse({'status': 'error', 'message': "Please complete the 'I'm not a robot' verification."})
-                    messages.error(request, "Please complete the 'I'm not a robot' verification.")
+                        return JsonResponse({'status': 'error', 'message': msg})
+                    messages.error(request, msg)
                     return render(request, 'login.html', {'enable_captcha': enable_captcha})
             except Exception:
                 # Fail open strategy for better UX if Google is down
                 pass
-        """
 
         user = authenticate(request, username=user_n, password=psw)
         
@@ -336,9 +333,8 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect('index')
 
-    # settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    settings_obj = SiteSettings.objects.first()
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
 
     if request.method == 'POST':
         # Honeypot — bots often fill hidden fields
@@ -352,12 +348,9 @@ def register_view(request):
         psw2 = request.POST.get('password2') or ''
         mob = request.POST.get('mobile') or ''
         
-        # Google reCAPTCHA Verification (Commented out)
-        """
+        # Google reCAPTCHA Verification
         if enable_captcha:
             recaptcha_response = request.POST.get('g-recaptcha-response')
-            import requests
-            from django.conf import settings
             
             verify_url = 'https://www.google.com/recaptcha/api/siteverify'
             verify_data = {
@@ -370,13 +363,14 @@ def register_view(request):
                 verify_result = verify_response.json()
                 
                 if not verify_result.get('success'):
-                    messages.error(request, "Please complete the 'I'm not a robot' verification.")
+                    error_codes = verify_result.get('error-codes', [])
+                    msg = f"Verification failed: {', '.join(error_codes)}" if error_codes else "Please complete the 'I'm not a robot' verification."
+                    messages.error(request, msg)
                     return render(request, 'register.html', {
                         'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
                     })
             except Exception:
                 pass
-        """
 
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
