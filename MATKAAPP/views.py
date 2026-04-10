@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 import re
@@ -16,7 +16,7 @@ from django.http import JsonResponse
 # FIX: Renamed import to 'db_transaction' to avoid name collision with the
 # local variable 'transaction' used inside place_bet and the Transaction model.
 from django.db import transaction as db_transaction
-from django.db.models import Sum, Q, Count
+from django.db.models import Sum, Q, Count, Max
 from django.utils import timezone
 import requests
 from django.conf import settings
@@ -43,9 +43,10 @@ def wallet_view(request):
         mobile_number = request.POST.get('mobile_number', '').strip()
         bank_account = request.POST.get('bank_account', '').strip()
         bank_name = request.POST.get('bank_name', '').strip()
+        bank_holder_name = request.POST.get('bank_holder_name', '').strip()
         
-        # Validation: At least two fields are mandatory, but Bank Name is strictly required
-        if not bank_name:
+        # Validation: At least two fields are mandatory, but Bank Holder Name is strictly required
+        if not bank_holder_name:
             messages.error(request, "Name as per Bank is mandatory for withdrawal.")
             return redirect('wallet')
 
@@ -53,7 +54,7 @@ def wallet_view(request):
         count_provided = sum(1 for field in provided_fields if field)
         
         if count_provided < 1:
-            messages.error(request, "Please provide at least one additional detail (UPI ID, Mobile Number, or Bank Account) along with your Bank Name.")
+            messages.error(request, "Please provide at least one additional detail (UPI ID, Mobile Number, or Bank Account) along with your Bank Holder Name.")
             return redirect('wallet')
 
         if amount < 1:
@@ -75,7 +76,8 @@ def wallet_view(request):
                 upi_id=upi_id,
                 mobile_number=mobile_number,
                 bank_account=bank_account,
-                bank_name=bank_name
+                bank_name=bank_name,
+                bank_holder_name=bank_holder_name
             )
             
             Transaction.objects.create(
@@ -928,7 +930,6 @@ def organize_data_view(request):
         if selected_date:
             bets = bets.filter(created_at__date=selected_date)
         
-        from django.db.models import Sum, Count
         stats = bets.values('number', 'game_type').annotate(
             total_amount=Sum('amount'),
             bet_count=Count('id')
@@ -1030,10 +1031,42 @@ def admin_report(request):
 
 
 @user_passes_test(lambda u: u.is_superuser)
+def admin_market_alerts(request):
+    """API for admin to get markets expiring in the next 10 minutes."""
+    now = timezone.now()
+    alert_window = timedelta(minutes=10)
+    
+    expiring_markets = []
+    
+    markets = Market.objects.all()
+    for m in markets:
+        # Check Open Session
+        if m.open_end_time and not (m.open_single or m.open_patti):
+            diff = m.open_end_time - now
+            if timedelta(0) < diff <= alert_window:
+                expiring_markets.append({
+                    "name": m.name,
+                    "session": "OPEN",
+                    "time_left": int(diff.total_seconds() / 60)
+                })
+        
+        # Check Close Session
+        if m.close_end_time and not (m.close_single or m.close_patti):
+            diff = m.close_end_time - now
+            if timedelta(0) < diff <= alert_window:
+                expiring_markets.append({
+                    "name": m.name,
+                    "session": "CLOSE",
+                    "time_left": int(diff.total_seconds() / 60)
+                })
+                
+    return JsonResponse({"alerts": expiring_markets})
+
+@user_passes_test(lambda u: u.is_superuser)
 def admin_summary(request):
     """Admin dashboard overview with 30-day cleanup."""
     if request.method == 'POST' and request.POST.get('action') == 'cleanup_30days':
-        # Logic for 30-day cleanup
+        # ... (cleanup logic remains same)
         cutoff_date = timezone.now() - timedelta(days=30)
         
         with db_transaction.atomic():
@@ -1068,7 +1101,15 @@ def admin_summary(request):
     total_users = User.objects.exclude(is_superuser=True).count()
     
     # Financial Stats
-    today = timezone.now().date()
+    date_filter = request.GET.get('date')
+    if date_filter:
+        try:
+            today = datetime.strptime(date_filter, '%Y-%m-%d').date()
+        except ValueError:
+            today = timezone.now().date()
+    else:
+        today = timezone.now().date()
+
     today_bets = Bet.objects.filter(created_at__date=today, is_deleted=False)
     today_collection = today_bets.aggregate(Sum('amount'))['amount__sum'] or 0
     today_payouts = today_bets.aggregate(Sum('win_amount'))['win_amount__sum'] or 0
@@ -1080,7 +1121,7 @@ def admin_summary(request):
     # Recent activities
     recent_activities = UserActivity.objects.all()[:10]
     
-    # Market Summary for Today
+    # Market Summary for Selected Date
     market_summary = today_bets.values('market__name', 'game_type').annotate(
         total_amount=Sum('amount'),
         count=Count('id')
@@ -1099,7 +1140,8 @@ def admin_summary(request):
         "pending_deposits": pending_deposits,
         "market_summary": market_summary,
         "recent_txns": recent_txns,
-        "recent_activities": recent_activities
+        "recent_activities": recent_activities,
+        "selected_date": date_filter or today.strftime('%Y-%m-%d')
     })
 
 
@@ -1232,10 +1274,10 @@ def admin_chat_list(request):
             Q(profile__user_code__icontains=search_query)
         )
         
-    # Annotate with last message time
-    from django.db.models import Max
+    # Annotate with last message time and unread count
     users = users_qs.annotate(
-        last_message_at=Max('received_messages__created_at')
+        last_message_at=Max('received_messages__created_at'),
+        unread_count=Count('sent_messages', filter=Q(sent_messages__receiver=request.user, sent_messages__is_read=False))
     ).order_by('-last_message_at')
     
     return render(request, 'admin_chat_list.html', {
@@ -1583,9 +1625,8 @@ from django.shortcuts import render
 from .forms import MyContactForm
 
 def contact_view(request):
-    # settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    settings_obj = SiteSettings.objects.first()
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
     
     if request.method == 'POST':
         form = MyContactForm(request.POST)

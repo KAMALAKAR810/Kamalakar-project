@@ -58,4 +58,5 @@ urlpatterns = [
     # --- Wallet REST Endpoints ---
     path("api/wallet/balance/", views.wallet_balance_api, name="wallet_balance_api"),
     path("api/wallet/history/", views.wallet_history_api, name="wallet_history_api"),
+    path("api/admin/market-alerts/", views.admin_market_alerts, name="admin_market_alerts"),
 ]

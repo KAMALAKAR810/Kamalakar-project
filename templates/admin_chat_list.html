@@ -25,6 +25,7 @@
                     <th>User ID</th>
                     <th>Phone Number</th>
                     <th>Last Message</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -42,6 +43,13 @@
                         {{ user.last_message_at|date:"d M, H:i"|default:"No date" }}
                     </td>
                     <td>
+                        {% if user.unread_count > 0 %}
+                            <i class="fas fa-check-double" style="color: red; font-size: 18px;" title="{{ user.unread_count }} New Messages"></i>
+                        {% else %}
+                            <i class="fas fa-check-double" style="color: #28a745; font-size: 18px;" title="All Read"></i>
+                        {% endif %}
+                    </td>
+                    <td>
                         <a href="{% url 'admin_chat_user' user.id %}" class="btn-gold" style="padding: 8px 15px; font-size: 13px;">
                             <i class="fa fa-comments"></i> Open Chat
                         </a>
@@ -49,7 +57,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: #999;">No chat history found. Go to User Management to start a chat.</td>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #999;">No chat history found. Go to User Management to start a chat.</td>
                 </tr>
                 {% endfor %}
             </tbody>

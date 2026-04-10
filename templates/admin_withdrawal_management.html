@@ -10,7 +10,9 @@
                 <tr>
                     <th>Date</th>
                     <th>User (ID)</th>
-                    <th>Mobile</th>
+                    <th>Name as per Bank</th>
+                    <th>Payment Mobile</th>
+                    <th>Bank A/C</th>
                     <th>Amount</th>
                     <th>UPI ID</th>
                     <th>Status</th>
@@ -22,7 +24,9 @@
                 <tr>
                     <td>{{ req.created_at|date:"d M, H:i" }}</td>
                     <td>{{ req.user.username }} ({{ req.user.profile.user_code }})</td>
-                    <td>{{ req.user.profile.mobile }}</td>
+                    <td>{{ req.bank_holder_name|default:"N/A" }}</td>
+                    <td>{{ req.mobile_number|default:"N/A" }}</td>
+                    <td>{{ req.bank_account|default:"N/A" }}</td>
                     <td><strong style="color: var(--dark);">₹{{ req.amount }}</strong></td>
                     <td>{{ req.upi_id|default:"N/A" }}</td>
                     <td>
@@ -45,7 +49,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray);">No requests found.</td>
+                    <td colspan="9" style="text-align: center; padding: 40px; color: var(--gray);">No requests found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
