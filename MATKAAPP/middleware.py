@@ -99,8 +99,32 @@ class OneSessionPerUserMiddleware:
                 elif not profile.session_key and session_key:
                     profile.session_key = session_key
                     profile.save()
-            except Exception:
+            except:
                 pass
+        
+        response = self.get_response(request)
+        return response
+
+class Admin2FAMiddleware:
+    """
+    Ensures that admins must complete a second factor authentication
+    before accessing admin areas.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Only check for staff/superusers
+        if request.user.is_authenticated and request.user.is_staff:
+            # Paths that require 2FA
+            is_admin_path = request.path.startswith('/admin/') or request.path.startswith('/admin-')
+            
+            # Paths that ARE the 2FA verification itself (avoid loops)
+            is_2fa_path = request.path == '/admin-2fa/'
+            
+            if is_admin_path and not is_2fa_path:
+                if not request.session.get('admin_2fa_verified'):
+                    return redirect('admin_2fa')
         
         response = self.get_response(request)
         return response

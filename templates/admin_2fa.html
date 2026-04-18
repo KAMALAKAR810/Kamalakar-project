@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card" style="max-width: 450px; margin: 50px auto; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
+    <div style="margin-bottom: 30px;">
+        <i class="fas fa-user-shield" style="font-size: 64px; color: var(--primary);"></i>
+        <h1 style="margin-top: 20px; font-weight: 800; color: var(--dark);">Admin 2FA</h1>
+        <p style="color: var(--gray);">Please complete the second factor authentication to access the admin area.</p>
+    </div>
+
+    <!-- Tabs for different auth methods -->
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap;">
+        <button onclick="switchTab('pin')" id="btn-pin" class="btn-tab active" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; font-weight: 700;">PIN</button>
+        <button onclick="switchTab('security_question')" id="btn-question" class="btn-tab" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); background: white; color: var(--gray); cursor: pointer; font-weight: 700;">Question</button>
+        <button onclick="switchTab('biometric')" id="btn-bio" class="btn-tab" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); background: white; color: var(--gray); cursor: pointer; font-weight: 700;">Biometric</button>
+    </div>
+
+    <!-- PIN Form -->
+    <form id="form-pin" method="POST" style="display: block;">
+        {% csrf_token %}
+        <input type="hidden" name="auth_type" value="pin">
+        <div class="form-group" style="margin-bottom: 25px;">
+            <label style="display: block; text-align: left; font-weight: 600; margin-bottom: 8px;">Enter 6-Digit PIN</label>
+            <input type="password" name="pin" maxlength="6" pattern="\d{6}" required placeholder="••••••" style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid var(--border); font-size: 24px; text-align: center; letter-spacing: 10px;">
+        </div>
+        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 8px; font-weight: 800;">VERIFY PIN</button>
+    </form>
+
+    <!-- Security Question Form -->
+    <form id="form-security_question" method="POST" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="auth_type" value="security_question">
+        <div class="form-group" style="margin-bottom: 25px; text-align: left;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Security Question:</label>
+            <p style="padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary); font-weight: 700;">{{ profile.admin_security_question }}</p>
+            <label style="display: block; font-weight: 600; margin: 15px 0 8px;">Your Answer:</label>
+            <input type="text" name="answer" required placeholder="Enter answer..." style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+        </div>
+        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 8px; font-weight: 800;">VERIFY ANSWER</button>
+    </form>
+
+    <!-- Biometric Form -->
+    <div id="form-biometric" style="display: none;">
+        <p style="margin-bottom: 25px; color: var(--gray);">Choose a biometric method to verify:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="auth_type" value="fingerprint">
+                <button type="submit" style="width: 100%; padding: 30px 15px; border-radius: 12px; border: 1px solid var(--border); background: white; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-fingerprint" style="font-size: 32px; color: var(--primary);"></i>
+                    <div style="margin-top: 10px; font-weight: 700;">Fingerprint</div>
+                </button>
+            </form>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="auth_type" value="face">
+                <button type="submit" style="width: 100%; padding: 30px 15px; border-radius: 12px; border: 1px solid var(--border); background: white; cursor: pointer; transition: all 0.3s;">
+                    <i class="fas fa-user-circle" style="font-size: 32px; color: var(--primary);"></i>
+                    <div style="margin-top: 10px; font-weight: 700;">Face ID</div>
+                </button>
+            </form>
+        </div>
+        <p style="margin-top: 20px; font-size: 12px; color: #999;">Note: Biometric simulation enabled for development.</p>
+    </div>
+
+    <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
+        <a href="{% url 'logout' %}" style="color: var(--danger); text-decoration: none; font-weight: 600; font-size: 14px;">
+            <i class="fas fa-sign-out-alt"></i> Cancel and Logout
+        </a>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        // Hide all forms
+        document.getElementById('form-pin').style.display = 'none';
+        document.getElementById('form-security_question').style.display = 'none';
+        document.getElementById('form-biometric').style.display = 'none';
+        
+        // Remove active class from buttons
+        document.querySelectorAll('.btn-tab').forEach(btn => {
+            btn.style.background = 'white';
+            btn.style.color = 'var(--gray)';
+            btn.style.borderColor = 'var(--border)';
+        });
+
+        // Show selected form
+        document.getElementById('form-' + tab).style.display = 'block';
+        
+        // Add active style to button
+        const activeBtn = document.getElementById('btn-' + (tab === 'security_question' ? 'question' : (tab === 'biometric' ? 'bio' : 'pin')));
+        activeBtn.style.background = 'var(--primary)';
+        activeBtn.style.color = 'white';
+        activeBtn.style.borderColor = 'var(--primary)';
+    }
+</script>
+{% endblock %}

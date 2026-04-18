@@ -24,6 +24,72 @@ from django.conf import settings
 from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
 import uuid
 
+@login_required
+def admin_2fa_view(request):
+    if not request.user.is_staff:
+        return redirect('index')
+    
+    if request.session.get('admin_2fa_verified'):
+        return redirect('admin:index')
+    
+    profile = request.user.profile
+    
+    if request.method == 'POST':
+        auth_type = request.POST.get('auth_type')
+        
+        if auth_type == 'pin':
+            pin = request.POST.get('pin')
+            if pin == profile.admin_pin:
+                request.session['admin_2fa_verified'] = True
+                messages.success(request, "2FA Verified successfully!")
+                return redirect('admin:index')
+            else:
+                messages.error(request, "Invalid PIN!")
+        
+        elif auth_type == 'security_question':
+            answer = request.POST.get('answer', '').strip()
+            if answer.lower() == profile.admin_security_answer.lower():
+                request.session['admin_2fa_verified'] = True
+                messages.success(request, "2FA Verified successfully!")
+                return redirect('admin:index')
+            else:
+                messages.error(request, "Incorrect answer!")
+        
+        elif auth_type in ['fingerprint', 'face']:
+            # Mock fingerprint/face for now as it requires WebAuthn
+            # In a real scenario, this would involve navigator.credentials.get()
+            messages.info(request, f"{auth_type.capitalize()} authentication successful (Simulated).")
+            request.session['admin_2fa_verified'] = True
+            return redirect('admin:index')
+            
+    return render(request, 'admin_2fa.html', {
+        'profile': profile
+    })
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def update_admin_security_view(request):
+    profile = request.user.profile
+    if request.method == 'POST':
+        new_pin = request.POST.get('admin_pin')
+        new_question = request.POST.get('admin_security_question')
+        new_answer = request.POST.get('admin_security_answer')
+        
+        if new_pin and len(new_pin) == 6 and new_pin.isdigit():
+            profile.admin_pin = new_pin
+        
+        if new_question:
+            profile.admin_security_question = new_question
+            
+        if new_answer:
+            profile.admin_security_answer = new_answer
+            
+        profile.save()
+        messages.success(request, "Security settings updated successfully!")
+        return redirect('admin_summary')
+        
+    return render(request, 'update_admin_security.html', {'profile': profile})
+
 def create_notification(user, title, message):
     Notification.objects.create(user=user, title=title, message=message)
 
@@ -57,8 +123,24 @@ def wallet_view(request):
             messages.error(request, "Please provide at least one additional detail (UPI ID, Mobile Number, or Bank Account) along with your Bank Holder Name.")
             return redirect('wallet')
 
-        if amount < 1:
-            messages.error(request, "Minimum withdrawal amount is ₹1.")
+        if amount < 300:
+            messages.error(request, "Minimum withdrawal amount is ₹300.")
+            return redirect('wallet')
+        
+        if amount > 50000:
+            messages.error(request, "Maximum withdrawal amount is ₹50000.")
+            return redirect('wallet')
+
+        # Limit withdrawal to 3 times per day per user
+        from django.utils import timezone
+        today = timezone.now().date()
+        daily_count = WithdrawalRequest.objects.filter(
+            user=request.user, 
+            created_at__date=today
+        ).count()
+        
+        if daily_count >= 3:
+            messages.error(request, "You have reached your daily withdrawal limit of 3 times per day.")
             return redirect('wallet')
             
         wallet = request.user.wallet
@@ -166,7 +248,8 @@ def _markets_betting_payload():
 def _get_admin_notifications(request):
     """Context processor for admin notification dots. Must accept 'request'."""
     settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
     
     context = {
         'enable_captcha': enable_captcha
@@ -227,7 +310,8 @@ def login_view(request):
         return redirect('index')
     
     settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
 
     if request.method == 'POST':
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
@@ -303,7 +387,8 @@ def register_view(request):
         return redirect('index')
 
     settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
 
     if request.method == 'POST':
         # Honeypot — bots often fill hidden fields
@@ -393,6 +478,18 @@ def register_view(request):
 
 
 # --- BASIC PAGES ---
+
+def error_404(request, exception):
+    return render(request, 'error.html', status=404)
+
+def error_500(request):
+    return render(request, 'error.html', status=500)
+
+def error_403(request, exception):
+    return render(request, 'error.html', status=403)
+
+def error_400(request, exception):
+    return render(request, 'error.html', status=400)
 
 def index(request):
     return render(request, 'index.html', {'markets': Market.objects.all()})
@@ -1626,7 +1723,8 @@ from .forms import MyContactForm
 
 def contact_view(request):
     settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    enable_captcha = False
     
     if request.method == 'POST':
         form = MyContactForm(request.POST)

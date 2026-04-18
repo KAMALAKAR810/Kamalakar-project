@@ -55,6 +55,21 @@ class Profile(models.Model):
     bio = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Admin 2FA Fields
+    admin_pin = models.CharField(max_length=6, default='123456', blank=True, null=True)
+    admin_security_question = models.CharField(
+        max_length=255, 
+        default='My favourite name', 
+        blank=True, 
+        null=True
+    )
+    admin_security_answer = models.CharField(
+        max_length=255, 
+        default='Gandu', 
+        blank=True, 
+        null=True
+    )
+
     def __str__(self):
         return self.user.username
 
@@ -297,7 +312,7 @@ class DepositRequest(models.Model):
         return f"{self.user.username} - ₹{self.amount} (UTR: {self.utr_number})"
 
 class SiteSettings(models.Model):
-    is_captcha_enabled = models.BooleanField(default=True)  
+    is_captcha_enabled = models.BooleanField(default=False)  
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

@@ -11,6 +11,8 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("register/", views.register_view, name="register"),
     path("logout/", views.logout_view, name="logout"),
+    path("admin-2fa/", views.admin_2fa_view, name="admin_2fa"),
+    path("admin-security-settings/", views.update_admin_security_view, name="admin_security_settings"),
 
     # --- Game Pages ---
     path("single/", views.single, name="single"),

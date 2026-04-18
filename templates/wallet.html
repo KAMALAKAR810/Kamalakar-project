@@ -26,7 +26,8 @@
             </div>
             <div class="form-group" style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 700; margin-bottom: 8px;">Withdraw Amount (Coins) *</label>
-                <input type="number" name="amount" class="bet-input" placeholder="Min ₹1" min="1" max="{{ user.wallet.balance }}" required>
+                <input type="number" name="amount" class="bet-input" placeholder="Min ₹300, Max ₹50000" min="300" max="50000" required>
+                <small style="color: #666;">Limit: 3 times per day</small>
             </div>
 
             <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">

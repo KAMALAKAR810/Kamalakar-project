@@ -4,10 +4,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('secure-admin-5266/', admin.site.urls),
     path('', include('MATKAAPP.urls')),
 
 ] 
+
+handler404 = 'MATKAAPP.views.error_404'
+handler500 = 'MATKAAPP.views.error_500'
+handler403 = 'MATKAAPP.views.error_403'
+handler400 = 'MATKAAPP.views.error_400'
 
 # This line is the "magic" that serves your profile pictures during development
 if settings.DEBUG:
