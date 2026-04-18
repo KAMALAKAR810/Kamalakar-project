@@ -248,8 +248,7 @@ def _markets_betting_payload():
 def _get_admin_notifications(request):
     """Context processor for admin notification dots. Must accept 'request'."""
     settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
     
     context = {
         'enable_captcha': enable_captcha
@@ -311,8 +310,7 @@ def login_view(request):
         return redirect('index')
     
     settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
 
     if request.method == 'POST':
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
@@ -388,8 +386,7 @@ def register_view(request):
         return redirect('index')
 
     settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
 
     if request.method == 'POST':
         # Honeypot — bots often fill hidden fields
@@ -1724,8 +1721,7 @@ from .forms import MyContactForm
 
 def contact_view(request):
     settings_obj = SiteSettings.objects.first()
-    # enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    enable_captcha = False
+    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
     
     if request.method == 'POST':
         form = MyContactForm(request.POST)

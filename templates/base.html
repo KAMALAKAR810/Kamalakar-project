@@ -1170,7 +1170,7 @@
     </div>
 </footer>
 
-{# {% if enable_captcha %}
+{% if enable_captcha %}
 <!-- Global reCAPTCHA Overlay -->
 <div id="captcha-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); z-index: 99999; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;">
     <img src="{% static 'logo.jpeg' %}" style="height: 100px; margin-bottom: 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
@@ -1208,7 +1208,7 @@
 
     window.addEventListener('DOMContentLoaded', initCaptcha);
 </script>
-{% endif %} #}
+{% endif %}
 
 <!-- Terms and Conditions Modal -->
 <div id="terms-modal" class="terms-modal">
