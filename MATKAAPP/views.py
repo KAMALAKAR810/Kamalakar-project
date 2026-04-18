@@ -255,7 +255,8 @@ def _get_admin_notifications(request):
         'enable_captcha': enable_captcha
     }
     
-    if request.user.is_authenticated:
+    # Safety check: ensure 'user' attribute exists before accessing it
+    if hasattr(request, 'user') and request.user.is_authenticated:
         unread_count = Message.objects.filter(receiver=request.user, is_read=False).count()
         if request.user.is_superuser:
             context.update({

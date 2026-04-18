@@ -117,7 +117,8 @@ class Admin2FAMiddleware:
         # Only check for staff/superusers
         if request.user.is_authenticated and request.user.is_staff:
             # Paths that require 2FA
-            is_admin_path = request.path.startswith('/admin/') or request.path.startswith('/admin-')
+            # Django admin is now 'secure-admin-5266'
+            is_admin_path = request.path.startswith('/secure-admin-5266/') or request.path.startswith('/admin-')
             
             # Paths that ARE the 2FA verification itself (avoid loops)
             is_2fa_path = request.path == '/admin-2fa/'
