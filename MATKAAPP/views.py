@@ -943,6 +943,7 @@ def calculate_winners(market, session_to_calculate=None):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def jodi_winners_view(request):
     """
     Task 15: Separate Jodi winners view with date and market filters.
