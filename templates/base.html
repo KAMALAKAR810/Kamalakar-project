@@ -1064,7 +1064,7 @@
             <button onclick="window.history.back()" class="back-btn" title="Go Back">
                 <i class="fas fa-arrow-left"></i>
             </button>
-            <a href="{% url 'index' %}" class="logo-section">
+            <a href="{% url 'user_home' %}" class="logo-section">
                 <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
                 <div class="site-name">
                     ChangeLifeWithNumbers
@@ -1112,7 +1112,7 @@
 
 <nav class="nav-bar">
     <div class="nav-container">
-        <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">HOME</a>
+        <a href="{% url 'user_home' %}" class="nav-link {% if request.resolver_match.url_name == 'user_home' %}active{% endif %}">User home</a>
         
         {% if not user.is_superuser %}
             <a href="{% url 'single' %}" class="nav-link {% if request.resolver_match.url_name == 'single' %}active{% endif %}">SINGLE</a>

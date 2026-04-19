@@ -165,7 +165,7 @@
                 // Disable refresh prevention before redirecting
                 window.onbeforeunload = null;
                 showModal("Success", data.message, "success", () => {
-                    window.location.href = "{% url 'index' %}";
+                    window.location.href = "{% url 'user_home' %}";
                 });
             } else {
                 showModal("Error", data.message, "error");

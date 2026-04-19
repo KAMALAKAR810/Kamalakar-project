@@ -28,10 +28,10 @@ import uuid
 @login_required
 def admin_2fa_view(request):
     if not request.user.is_staff:
-        return redirect('index')
+        return redirect('user_home')
     
     if request.session.get('admin_2fa_verified'):
-        return redirect('admin_summary')
+        return redirect('admin_home')
     
     profile = request.user.profile
     
@@ -43,7 +43,7 @@ def admin_2fa_view(request):
             if pin == profile.admin_pin:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('admin_summary')
+                return redirect('admin_home')
             else:
                 messages.error(request, "Invalid PIN!")
         
@@ -52,7 +52,7 @@ def admin_2fa_view(request):
             if answer == profile.admin_security_answer:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('admin_summary')
+                return redirect('admin_home')
             else:
                 messages.error(request, "Incorrect answer!")
             
@@ -301,7 +301,9 @@ TRIPPLE_PATTI_GROUPS = {
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('index')
+        if request.user.is_superuser:
+            return redirect('admin_home')
+        return redirect('user_home')
     
     settings_obj = SiteSettings.objects.first()
     enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
@@ -340,8 +342,11 @@ def login_view(request):
             if is_ajax:
                 return JsonResponse({'status': 'success'})
             
-            # Admins land on the site Home page (index) as well
-            next_url = request.GET.get('next') or 'index'
+            # Admins land on the site Home page (admin_home) as well
+            if user.is_superuser:
+                next_url = request.GET.get('next') or 'admin_home'
+            else:
+                next_url = request.GET.get('next') or 'user_home'
             return redirect(next_url)
         else:
             if is_ajax:
@@ -485,6 +490,15 @@ def error_400(request, exception):
 
 def display(request):
     return render(request, 'display_page.html', {'markets': Market.objects.all()})
+
+
+def user_home(request):
+    return render(request, 'user_home.html', {'markets': Market.objects.all()})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_home(request):
+    return render(request, 'admin_home.html', {'markets': Market.objects.all()})
 
 
 def error(request):

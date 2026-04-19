@@ -3,7 +3,9 @@ from . import views
 
 urlpatterns = [
     # --- Public Pages ---
-    path("", views.display, name="index"),
+    path("", views.user_home, name="index"),
+    path("user-home/", views.user_home, name="user_home"),
+    path("admin-home/", views.admin_home, name="admin_home"),
     path("display/", views.display, name="display"),
     path("error/", views.error, name="error"),
 

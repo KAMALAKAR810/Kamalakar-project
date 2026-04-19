@@ -300,7 +300,7 @@
 
 <header class="header">
     <div class="header-container">
-        <a href="{% url 'admin_summary' %}" class="logo-section">
+        <a href="{% url 'admin_home' %}" class="logo-section">
             <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
             <div class="site-name">ADMIN HOME PANEL</div>
         </a>
@@ -317,6 +317,9 @@
 <nav class="admin-nav">
     <div class="nav-container">
 
+        <a href="{% url 'admin_home' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_home' %}active{% endif %}">
+            <i class="fas fa-home"></i> admin home
+        </a>
         <a href="{% url 'admin_summary' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">
             <i class="fas fa-tachometer-alt"></i> Dashboard
         </a>
@@ -378,7 +381,7 @@
         <a href="javascript:window.print()" class="nav-link utility-link print-link" title="Print this page">
             <i class="fas fa-print"></i> PRINT
         </a>
-        <a href="{% url 'index' %}" class="nav-link" target="_blank">
+        <a href="{% url 'user_home' %}" class="nav-link" target="_blank">
             <i class="fas fa-external-link-alt"></i> VIEW SITE
         </a>
     </div>
