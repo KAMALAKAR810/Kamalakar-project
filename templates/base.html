@@ -946,20 +946,22 @@
             line-height: 1.6;
             min-height: 100vh;
             overflow-x: hidden;
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none; /* IE 10 and IE 11 */
-            user-select: none; /* Standard syntax */
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
         }
 
         /* Re-enable selection for inputs so users can type */
         input, textarea, select {
-            -webkit-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
         }
 
         @media print {
-            body { display: none !important; }
+            body { display: none !important; visibility: hidden !important; }
         }
 
         .main-content {
@@ -1618,5 +1620,21 @@
 
 {% block extra_js %}{% endblock %}
 
+    <!-- Protection Script -->
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'PrintScreen') {
+                navigator.clipboard.writeText('');
+                alert('Screenshots are disabled on this website.');
+            }
+            if (e.ctrlKey && (e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'c' || e.key === 'C')) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>

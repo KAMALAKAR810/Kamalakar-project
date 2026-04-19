@@ -4,7 +4,7 @@
     <h1 class="page-title"><i class="fas fa-shield-alt"></i> Admin Security Settings</h1>
     
     <div class="data-panel" style="max-width: 700px; margin: 0 auto;">
-        <p style="margin-bottom: 30px; color: var(--gray); font-size: 14px;">Manage your administrative access security. These settings control your PIN, security questions, and biometric authentication for the admin panel.</p>
+        <p style="margin-bottom: 30px; color: var(--gray); font-size: 14px;">Manage your administrative access security. These settings control your PIN and security questions for the admin panel.</p>
         
         <form method="POST">
             {% csrf_token %}
@@ -28,34 +28,6 @@
                 <small style="color: #666; font-size: 11px;">Answers are case-sensitive.</small>
             </div>
 
-            <div class="form-group" style="margin-bottom: 30px; border: 2px dashed #e3f2fd; padding: 25px; border-radius: 12px; background: #f0f7ff;">
-                <label style="color: var(--primary); font-size: 15px; margin-bottom: 15px;">
-                    <i class="fas fa-fingerprint"></i> Biometric Authentication (WebAuthn)
-                </label>
-                
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
-                    <div>
-                        {% if profile.webauthn_credential %}
-                            <p style="color: #2e7d32; font-size: 13px; font-weight: 700;">
-                                <i class="fas fa-check-circle"></i> Device Registered
-                            </p>
-                            <p style="color: #666; font-size: 11px;">Your biometric device is active and ready for use.</p>
-                        {% else %}
-                            <p style="color: #d32f2f; font-size: 13px; font-weight: 700;">
-                                <i class="fas fa-exclamation-circle"></i> No Device Registered
-                            </p>
-                            <p style="color: #666; font-size: 11px;">Enable faster, more secure login using your device's fingerprint or face ID.</p>
-                        {% endif %}
-                    </div>
-                    
-                    <button type="button" onclick="registerBiometric()" class="btn-gold" style="background: white; color: var(--primary); border: 1px solid var(--primary); font-size: 12px; padding: 10px 15px;">
-                        {% if profile.webauthn_credential %}Update Device{% else %}Register Device{% endif %}
-                    </button>
-                </div>
-                
-                <p id="bio-status" style="margin-top: 15px; font-size: 12px; font-weight: 600;"></p>
-            </div>
-
             <div style="display: flex; gap: 15px; border-top: 1px solid #eee; padding-top: 25px;">
                 <button type="submit" class="btn-gold" style="flex: 1;">SAVE ALL SETTINGS</button>
                 <a href="{% url 'admin_summary' %}" class="btn-gold" style="background: #f8f9fa; color: #666; border: 1px solid #ddd;">CANCEL</a>
@@ -63,99 +35,4 @@
         </form>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js"></script>
-<script>
-    // Fallback if jsDelivr fails
-    if (typeof webauthnJSON === 'undefined') {
-        var script = document.createElement('script');
-        script.src = "https://unpkg.com/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js";
-        document.head.appendChild(script);
-    }
-
-    // Check library loading
-    window.addEventListener('load', () => {
-        if (typeof webauthnJSON === 'undefined') {
-            console.error("WebAuthn library failed to load from CDN.");
-            const status = document.getElementById('bio-status');
-            if (status) {
-                status.textContent = "Error: Biometric library could not be loaded. Please check your internet connection.";
-                status.style.color = "var(--danger)";
-            }
-        }
-    });
-
-    async function registerBiometric() {
-        const status = document.getElementById('bio-status');
-        if (!status) return;
-        
-        status.textContent = "Checking biometric support...";
-        status.style.color = "var(--primary)";
-
-        try {
-            if (typeof webauthnJSON === 'undefined') {
-                throw new Error("Biometric library is not loaded. Please refresh the page.");
-            }
-
-            // Check if biometric is available
-            if (!window.PublicKeyCredential) {
-                throw new Error("Biometric authentication (WebAuthn) is not supported in this browser.");
-            }
-            
-            const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-            if (!available) {
-                throw new Error("No biometric authenticator (like Fingerprint or Face ID) found on this device. Please set up a screen lock or fingerprint in your device settings first.");
-            }
-
-            status.textContent = "Requesting registration options...";
-            const resp = await fetch("{% url 'biometric_reg_options' %}");
-            if (!resp.ok) {
-                const errorData = await resp.json();
-                throw new Error(errorData.message || "Failed to fetch registration options from server.");
-            }
-            
-            const options = await resp.json();
-            if (options.status === 'error') {
-                throw new Error(options.message);
-            }
-
-            status.textContent = "Please follow the browser prompt to scan your biometric...";
-            // This is where the device prompt should appear
-            const credential = await webauthnJSON.create({ publicKey: options });
-
-            status.textContent = "Verifying biometric registration...";
-            const verifyResp = await fetch("{% url 'biometric_reg_verify' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify(credential)
-            });
-
-            const verifyResult = await verifyResp.json();
-            if (verifyResult.status === 'success') {
-                status.textContent = "Biometric device registered successfully! Refreshing...";
-                status.style.color = "green";
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                throw new Error(verifyResult.message || "Verification failed on server.");
-            }
-
-        } catch (err) {
-            console.error("Biometric Error:", err);
-            status.textContent = "Error: " + err.message;
-            status.style.color = "var(--danger)";
-            
-            // If it's a known WebAuthn error, make it user-friendly
-            if (err.name === 'NotAllowedError') {
-                status.textContent = "Registration cancelled or timed out.";
-            } else if (err.name === 'InvalidStateError') {
-                status.textContent = "This device is already registered.";
-            }
-        }
-    }
-</script>
 {% endblock %}

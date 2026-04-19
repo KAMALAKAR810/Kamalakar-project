@@ -11,7 +11,6 @@
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap;">
         <button onclick="switchTab('pin')" id="btn-pin" class="btn-tab active" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; font-weight: 700;">PIN</button>
         <button onclick="switchTab('security_question')" id="btn-question" class="btn-tab" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); background: white; color: var(--gray); cursor: pointer; font-weight: 700;">Question</button>
-        <button onclick="switchTab('biometric')" id="btn-bio" class="btn-tab" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); background: white; color: var(--gray); cursor: pointer; font-weight: 700;">Biometric</button>
     </div>
 
     <!-- PIN Form -->
@@ -38,28 +37,6 @@
         <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 8px; font-weight: 800;">VERIFY ANSWER</button>
     </form>
 
-    <!-- Biometric Form -->
-    <div id="form-biometric" style="display: none;">
-        {% if profile.webauthn_credential %}
-            <div id="bio-auth-container" style="text-align: center; padding: 20px;">
-                <div id="bio-icon-wrapper" style="margin-bottom: 20px;">
-                    <i class="fas fa-fingerprint" id="bio-main-icon" style="font-size: 80px; color: var(--primary); transition: all 0.3s;"></i>
-                </div>
-                <h3 id="bio-title" style="margin-bottom: 10px;">Ready to Scan</h3>
-                <p id="bio-subtitle" style="color: var(--gray); margin-bottom: 25px;">Use your registered biometric device to verify your identity.</p>
-                <button type="button" id="btn-start-scan" onclick="authenticateBiometric()" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 8px; font-weight: 800;">START SCAN</button>
-                <p id="bio-auth-status" style="margin-top: 15px; font-size: 14px; font-weight: 600;"></p>
-            </div>
-        {% else %}
-            <div style="text-align: center; padding: 20px;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--warning); margin-bottom: 15px;"></i>
-                <h3 style="margin-bottom: 10px;">No Biometric Registered</h3>
-                <p style="color: var(--gray); margin-bottom: 20px;">You haven't registered a biometric device yet. Please use PIN or Security Question instead.</p>
-                <button type="button" onclick="switchTab('pin')" class="btn-tab" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer;">USE PIN INSTEAD</button>
-            </div>
-        {% endif %}
-    </div>
-
     <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
         <a href="{% url 'logout' %}" style="color: var(--danger); text-decoration: none; font-weight: 600; font-size: 14px;">
             <i class="fas fa-sign-out-alt"></i> Cancel and Logout
@@ -70,103 +47,14 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js"></script>
 <script>
-    // Fallback if jsDelivr fails
-    if (typeof webauthnJSON === 'undefined') {
-        var script = document.createElement('script');
-        script.src = "https://unpkg.com/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js";
-        document.head.appendChild(script);
-    }
-
-    async function authenticateBiometric() {
-        const status = document.getElementById('bio-auth-status');
-        const icon = document.getElementById('bio-main-icon');
-        const btn = document.getElementById('btn-start-scan');
-        
-        if (!status || !icon || !btn) return;
-        
-        status.textContent = "Checking support...";
-        status.style.color = "var(--primary)";
-
-        try {
-            // 1. Check if biometric is available
-            if (!window.PublicKeyCredential) {
-                throw new Error("Biometric authentication is not supported in this browser.");
-            }
-            
-            const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-            if (!available) {
-                status.textContent = "Biometric not supported on this device.";
-                status.style.color = "var(--danger)";
-                icon.style.color = "var(--danger)";
-                icon.className = "fas fa-times-circle";
-                
-                setTimeout(() => {
-                    alert("This device does not support biometric authentication. Redirecting to PIN verification.");
-                    switchTab('pin');
-                    icon.className = "fas fa-fingerprint";
-                    icon.style.color = "var(--primary)";
-                    status.textContent = "";
-                }, 2000);
-                return;
-            }
-
-            btn.disabled = true;
-            status.textContent = "Requesting challenge...";
-            
-            const resp = await fetch("{% url 'biometric_auth_options' %}");
-            if (!resp.ok) {
-                const errorData = await resp.json();
-                throw new Error(errorData.message || "Failed to fetch authentication options");
-            }
-            
-            const options = await resp.json();
-            if (options.status === 'error') {
-                throw new Error(options.message);
-            }
-
-            status.textContent = "Please scan your biometric...";
-            const assertion = await webauthnJSON.get({ publicKey: options });
-
-            status.textContent = "Verifying...";
-            const verifyResp = await fetch("{% url 'biometric_auth_verify' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify(assertion)
-            });
-
-            const verifyResult = await verifyResp.json();
-            if (verifyResult.status === 'success') {
-                status.textContent = "Identity verified! Redirecting...";
-                status.style.color = "green";
-                icon.style.color = "green";
-                icon.className = "fas fa-check-circle";
-                setTimeout(() => window.location.href = "{% url 'admin_summary' %}", 1000);
-            } else {
-                throw new Error(verifyResult.message || "Verification failed");
-            }
-
-        } catch (err) {
-            console.error("Biometric Auth Error:", err);
-            status.textContent = "Verification failed: " + err.message;
-            status.style.color = "var(--danger)";
-            btn.disabled = false;
-        }
-    }
-
     function switchTab(tab) {
         // Hide all forms
         const pinForm = document.getElementById('form-pin');
         const questionForm = document.getElementById('form-security_question');
-        const bioForm = document.getElementById('form-biometric');
         
         if (pinForm) pinForm.style.display = 'none';
         if (questionForm) questionForm.style.display = 'none';
-        if (bioForm) bioForm.style.display = 'none';
         
         // Remove active class from buttons
         document.querySelectorAll('.btn-tab').forEach(btn => {
@@ -180,7 +68,7 @@
         if (targetForm) targetForm.style.display = 'block';
         
         // Add active style to button
-        const btnId = tab === 'security_question' ? 'btn-question' : (tab === 'biometric' ? 'btn-bio' : 'btn-pin');
+        const btnId = tab === 'security_question' ? 'btn-question' : 'btn-pin';
         const activeBtn = document.getElementById(btnId);
         if (activeBtn) {
             activeBtn.style.background = 'var(--primary)';

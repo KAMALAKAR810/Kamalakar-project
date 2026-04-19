@@ -69,7 +69,6 @@ class Profile(models.Model):
         blank=True, 
         null=True
     )
-    webauthn_credential = models.JSONField(blank=True, null=True, help_text="Stored WebAuthn credential for biometric auth")
 
     def __str__(self):
         return self.user.username
