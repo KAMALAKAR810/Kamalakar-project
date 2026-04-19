@@ -387,6 +387,26 @@
     </div>
 </nav>
 
+<nav class="admin-nav" style="background-color: #001a33; border-top: 1px solid rgba(255,255,255,0.1);">
+    <div class="nav-container">
+        <a href="{% url 'single' %}" class="nav-link {% if request.resolver_match.url_name == 'single' %}active{% endif %}">
+            <i class="fas fa-play-circle"></i> SINGLE
+        </a>
+        <a href="{% url 'jodi' %}" class="nav-link {% if request.resolver_match.url_name == 'jodi' %}active{% endif %}">
+            <i class="fas fa-play-circle"></i> JODI
+        </a>
+        <a href="{% url 'single_pathi' %}" class="nav-link {% if request.resolver_match.url_name == 'single_pathi' %}active{% endif %}">
+            <i class="fas fa-play-circle"></i> S-PATTI
+        </a>
+        <a href="{% url 'double_pathi' %}" class="nav-link {% if request.resolver_match.url_name == 'double_pathi' %}active{% endif %}">
+            <i class="fas fa-play-circle"></i> D-PATTI
+        </a>
+        <a href="{% url 'tripple_pathi' %}" class="nav-link {% if request.resolver_match.url_name == 'tripple_pathi' %}active{% endif %}">
+            <i class="fas fa-play-circle"></i> T-PATTI
+        </a>
+    </div>
+</nav>
+
 <main class="main-content">
     {% block content %}{% endblock %}
 </main>
