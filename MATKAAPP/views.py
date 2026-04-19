@@ -488,6 +488,8 @@ def error_400(request, exception):
     return render(request, 'error.html', status=400)
 
 def index(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('admin_summary')
     return render(request, 'index.html', {'markets': Market.objects.all()})
 
 
