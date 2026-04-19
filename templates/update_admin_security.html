@@ -24,7 +24,23 @@
                 <div class="form-group" style="margin-bottom: 30px;">
                     <label style="display: block; font-weight: 700; margin-bottom: 10px;">Security Answer</label>
                     <input type="text" name="admin_security_answer" value="{{ profile.admin_security_answer }}" required class="bet-input" placeholder="Enter answer">
-                    <small style="color: #666;">Answers are case-insensitive.</small>
+                    <small style="color: #666;">Answers are case-sensitive.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 30px; border: 1px dashed var(--primary); padding: 20px; border-radius: 12px; background: #f0f7ff;">
+                    <label style="display: block; font-weight: 700; margin-bottom: 10px;">
+                        <i class="fas fa-fingerprint"></i> Biometric Authentication (WebAuthn)
+                    </label>
+                    {% if profile.webauthn_credential %}
+                        <p style="color: green; font-size: 13px; margin-bottom: 10px;">
+                            <i class="fas fa-check-circle"></i> Biometric device registered.
+                        </p>
+                        <button type="button" onclick="registerBiometric()" class="btn-tab" style="padding: 8px 15px; font-size: 12px; border-color: var(--primary); color: var(--primary);">Update Registered Device</button>
+                    {% else %}
+                        <p style="color: var(--gray); font-size: 13px; margin-bottom: 10px;">No biometric device registered yet.</p>
+                        <button type="button" onclick="registerBiometric()" class="btn-tab" style="padding: 8px 15px; font-size: 12px; border-color: var(--primary); color: var(--primary);">Register Biometric Device</button>
+                    {% endif %}
+                    <p id="bio-status" style="margin-top: 10px; font-size: 12px;"></p>
                 </div>
 
                 <div style="display: flex; gap: 15px;">
@@ -35,4 +51,59 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js"></script>
+<script>
+    async function registerBiometric() {
+        const status = document.getElementById('bio-status');
+        status.textContent = "Checking biometric support...";
+        status.style.color = "var(--primary)";
+
+        try {
+            // Check if biometric is available
+            if (!window.PublicKeyCredential || !await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) {
+                status.textContent = "Error: Biometric authentication is not supported on this device/browser.";
+                status.style.color = "var(--danger)";
+                return;
+            }
+
+            status.textContent = "Requesting registration options...";
+            const resp = await fetch("{% url 'biometric_reg_options' %}");
+            const options = await resp.json();
+
+            if (options.status === 'error') {
+                throw new Error(options.message);
+            }
+
+            status.textContent = "Please follow the browser prompt to scan your biometric...";
+            const credential = await webauthnJSON.create({ publicKey: options });
+
+            status.textContent = "Verifying biometric registration...";
+            const verifyResp = await fetch("{% url 'biometric_reg_verify' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(credential)
+            });
+
+            const verifyResult = await verifyResp.json();
+            if (verifyResult.status === 'success') {
+                status.textContent = "Biometric device registered successfully! Refreshing...";
+                status.style.color = "green";
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                throw new Error(verifyResult.message);
+            }
+
+        } catch (err) {
+            console.error(err);
+            status.textContent = "Error: " + err.message;
+            status.style.color = "var(--danger)";
+        }
+    }
+</script>
 {% endblock %}

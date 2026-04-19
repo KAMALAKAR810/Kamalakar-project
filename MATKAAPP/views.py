@@ -20,9 +20,141 @@ from django.db.models import Sum, Q, Count, Max
 from django.utils import timezone
 import requests
 from django.conf import settings
+import base64
+try:
+    from webauthn import (
+        generate_registration_options,
+        verify_registration_response,
+        generate_authentication_options,
+        verify_authentication_response,
+        options_to_json,
+    )
+    from webauthn.helpers.structs import (
+        AttestationPreference,
+        AuthenticatorSelectionCriteria,
+        UserVerificationRequirement,
+        AuthenticatorAttachment,
+    )
+    WEBAUTHN_AVAILABLE = True
+except ImportError:
+    WEBAUTHN_AVAILABLE = False
 
 from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
 import uuid
+
+@login_required
+def biometric_reg_options(request):
+    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    
+    RP_ID = request.get_host().split(':')[0]
+    RP_NAME = "MATKA Admin"
+    
+    options = generate_registration_options(
+        rp_id=RP_ID,
+        rp_name=RP_NAME,
+        user_id=str(request.user.id),
+        user_name=request.user.username,
+        attestation=AttestationPreference.DIRECT,
+        authenticator_selection=AuthenticatorSelectionCriteria(
+            authenticator_attachment=AuthenticatorAttachment.PLATFORM,
+            user_verification=UserVerificationRequirement.REQUIRED,
+        ),
+    )
+    
+    request.session['registration_challenge'] = options.challenge.decode('utf-8') if isinstance(options.challenge, bytes) else options.challenge
+    
+    return JsonResponse(json.loads(options_to_json(options)))
+
+@login_required
+def biometric_reg_verify(request):
+    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    
+    try:
+        data = json.loads(request.body)
+        challenge = request.session.get('registration_challenge')
+        RP_ID = request.get_host().split(':')[0]
+        ORIGIN = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}"
+
+        verification = verify_registration_response(
+            credential=data,
+            expected_challenge=challenge.encode('utf-8') if isinstance(challenge, str) else challenge,
+            expected_origin=ORIGIN,
+            expected_rp_id=RP_ID,
+            require_user_verification=True,
+        )
+        
+        # Save credential data to profile
+        profile = request.user.profile
+        profile.webauthn_credential = {
+            'id': verification.credential_id.decode('utf-8') if isinstance(verification.credential_id, bytes) else verification.credential_id,
+            'public_key': base64.b64encode(verification.credential_public_key).decode('utf-8'),
+            'sign_count': verification.sign_count,
+        }
+        profile.save()
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+
+@login_required
+def biometric_auth_options(request):
+    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    
+    profile = request.user.profile
+    if not profile.webauthn_credential:
+        return JsonResponse({'status': 'error', 'message': 'No biometric registered'})
+    
+    RP_ID = request.get_host().split(':')[0]
+    
+    options = generate_authentication_options(
+        rp_id=RP_ID,
+        allow_credentials=[{
+            'id': profile.webauthn_credential['id'],
+            'type': 'public-key',
+        }],
+        user_verification=UserVerificationRequirement.REQUIRED,
+    )
+    
+    request.session['authentication_challenge'] = options.challenge.decode('utf-8') if isinstance(options.challenge, bytes) else options.challenge
+    
+    return JsonResponse(json.loads(options_to_json(options)))
+
+@login_required
+def biometric_auth_verify(request):
+    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    
+    try:
+        data = json.loads(request.body)
+        challenge = request.session.get('authentication_challenge')
+        RP_ID = request.get_host().split(':')[0]
+        ORIGIN = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}"
+        profile = request.user.profile
+        
+        credential = profile.webauthn_credential
+        
+        verification = verify_authentication_response(
+            credential=data,
+            expected_challenge=challenge.encode('utf-8') if isinstance(challenge, str) else challenge,
+            expected_origin=ORIGIN,
+            expected_rp_id=RP_ID,
+            credential_public_key=base64.b64decode(credential['public_key']),
+            credential_current_sign_count=credential['sign_count'],
+            require_user_verification=True,
+        )
+        
+        # Update sign count
+        profile.webauthn_credential['sign_count'] = verification.new_sign_count
+        profile.save()
+        
+        # Mark 2FA as verified
+        request.session['admin_2fa_verified'] = True
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
 
 @login_required
 def admin_2fa_view(request):
@@ -48,19 +180,12 @@ def admin_2fa_view(request):
         
         elif auth_type == 'security_question':
             answer = request.POST.get('answer', '').strip()
-            if answer.lower() == profile.admin_security_answer.lower():
+            if answer == profile.admin_security_answer:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
                 return redirect('admin:index')
             else:
                 messages.error(request, "Incorrect answer!")
-        
-        elif auth_type in ['fingerprint', 'face']:
-            # Mock fingerprint/face for now as it requires WebAuthn
-            # In a real scenario, this would involve navigator.credentials.get()
-            messages.info(request, f"{auth_type.capitalize()} authentication successful (Simulated).")
-            request.session['admin_2fa_verified'] = True
-            return redirect('admin:index')
             
     return render(request, 'admin_2fa.html', {
         'profile': profile
@@ -943,7 +1068,6 @@ def calculate_winners(market, session_to_calculate=None):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def jodi_winners_view(request):
     """
     Task 15: Separate Jodi winners view with date and market filters.
@@ -1470,7 +1594,16 @@ def payment_page(request):
     if request.method == 'POST':
         # 1. Handle Amount Submission (Initial step)
         if 'amount' in request.POST and 'utr_number' not in request.POST:
-            amount = request.POST.get('amount')
+            amount_raw = request.POST.get('amount')
+            try:
+                amount = Decimal(amount_raw)
+            except:
+                messages.error(request, "Invalid amount format.")
+                return redirect('payment')
+
+            if amount < 100:
+                messages.error(request, "Minimum deposit amount is ₹100.")
+                return redirect('payment')
             
             # Get UPI config
             config = PaymentSettings.objects.filter(is_active=True).last()

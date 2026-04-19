@@ -13,6 +13,10 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("admin-2fa/", views.admin_2fa_view, name="admin_2fa"),
     path("admin-security-settings/", views.update_admin_security_view, name="admin_security_settings"),
+    path("api/biometric/reg-options/", views.biometric_reg_options, name="biometric_reg_options"),
+    path("api/biometric/reg-verify/", views.biometric_reg_verify, name="biometric_reg_verify"),
+    path("api/biometric/auth-options/", views.biometric_auth_options, name="biometric_auth_options"),
+    path("api/biometric/auth-verify/", views.biometric_auth_verify, name="biometric_auth_verify"),
 
     # --- Game Pages ---
     path("single/", views.single, name="single"),
