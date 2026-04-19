@@ -54,8 +54,15 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js"></script>
 <script>
+    // Fallback if jsDelivr fails
+    if (typeof webauthnJSON === 'undefined') {
+        var script = document.createElement('script');
+        script.src = "https://unpkg.com/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js";
+        document.head.appendChild(script);
+    }
+
     // Check library loading
     window.addEventListener('load', () => {
         if (typeof webauthnJSON === 'undefined') {
