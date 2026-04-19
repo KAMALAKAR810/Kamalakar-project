@@ -65,28 +65,97 @@
     .txn-WIN { background: #e8f5e9; color: #2e7d32; }
     .txn-BET { background: #e3f2fd; color: #1565c0; }
     .txn-DEPOSIT { background: #fff3e0; color: #e65100; }
+
+    /* Mobile Responsive Header Actions */
+    .header-actions-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .action-buttons-container {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .filter-form {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+    }
+    .date-input {
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+    .main-action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .security-btn { background: #002244 !important; }
+    .pending-btn { background: #333 !important; }
+    .btn-gold {
+        padding: 12px 20px;
+        text-decoration: none;
+        font-size: 13px;
+        white-space: nowrap;
+        flex: 1 1 auto;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .header-actions-wrapper {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .action-buttons-container {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-form {
+            width: 100%;
+        }
+        .date-input {
+            flex: 1;
+        }
+        .main-action-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        .btn-gold {
+            width: 100%;
+            margin: 0 !important;
+        }
+    }
 </style>
 
 <div class="page-shell admin-dashboard">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <div>
+    <div class="header-actions-wrapper">
+        <div class="header-info">
             <h2 class="page-title" style="text-align: left; border: none; padding: 0; margin: 0;">Admin Command Center</h2>
             <p class="page-sub" style="text-align: left; margin: 0;">System overview for <strong>{{ today|date:"l, d F Y" }}</strong></p>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <form method="GET" style="display: flex; gap: 5px; align-items: center; margin-right: 15px;">
-                <input type="date" name="date" value="{{ selected_date }}" class="form-control" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                <button type="submit" class="btn-gold" style="padding: 8px 15px; font-size: 13px;">Filter</button>
+        <div class="action-buttons-container">
+            <form method="GET" class="filter-form">
+                <input type="date" name="date" value="{{ selected_date }}" class="form-control date-input">
+                <button type="submit" class="btn-gold filter-btn">Filter</button>
             </form>
-            <a href="{% url 'admin_security_settings' %}" class="btn-gold" style="background: #002244; padding: 12px 25px; text-decoration: none; font-size: 14px;">
-                <i class="fa fa-shield-alt"></i> Security
-            </a>
-            <a href="{% url 'declare_result' %}" class="btn-gold" style="padding: 12px 25px; text-decoration: none; font-size: 14px;">
-                <i class="fa fa-bullhorn"></i> Declare Result
-            </a>
-            <a href="{% url 'admin_withdrawal_management' %}" class="btn-gold" style="background: #333; padding: 12px 25px; text-decoration: none; font-size: 14px;">
-                <i class="fa fa-money-bill-wave"></i> Pending ({{ pending_withdrawals }})
-            </a>
+            <div class="main-action-buttons">
+                <a href="{% url 'admin_security_settings' %}" class="btn-gold security-btn">
+                    <i class="fa fa-shield-alt"></i> Security
+                </a>
+                <a href="{% url 'declare_result' %}" class="btn-gold declare-btn">
+                    <i class="fa fa-bullhorn"></i> Declare Result
+                </a>
+                <a href="{% url 'admin_withdrawal_management' %}" class="btn-gold pending-btn">
+                    <i class="fa fa-money-bill-wave"></i> Pending ({{ pending_withdrawals }})
+                </a>
+            </div>
         </div>
     </div>
 
