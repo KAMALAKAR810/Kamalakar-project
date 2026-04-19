@@ -317,8 +317,15 @@
 <nav class="admin-nav">
     <div class="nav-container">
         <a href="{% url 'admin_summary' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">
-            <i class="fas fa-home"></i> HOME
+            <i class="fas fa-home"></i> Dashboard
         </a>
+
+ <a href="{% url 'admin_summary' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+
+
+
         <a href="{% url 'manage_markets' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_markets' %}active{% endif %}">
             <i class="fas fa-store"></i> Markets
         </a>
