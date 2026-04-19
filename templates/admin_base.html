@@ -317,11 +317,11 @@
 <nav class="admin-nav">
     <div class="nav-container">
 
-         <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}"> <i class="fas fa-home"></i> HOME</a>
-
-         
+        <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+            <i class="fas fa-home"></i> HOME
+        </a>
         <a href="{% url 'admin_summary' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">
-            <i class="fas fa-home"></i> Dashboard
+            <i class="fas fa-tachometer-alt"></i> Dashboard
         </a>
 
 

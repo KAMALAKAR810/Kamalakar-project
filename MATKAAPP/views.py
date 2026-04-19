@@ -31,7 +31,7 @@ def admin_2fa_view(request):
         return redirect('index')
     
     if request.session.get('admin_2fa_verified'):
-        return redirect('admin:index')
+        return redirect('index')
     
     profile = request.user.profile
     
@@ -43,7 +43,7 @@ def admin_2fa_view(request):
             if pin == profile.admin_pin:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('admin:index')
+                return redirect('index')
             else:
                 messages.error(request, "Invalid PIN!")
         
@@ -52,7 +52,7 @@ def admin_2fa_view(request):
             if answer == profile.admin_security_answer:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('admin:index')
+                return redirect('index')
             else:
                 messages.error(request, "Incorrect answer!")
             
@@ -340,11 +340,7 @@ def login_view(request):
             if is_ajax:
                 return JsonResponse({'status': 'success'})
             
-            # TASK: Admins always go to dashboard, users go to 'next' or index
-            if user.is_superuser:
-                return redirect('admin_summary')
-            
-            # For standard form, handle the 'next' parameter
+            # Admins land on the site Home page (index) as well
             next_url = request.GET.get('next') or 'index'
             return redirect(next_url)
         else:
@@ -488,8 +484,6 @@ def error_400(request, exception):
     return render(request, 'error.html', status=400)
 
 def index(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('index')
     return render(request, 'index.html', {'markets': Market.objects.all()})
 
 
