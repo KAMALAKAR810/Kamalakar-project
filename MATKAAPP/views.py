@@ -44,27 +44,36 @@ import uuid
 
 @login_required
 def biometric_reg_options(request):
-    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
-        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Staff access required'})
     
-    RP_ID = request.get_host().split(':')[0]
-    RP_NAME = "MATKA Admin"
+    if not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'WebAuthn library not installed on server'})
     
-    options = generate_registration_options(
-        rp_id=RP_ID,
-        rp_name=RP_NAME,
-        user_id=str(request.user.id),
-        user_name=request.user.username,
-        attestation=AttestationPreference.DIRECT,
-        authenticator_selection=AuthenticatorSelectionCriteria(
-            authenticator_attachment=AuthenticatorAttachment.PLATFORM,
-            user_verification=UserVerificationRequirement.REQUIRED,
-        ),
-    )
-    
-    request.session['registration_challenge'] = options.challenge.decode('utf-8') if isinstance(options.challenge, bytes) else options.challenge
-    
-    return JsonResponse(json.loads(options_to_json(options)))
+    try:
+        RP_ID = request.get_host().split(':')[0]
+        RP_NAME = "MATKA Admin"
+        
+        # user_id must be bytes
+        user_id = str(request.user.id).encode('utf-8')
+        
+        options = generate_registration_options(
+            rp_id=RP_ID,
+            rp_name=RP_NAME,
+            user_id=user_id,
+            user_name=request.user.username,
+            attestation=AttestationPreference.NONE,
+            authenticator_selection=AuthenticatorSelectionCriteria(
+                authenticator_attachment=AuthenticatorAttachment.PLATFORM,
+                user_verification=UserVerificationRequirement.REQUIRED,
+            ),
+        )
+        
+        request.session['registration_challenge'] = options.challenge.decode('utf-8') if isinstance(options.challenge, bytes) else options.challenge
+        
+        return JsonResponse(json.loads(options_to_json(options)))
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
 
 @login_required
 def biometric_reg_verify(request):
@@ -74,8 +83,20 @@ def biometric_reg_verify(request):
     try:
         data = json.loads(request.body)
         challenge = request.session.get('registration_challenge')
+        if not challenge:
+            return JsonResponse({'status': 'error', 'message': 'Challenge not found in session'})
+            
         RP_ID = request.get_host().split(':')[0]
-        ORIGIN = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}"
+        # Robust origin detection
+        if request.is_secure():
+            ORIGIN = f"https://{request.get_host()}"
+        else:
+            # Fallback for proxies if is_secure() is not set up correctly
+            origin_header = request.headers.get('Origin')
+            if origin_header:
+                ORIGIN = origin_header
+            else:
+                ORIGIN = f"http://{request.get_host()}"
 
         verification = verify_registration_response(
             credential=data,
@@ -100,27 +121,33 @@ def biometric_reg_verify(request):
 
 @login_required
 def biometric_auth_options(request):
-    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
-        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Staff access required'})
+        
+    if not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'WebAuthn library not installed on server'})
     
-    profile = request.user.profile
-    if not profile.webauthn_credential:
-        return JsonResponse({'status': 'error', 'message': 'No biometric registered'})
-    
-    RP_ID = request.get_host().split(':')[0]
-    
-    options = generate_authentication_options(
-        rp_id=RP_ID,
-        allow_credentials=[{
-            'id': profile.webauthn_credential['id'],
-            'type': 'public-key',
-        }],
-        user_verification=UserVerificationRequirement.REQUIRED,
-    )
-    
-    request.session['authentication_challenge'] = options.challenge.decode('utf-8') if isinstance(options.challenge, bytes) else options.challenge
-    
-    return JsonResponse(json.loads(options_to_json(options)))
+    try:
+        profile = request.user.profile
+        if not profile.webauthn_credential:
+            return JsonResponse({'status': 'error', 'message': 'No biometric registered'})
+        
+        RP_ID = request.get_host().split(':')[0]
+        
+        options = generate_authentication_options(
+            rp_id=RP_ID,
+            allow_credentials=[{
+                'id': profile.webauthn_credential['id'],
+                'type': 'public-key',
+            }],
+            user_verification=UserVerificationRequirement.REQUIRED,
+        )
+        
+        request.session['authentication_challenge'] = options.challenge.decode('utf-8') if isinstance(options.challenge, bytes) else options.challenge
+        
+        return JsonResponse(json.loads(options_to_json(options)))
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
 
 @login_required
 def biometric_auth_verify(request):
@@ -130,8 +157,21 @@ def biometric_auth_verify(request):
     try:
         data = json.loads(request.body)
         challenge = request.session.get('authentication_challenge')
+        if not challenge:
+            return JsonResponse({'status': 'error', 'message': 'Challenge not found in session'})
+            
         RP_ID = request.get_host().split(':')[0]
-        ORIGIN = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}"
+        # Robust origin detection
+        if request.is_secure():
+            ORIGIN = f"https://{request.get_host()}"
+        else:
+            # Fallback for proxies if is_secure() is not set up correctly
+            origin_header = request.headers.get('Origin')
+            if origin_header:
+                ORIGIN = origin_header
+            else:
+                ORIGIN = f"http://{request.get_host()}"
+                
         profile = request.user.profile
         
         credential = profile.webauthn_credential
