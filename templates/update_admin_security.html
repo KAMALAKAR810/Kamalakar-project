@@ -53,31 +53,57 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script src="https://unpkg.com/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js"></script>
 <script>
+    // Check library loading
+    window.addEventListener('load', () => {
+        if (typeof webauthnJSON === 'undefined') {
+            console.error("WebAuthn library failed to load from CDN.");
+            const status = document.getElementById('bio-status');
+            if (status) {
+                status.textContent = "Error: Biometric library could not be loaded. Please check your internet connection.";
+                status.style.color = "var(--danger)";
+            }
+        }
+    });
+
     async function registerBiometric() {
         const status = document.getElementById('bio-status');
+        if (!status) return;
+        
         status.textContent = "Checking biometric support...";
         status.style.color = "var(--primary)";
 
         try {
+            if (typeof webauthnJSON === 'undefined') {
+                throw new Error("Biometric library is not loaded. Please refresh the page.");
+            }
+
             // Check if biometric is available
-            if (!window.PublicKeyCredential || !await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) {
-                status.textContent = "Error: Biometric authentication is not supported on this device/browser.";
-                status.style.color = "var(--danger)";
-                return;
+            if (!window.PublicKeyCredential) {
+                throw new Error("Biometric authentication (WebAuthn) is not supported in this browser.");
+            }
+            
+            const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+            if (!available) {
+                throw new Error("No biometric authenticator (like Fingerprint or Face ID) found on this device. Please set up a screen lock or fingerprint in your device settings first.");
             }
 
             status.textContent = "Requesting registration options...";
             const resp = await fetch("{% url 'biometric_reg_options' %}");
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.message || "Failed to fetch registration options from server.");
+            }
+            
             const options = await resp.json();
-
             if (options.status === 'error') {
                 throw new Error(options.message);
             }
 
             status.textContent = "Please follow the browser prompt to scan your biometric...";
+            // This is where the device prompt should appear
             const credential = await webauthnJSON.create({ publicKey: options });
 
             status.textContent = "Verifying biometric registration...";
@@ -96,13 +122,20 @@
                 status.style.color = "green";
                 setTimeout(() => location.reload(), 1500);
             } else {
-                throw new Error(verifyResult.message);
+                throw new Error(verifyResult.message || "Verification failed on server.");
             }
 
         } catch (err) {
-            console.error(err);
+            console.error("Biometric Error:", err);
             status.textContent = "Error: " + err.message;
             status.style.color = "var(--danger)";
+            
+            // If it's a known WebAuthn error, make it user-friendly
+            if (err.name === 'NotAllowedError') {
+                status.textContent = "Registration cancelled or timed out.";
+            } else if (err.name === 'InvalidStateError') {
+                status.textContent = "This device is already registered.";
+            }
         }
     }
 </script>

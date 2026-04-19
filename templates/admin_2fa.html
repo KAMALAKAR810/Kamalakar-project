@@ -67,6 +67,9 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script src="https://unpkg.com/@github/webauthn-json@0.5.7/dist/browser-global/webauthn-json.browser-global.min.js"></script>
 <script>
     async function authenticateBiometric() {
@@ -74,22 +77,27 @@
         const icon = document.getElementById('bio-main-icon');
         const btn = document.getElementById('btn-start-scan');
         
+        if (!status || !icon || !btn) return;
+        
         status.textContent = "Checking support...";
         status.style.color = "var(--primary)";
 
         try {
             // 1. Check if biometric is available
-            if (!window.PublicKeyCredential || !await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) {
+            if (!window.PublicKeyCredential) {
+                throw new Error("Biometric authentication is not supported in this browser.");
+            }
+            
+            const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+            if (!available) {
                 status.textContent = "Biometric not supported on this device.";
                 status.style.color = "var(--danger)";
                 icon.style.color = "var(--danger)";
                 icon.className = "fas fa-times-circle";
                 
-                // Professional redirect after 2 seconds
                 setTimeout(() => {
                     alert("This device does not support biometric authentication. Redirecting to PIN verification.");
                     switchTab('pin');
-                    // Reset icon for next time
                     icon.className = "fas fa-fingerprint";
                     icon.style.color = "var(--primary)";
                     status.textContent = "";
@@ -101,8 +109,12 @@
             status.textContent = "Requesting challenge...";
             
             const resp = await fetch("{% url 'biometric_auth_options' %}");
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.message || "Failed to fetch authentication options");
+            }
+            
             const options = await resp.json();
-
             if (options.status === 'error') {
                 throw new Error(options.message);
             }
@@ -126,13 +138,13 @@
                 status.style.color = "green";
                 icon.style.color = "green";
                 icon.className = "fas fa-check-circle";
-                setTimeout(() => window.location.href = "{% url 'admin:index' %}", 1000);
+                setTimeout(() => window.location.href = "{% url 'admin_summary' %}", 1000);
             } else {
-                throw new Error(verifyResult.message);
+                throw new Error(verifyResult.message || "Verification failed");
             }
 
         } catch (err) {
-            console.error(err);
+            console.error("Biometric Auth Error:", err);
             status.textContent = "Verification failed: " + err.message;
             status.style.color = "var(--danger)";
             btn.disabled = false;
@@ -141,9 +153,13 @@
 
     function switchTab(tab) {
         // Hide all forms
-        document.getElementById('form-pin').style.display = 'none';
-        document.getElementById('form-security_question').style.display = 'none';
-        document.getElementById('form-biometric').style.display = 'none';
+        const pinForm = document.getElementById('form-pin');
+        const questionForm = document.getElementById('form-security_question');
+        const bioForm = document.getElementById('form-biometric');
+        
+        if (pinForm) pinForm.style.display = 'none';
+        if (questionForm) questionForm.style.display = 'none';
+        if (bioForm) bioForm.style.display = 'none';
         
         // Remove active class from buttons
         document.querySelectorAll('.btn-tab').forEach(btn => {
@@ -153,13 +169,17 @@
         });
 
         // Show selected form
-        document.getElementById('form-' + tab).style.display = 'block';
+        const targetForm = document.getElementById('form-' + tab);
+        if (targetForm) targetForm.style.display = 'block';
         
         // Add active style to button
-        const activeBtn = document.getElementById('btn-' + (tab === 'security_question' ? 'question' : (tab === 'biometric' ? 'bio' : 'pin')));
-        activeBtn.style.background = 'var(--primary)';
-        activeBtn.style.color = 'white';
-        activeBtn.style.borderColor = 'var(--primary)';
+        const btnId = tab === 'security_question' ? 'btn-question' : (tab === 'biometric' ? 'btn-bio' : 'btn-pin');
+        const activeBtn = document.getElementById(btnId);
+        if (activeBtn) {
+            activeBtn.style.background = 'var(--primary)';
+            activeBtn.style.color = 'white';
+            activeBtn.style.borderColor = 'var(--primary)';
+        }
     }
 </script>
 {% endblock %}
