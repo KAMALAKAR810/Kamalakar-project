@@ -1111,12 +1111,7 @@
 </header>
 
 <nav class="nav-bar">
-    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 100%; padding: 0 10px;">
-        <button class="nav-toggle" id="nav-toggle-btn">
-            <i class="fas fa-bars"></i> Menu
-        </button>
-    </div>
-    <div class="nav-container" id="nav-menu">
+    <div class="nav-container">
         <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">HOME</a>
         
         {% if not user.is_superuser %}
@@ -1389,28 +1384,6 @@
 </script>
 
 <script>
-    // Mobile Nav Toggle
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('nav-toggle-btn');
-        const navMenu = document.getElementById('nav-menu');
-
-        if (toggleBtn && navMenu) {
-            toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                navMenu.classList.toggle('show');
-            });
-
-            // Close menu when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!navMenu.contains(event.target) && !toggleBtn.contains(event.target)) {
-                    navMenu.classList.remove('show');
-                }
-            });
-        }
-    });
-</script>
-
-<script>
     // Restore Nav Scroll Position
     document.addEventListener("DOMContentLoaded", function() {
         const navContainer = document.querySelector(".nav-container");
@@ -1642,14 +1615,6 @@
             if (e.keyCode === 123) {
                 e.preventDefault();
             }
-        });
-
-        // Detect Screen Recording / Blur on focus loss
-        window.addEventListener('blur', function() {
-            document.body.style.filter = 'blur(10px)';
-        });
-        window.addEventListener('focus', function() {
-            document.body.style.filter = 'none';
         });
 
         // Prevent dragging of images

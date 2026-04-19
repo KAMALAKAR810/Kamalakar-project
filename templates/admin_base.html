@@ -458,14 +458,6 @@
             }
         });
 
-        // Detect Screen Recording / Blur on focus loss
-        window.addEventListener('blur', function() {
-            document.body.style.filter = 'blur(10px)';
-        });
-        window.addEventListener('focus', function() {
-            document.body.style.filter = 'none';
-        });
-
         // Prevent dragging of images
         document.addEventListener('dragstart', function(e) {
             if (e.target.nodeName === 'IMG') e.preventDefault();
