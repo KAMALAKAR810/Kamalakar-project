@@ -31,7 +31,7 @@ def admin_2fa_view(request):
         return redirect('index')
     
     if request.session.get('admin_2fa_verified'):
-        return redirect('index')
+        return redirect('admin_summary')
     
     profile = request.user.profile
     
@@ -43,7 +43,7 @@ def admin_2fa_view(request):
             if pin == profile.admin_pin:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('index')
+                return redirect('admin_summary')
             else:
                 messages.error(request, "Invalid PIN!")
         
@@ -52,7 +52,7 @@ def admin_2fa_view(request):
             if answer == profile.admin_security_answer:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('index')
+                return redirect('admin_summary')
             else:
                 messages.error(request, "Incorrect answer!")
             
@@ -482,10 +482,6 @@ def error_403(request, exception):
 
 def error_400(request, exception):
     return render(request, 'error.html', status=400)
-
-def index(request):
-    return render(request, 'index.html', {'markets': Market.objects.all()})
-
 
 def display(request):
     return render(request, 'display_page.html', {'markets': Market.objects.all()})

@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     # --- Public Pages ---
-    path("", views.index, name="index"),
+    path("", views.display, name="index"),
     path("display/", views.display, name="display"),
     path("error/", views.error, name="error"),
 
