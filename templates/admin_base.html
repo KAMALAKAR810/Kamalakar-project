@@ -62,6 +62,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .logo-section {
@@ -69,32 +71,36 @@
             align-items: center;
             gap: 12px;
             text-decoration: none;
+            min-width: fit-content;
         }
 
         .logo-img {
-            height: 50px;
+            height: 40px;
             width: auto;
             border-radius: 6px;
         }
 
         .site-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--primary);
+            white-space: nowrap;
         }
 
         .user-panel {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .admin-badge {
             background: var(--secondary);
             color: white;
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 50px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
         }
@@ -104,9 +110,14 @@
             background-color: var(--primary);
             padding: 0;
             position: sticky;
-            top: 71px;
+            top: 0; /* Changed to 0 for better mobile handling */
             z-index: 999;
             overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+        }
+        
+        .admin-nav::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
         }
 
         .nav-container {
@@ -114,13 +125,14 @@
             margin: 0 auto;
             display: flex;
             padding: 0 10px;
+            align-items: center;
         }
 
         .nav-link {
-            padding: 18px 20px;
+            padding: 15px 12px;
             text-decoration: none;
             color: #ffffff !important;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -129,26 +141,36 @@
             border-bottom: 3px solid transparent;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         .nav-link:hover {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.1);
             color: #ff4444 !important;
         }
 
         .nav-link.active {
             color: #ff4444 !important;
             border-bottom-color: #ff4444 !important;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .utility-link {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 5px 2px;
+            padding: 8px 12px !important;
         }
 
         .export-link {
             color: #28a745 !important;
+            border-bottom: none !important;
         }
-        .export-link:hover {
-            background: rgba(40, 167, 69, 0.1) !important;
-            color: #34ce57 !important;
+        
+        .print-link {
+            color: #ffc107 !important;
+            border-bottom: none !important;
         }
 
         /* Anti-screenshot / Anti-copy protection */
@@ -157,37 +179,53 @@
             -moz-user-select: none !important;
             -ms-user-select: none !important;
             user-select: none !important;
+            overflow-x: hidden; /* Prevent horizontal scroll on body */
         }
         
         @media print {
-            body { display: none !important; visibility: hidden !important; }
+            body { display: block !important; visibility: visible !important; }
+            .header, .admin-nav, .btn-gold, .back-btn, .theme-toggle { display: none !important; }
+            .main-content { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .data-panel { border: none !important; box-shadow: none !important; padding: 0 !important; }
         }
 
         /* ── MAIN CONTENT ── */
         .main-content {
             flex: 1;
-            padding: 30px 20px;
-            max-width: 1400px;
+            padding: 20px 15px;
+            max-width: 100%;
             margin: 0 auto;
             width: 100%;
+            overflow-x: hidden;
         }
 
         .page-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             color: var(--primary);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .data-panel {
             background: var(--white);
             border-radius: 12px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
+            margin-bottom: 20px;
+            max-width: 100%;
+            overflow-x: auto; /* Allow internal tables to scroll */
+        }
+
+        /* Responsive Table Wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* ── BUTTONS ── */
@@ -195,8 +233,8 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 14px 25px;
-            border-radius: 8px;
+            padding: 10px 18px;
+            border-radius: 6px;
             font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
@@ -204,7 +242,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
+            font-size: 13px;
+            white-space: nowrap;
         }
 
         .btn-gold:hover {
@@ -294,11 +334,47 @@
         <a href="{% url 'admin_security_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_security_settings' %}active{% endif %}">
             <i class="fas fa-shield-alt"></i> Security
         </a>
-        <a href="{% url 'export_user_data' %}" class="nav-link export-link">
-            <i class="fas fa-file-export"></i> Export Users
+        <a href="{% url 'market_history' %}" class="nav-link {% if request.resolver_match.url_name == 'market_history' %}active{% endif %}">
+            <i class="fas fa-history"></i> History
+        </a>
+        <a href="{% url 'admin_chat_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_chat_list' %}active{% endif %}">
+            <i class="fas fa-comments"></i> Admin Chat
+        </a>
+        <a href="{% url 'admin_bet_history' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_bet_history' %}active{% endif %}">
+            <i class="fas fa-list"></i> User Bets
+        </a>
+        <a href="{% url 'admin_user_activity' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_activity' %}active{% endif %}">
+            <i class="fas fa-walking"></i> Activity
+        </a>
+        <a href="{% url 'jodi_winners' %}" class="nav-link {% if request.resolver_match.url_name == 'jodi_winners' %}active{% endif %}">
+            <i class="fas fa-trophy"></i> Jodi Winners
+        </a>
+        <a href="{% url 'admin_report' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_report' %}active{% endif %}">
+            <i class="fas fa-file-invoice"></i> Report
+        </a>
+        <a href="{% url 'organize_data' %}" class="nav-link {% if request.resolver_match.url_name == 'organize_data' %}active{% endif %}">
+            <i class="fas fa-sitemap"></i> Organize
+        </a>
+        <a href="{% url 'declare_result' %}" class="nav-link {% if request.resolver_match.url_name == 'declare_result' %}active{% endif %}">
+            <i class="fas fa-bullhorn"></i> Declare
+        </a>
+        <a href="{% url 'winners_list' %}" class="nav-link {% if request.resolver_match.url_name == 'winners_list' %}active{% endif %}">
+            <i class="fas fa-crown"></i> Winners
+        </a>
+        <a href="{% url 'admin:index' %}" class="nav-link">
+            <i class="fas fa-cogs"></i> Django Admin
+        </a>
+        
+        <div style="flex: 1; min-width: 20px;"></div> <!-- Spacer -->
+
+        <a href="{% url 'export_user_data' %}" class="nav-link utility-link export-link" title="Export User Data">
+            <i class="fas fa-file-csv"></i> EXPORT
+        </a>
+        <a href="javascript:window.print()" class="nav-link utility-link print-link" title="Print this page">
+            <i class="fas fa-print"></i> PRINT
         </a>
         <a href="{% url 'index' %}" class="nav-link" target="_blank">
-            <i class="fas fa-external-link-alt"></i> View Site
+            <i class="fas fa-external-link-alt"></i> VIEW SITE
         </a>
     </div>
 </nav>
@@ -358,18 +434,41 @@
 {% block extra_js %}{% endblock %}
     <!-- Protection Script -->
     <script>
+        // Disable Right Click
         document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Disable Shortcuts
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'PrintScreen') {
+            // Print Screen
+            if (e.key === 'PrintScreen' || e.keyCode === 44) {
                 navigator.clipboard.writeText('');
                 alert('Screenshots are disabled on this website.');
+                e.preventDefault();
             }
+            // Ctrl+P (Print), Ctrl+S (Save), Ctrl+U (Source), Ctrl+Shift+I/J/C (DevTools)
             if (e.ctrlKey && (e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) {
                 e.preventDefault();
             }
             if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'c' || e.key === 'C')) {
                 e.preventDefault();
             }
+            // F12
+            if (e.keyCode === 123) {
+                e.preventDefault();
+            }
+        });
+
+        // Detect Screen Recording / Blur on focus loss
+        window.addEventListener('blur', function() {
+            document.body.style.filter = 'blur(10px)';
+        });
+        window.addEventListener('focus', function() {
+            document.body.style.filter = 'none';
+        });
+
+        // Prevent dragging of images
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.nodeName === 'IMG') e.preventDefault();
         });
     </script>
 </body>

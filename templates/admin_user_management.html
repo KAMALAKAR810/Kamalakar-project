@@ -1,11 +1,12 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
 {% block content %}
 <div class="page-shell">
     <h2 class="page-title">User Management</h2>
     <p class="page-sub">Review new users and verification status</p>
 
     <div class="data-panel">
-        <table class="app-table">
+        <div class="table-responsive">
+            <table class="app-table">
             <thead>
                 <tr>
                     <th>Profile</th>
@@ -51,6 +52,7 @@
             </tbody>
         </table>
     </div>
+</div>
 </div>
 
 <script>

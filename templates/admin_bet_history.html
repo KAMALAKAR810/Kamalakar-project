@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
 {% block content %}
 <div class="page-shell">
     <h2 class="page-title">User Bet History</h2>
@@ -45,7 +45,8 @@
     </div>
 
     <div class="data-panel">
-        <table class="app-table">
+        <div class="table-responsive">
+            <table class="app-table">
             <thead>
                 <tr>
                     <th>User ID</th>
@@ -84,5 +85,6 @@
             </tbody>
         </table>
     </div>
+</div>
 </div>
 {% endblock %}

@@ -1,11 +1,12 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
 {% block content %}
 <div class="page-shell">
     <h2 class="page-title">Withdrawal Requests</h2>
     <p class="page-sub">Review and approve user withdrawal requests</p>
 
     <div class="data-panel">
-        <table class="app-table">
+        <div class="table-responsive">
+            <table class="app-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -55,5 +56,6 @@
             </tbody>
         </table>
     </div>
+</div>
 </div>
 {% endblock %}

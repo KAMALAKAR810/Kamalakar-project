@@ -25,7 +25,7 @@
                        value="2026-03-25T12:00" class="bet-input" required> 
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
                 <div class="form-group">
                     <label>Open Start Date & Time</label>
                     <input type="datetime-local" name="open_start_time" class="bet-input" required>
@@ -48,7 +48,8 @@
         </form>
 
         <h3 style="margin-top: 30px; font-size: 16px; font-weight: 800; border-bottom: 2px solid var(--border); padding-bottom: 10px;">Active Markets</h3>
-        <table class="app-table table table-bordered" style="margin-top: 8px;">
+        <div class="table-responsive">
+            <table class="app-table table table-bordered" style="margin-top: 8px;">
             <thead>
                 <tr>
                     <th>Market Name</th>
@@ -75,6 +76,7 @@
             </tbody>
         </table>
     </div>
+</div>
 </div>
 
 <script>

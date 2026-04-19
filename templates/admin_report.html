@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
 {% block content %}
 <div class="page-shell">
     <h2 class="page-title">Market-Wise & Date-Wise Report</h2>
@@ -39,7 +39,7 @@
     <div class="data-panel">
     {% if report_data %}
     <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--primary);">Filtered Individual User Data</h3>
-    <div style="overflow-x: auto;">
+    <div class="table-responsive">
         <table class="app-table table table-bordered" style="width: 100%;">
             <thead>
                 <tr>
