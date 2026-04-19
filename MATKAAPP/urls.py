@@ -57,6 +57,7 @@ urlpatterns = [
     path("market-bets/", views.market_bets, name="market_bets"),
     path("admin-bets/", views.admin_bet_history, name="admin_bet_history"),
     path("admin-report/", views.admin_report, name="admin_report"),
+    path("admin-export-users/", views.export_user_data, name="export_user_data"),
     path("organize-data/", views.organize_data_view, name="organize_data"),
     path("admin-declare/", views.declare_result, name="declare_result"),
     path("admin-winners/", views.winners_list, name="winners_list"),

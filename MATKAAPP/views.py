@@ -77,8 +77,11 @@ def biometric_reg_options(request):
 
 @login_required
 def biometric_reg_verify(request):
-    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
-        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Staff access required'})
+    
+    if not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'WebAuthn library not installed on server'})
     
     try:
         data = json.loads(request.body)
@@ -151,8 +154,11 @@ def biometric_auth_options(request):
 
 @login_required
 def biometric_auth_verify(request):
-    if not request.user.is_staff or not WEBAUTHN_AVAILABLE:
-        return JsonResponse({'status': 'error', 'message': 'Not available'})
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Staff access required'})
+    
+    if not WEBAUTHN_AVAILABLE:
+        return JsonResponse({'status': 'error', 'message': 'WebAuthn library not installed on server'})
     
     try:
         data = json.loads(request.body)
@@ -511,6 +517,10 @@ def login_view(request):
             if is_ajax:
                 return JsonResponse({'status': 'success'})
             
+            # TASK: Admins always go to dashboard, users go to 'next' or index
+            if user.is_superuser:
+                return redirect('admin_summary')
+            
             # For standard form, handle the 'next' parameter
             next_url = request.GET.get('next') or 'index'
             return redirect(next_url)
@@ -772,6 +782,8 @@ def place_bet(request):
 
 @login_required
 def single(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('admin_summary')
     return render(request, "single.html", {
         "markets": Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
@@ -782,6 +794,8 @@ def single(request):
 
 @login_required
 def jodi(request):
+    if request.user.is_superuser:
+        return redirect('admin_summary')
     return render(request, 'jodi.html', {
         'markets': Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
@@ -792,6 +806,8 @@ def jodi(request):
 
 @login_required
 def single_pathi(request):
+    if request.user.is_superuser:
+        return redirect('admin_summary')
     return render(request, "single_pathi.html", {
         "markets": Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
@@ -803,6 +819,8 @@ def single_pathi(request):
 
 @login_required
 def double_pathi(request):
+    if request.user.is_superuser:
+        return redirect('admin_summary')
     return render(request, 'single_pathi.html', {
         'markets': Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
@@ -814,6 +832,8 @@ def double_pathi(request):
 
 @login_required
 def tripple_pathi(request):
+    if request.user.is_superuser:
+        return redirect('admin_summary')
     return render(request, 'single_pathi.html', {
         'markets': Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
@@ -1322,6 +1342,32 @@ def admin_market_alerts(request):
                 
     return JsonResponse({"alerts": expiring_markets})
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def export_user_data(request):
+    import csv
+    from django.http import HttpResponse
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="users_export_{timezone.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Username', 'User Code', 'Mobile', 'Wallet Balance', 'Created At'])
+    
+    profiles = Profile.objects.select_related('user', 'user__wallet').all()
+    for profile in profiles:
+        balance = profile.user.wallet.balance if hasattr(profile.user, 'wallet') else 0
+        writer.writerow([
+            profile.user.username,
+            profile.user_code,
+            profile.mobile,
+            balance,
+            profile.created_at.strftime("%Y-%m-%d %H:%M")
+        ])
+    
+    return response
+
+@login_required
 @user_passes_test(lambda u: u.is_superuser)
 def admin_summary(request):
     """Admin dashboard overview with 30-day cleanup."""

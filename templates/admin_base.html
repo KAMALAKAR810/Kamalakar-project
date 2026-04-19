@@ -1,0 +1,337 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Admin Panel - ChangeLifeWithNumbers</title>
+    <link rel="icon" type="image/png" href="{% static 'logo.jpeg' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #002244;
+            --secondary: #ff4444;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+            --white: #ffffff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --gray: #6c757d;
+            --border: #e0e0e0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        input, textarea, select {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        @media print {
+            body { display: none !important; }
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background-color: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+        }
+
+        .header-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            height: 50px;
+            width: auto;
+            border-radius: 6px;
+        }
+
+        .site-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .admin-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        /* ── ADMIN NAV ── */
+        .admin-nav {
+            background-color: var(--primary);
+            padding: 0;
+            position: sticky;
+            top: 71px;
+            z-index: 999;
+            overflow-x: auto;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            padding: 0 10px;
+        }
+
+        .nav-link {
+            padding: 18px 20px;
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--secondary);
+        }
+
+        .nav-link.active {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* ── MAIN CONTENT ── */
+        .main-content {
+            flex: 1;
+            padding: 30px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .data-panel {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        /* ── BUTTONS ── */
+        .btn-gold {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-gold:hover {
+            background: #003366;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--gray); font-size: 13px; }
+        .bet-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        /* Modal / Toast Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header-container { flex-direction: column; gap: 10px; }
+            .nav-container { padding: 0; }
+            .nav-link { padding: 15px; font-size: 11px; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<header class="header">
+    <div class="header-container">
+        <a href="{% url 'admin_summary' %}" class="logo-section">
+            <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
+            <div class="site-name">ADMIN CONTROL PANEL</div>
+        </a>
+        <div class="user-panel">
+            <span class="admin-badge">Super Admin</span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <span style="font-size: 14px; font-weight: 700;">{{ user.username|upper }}</span>
+                <a href="{% url 'logout' %}" style="font-size: 11px; color: var(--danger); text-decoration: none; font-weight: 700;">LOGOUT</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<nav class="admin-nav">
+    <div class="nav-container">
+        <a href="{% url 'admin_summary' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'manage_markets' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_markets' %}active{% endif %}">
+            <i class="fas fa-store"></i> Markets
+        </a>
+        <a href="{% url 'admin_user_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_management' %}active{% endif %}">
+            <i class="fas fa-users"></i> Users
+        </a>
+        <a href="{% url 'admin_withdrawal_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_withdrawal_management' %}active{% endif %}">
+            <i class="fas fa-money-bill-wave"></i> Withdrawals
+        </a>
+        <a href="{% url 'admin_payment_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_payment_management' %}active{% endif %}">
+            <i class="fas fa-credit-card"></i> Payments
+        </a>
+        <a href="{% url 'admin_security_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_security_settings' %}active{% endif %}">
+            <i class="fas fa-shield-alt"></i> Security
+        </a>
+        <a href="{% url 'index' %}" class="nav-link" target="_blank">
+            <i class="fas fa-external-link-alt"></i> View Site
+        </a>
+    </div>
+</nav>
+
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Modal Notification -->
+<div id="modal-notification" class="modal-overlay">
+    <div class="modal-content" id="modal-container">
+        <div id="modal-icon-wrapper" style="font-size: 60px; margin-bottom: 20px;"></div>
+        <h2 id="modal-title" style="margin-bottom: 10px; font-weight: 800;"></h2>
+        <p id="modal-text" style="margin-bottom: 30px; color: var(--gray);"></p>
+        <button onclick="closeModal()" class="btn-gold" style="width: 100%;">CONTINUE</button>
+    </div>
+</div>
+
+<script>
+    function showModal(title, text, type = 'info') {
+        const modal = document.getElementById('modal-notification');
+        const iconWrapper = document.getElementById('modal-icon-wrapper');
+        const titleEl = document.getElementById('modal-title');
+        const textEl = document.getElementById('modal-text');
+
+        titleEl.innerText = title;
+        textEl.innerText = text;
+
+        if (type === 'success') {
+            iconWrapper.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success);"></i>';
+        } else if (type === 'error') {
+            iconWrapper.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger);"></i>';
+        } else {
+            iconWrapper.innerHTML = '<i class="fas fa-info-circle" style="color: var(--primary);"></i>';
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('modal-notification').style.display = 'none';
+    }
+
+    {% if messages %}
+        window.addEventListener('load', () => {
+            {% for message in messages %}
+                showModal(
+                    "{% if message.tags == 'success' %}Success{% elif message.tags == 'error' %}Error{% else %}Notice{% endif %}",
+                    "{{ message|escapejs }}",
+                    "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}"
+                );
+            {% endfor %}
+        });
+    {% endif %}
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

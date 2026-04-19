@@ -1,54 +1,66 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
 {% block content %}
-<div class="main-content">
-    <div class="page-shell">
-        <h1 class="page-title">Admin Security Settings</h1>
+<div class="page-shell">
+    <h1 class="page-title"><i class="fas fa-shield-alt"></i> Admin Security Settings</h1>
+    
+    <div class="data-panel" style="max-width: 700px; margin: 0 auto;">
+        <p style="margin-bottom: 30px; color: var(--gray); font-size: 14px;">Manage your administrative access security. These settings control your PIN, security questions, and biometric authentication for the admin panel.</p>
         
-        <div class="data-panel" style="max-width: 600px; margin: 0 auto; padding: 30px;">
-            <p style="margin-bottom: 30px; color: var(--gray);">Configure your second factor authentication settings here. These settings apply to your admin account.</p>
+        <form method="POST">
+            {% csrf_token %}
             
-            <form method="POST">
-                {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                <div class="form-group">
+                    <label>ADMIN PIN (6 DIGITS)</label>
+                    <input type="password" name="admin_pin" maxlength="6" pattern="\d{6}" value="{{ profile.admin_pin }}" required class="bet-input" placeholder="••••••">
+                    <small style="color: #888; font-size: 11px;">Required for 2FA verification.</small>
+                </div>
+
+                <div class="form-group">
+                    <label>SECURITY QUESTION</label>
+                    <input type="text" name="admin_security_question" value="{{ profile.admin_security_question }}" required class="bet-input" placeholder="e.g. My childhood pet">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label>SECURITY ANSWER</label>
+                <input type="text" name="admin_security_answer" value="{{ profile.admin_security_answer }}" required class="bet-input" placeholder="Enter answer">
+                <small style="color: #666; font-size: 11px;">Answers are case-sensitive.</small>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px; border: 2px dashed #e3f2fd; padding: 25px; border-radius: 12px; background: #f0f7ff;">
+                <label style="color: var(--primary); font-size: 15px; margin-bottom: 15px;">
+                    <i class="fas fa-fingerprint"></i> Biometric Authentication (WebAuthn)
+                </label>
                 
-                <div class="form-group" style="margin-bottom: 25px;">
-                    <label style="display: block; font-weight: 700; margin-bottom: 10px;">Admin PIN (6 Digits)</label>
-                    <input type="text" name="admin_pin" maxlength="6" pattern="\d{6}" value="{{ profile.admin_pin }}" required class="bet-input" placeholder="Enter 6-digit PIN">
-                    <small style="color: #666;">This PIN will be required for admin area access.</small>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                    <div>
+                        {% if profile.webauthn_credential %}
+                            <p style="color: #2e7d32; font-size: 13px; font-weight: 700;">
+                                <i class="fas fa-check-circle"></i> Device Registered
+                            </p>
+                            <p style="color: #666; font-size: 11px;">Your biometric device is active and ready for use.</p>
+                        {% else %}
+                            <p style="color: #d32f2f; font-size: 13px; font-weight: 700;">
+                                <i class="fas fa-exclamation-circle"></i> No Device Registered
+                            </p>
+                            <p style="color: #666; font-size: 11px;">Enable faster, more secure login using your device's fingerprint or face ID.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="button" onclick="registerBiometric()" class="btn-gold" style="background: white; color: var(--primary); border: 1px solid var(--primary); font-size: 12px; padding: 10px 15px;">
+                        {% if profile.webauthn_credential %}Update Device{% else %}Register Device{% endif %}
+                    </button>
                 </div>
+                
+                <p id="bio-status" style="margin-top: 15px; font-size: 12px; font-weight: 600;"></p>
+            </div>
 
-                <div class="form-group" style="margin-bottom: 25px;">
-                    <label style="display: block; font-weight: 700; margin-bottom: 10px;">Security Question</label>
-                    <input type="text" name="admin_security_question" value="{{ profile.admin_security_question }}" required class="bet-input" placeholder="e.g. My favourite name">
-                </div>
-
-                <div class="form-group" style="margin-bottom: 30px;">
-                    <label style="display: block; font-weight: 700; margin-bottom: 10px;">Security Answer</label>
-                    <input type="text" name="admin_security_answer" value="{{ profile.admin_security_answer }}" required class="bet-input" placeholder="Enter answer">
-                    <small style="color: #666;">Answers are case-sensitive.</small>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 30px; border: 1px dashed var(--primary); padding: 20px; border-radius: 12px; background: #f0f7ff;">
-                    <label style="display: block; font-weight: 700; margin-bottom: 10px;">
-                        <i class="fas fa-fingerprint"></i> Biometric Authentication (WebAuthn)
-                    </label>
-                    {% if profile.webauthn_credential %}
-                        <p style="color: green; font-size: 13px; margin-bottom: 10px;">
-                            <i class="fas fa-check-circle"></i> Biometric device registered.
-                        </p>
-                        <button type="button" onclick="registerBiometric()" class="btn-tab" style="padding: 8px 15px; font-size: 12px; border-color: var(--primary); color: var(--primary);">Update Registered Device</button>
-                    {% else %}
-                        <p style="color: var(--gray); font-size: 13px; margin-bottom: 10px;">No biometric device registered yet.</p>
-                        <button type="button" onclick="registerBiometric()" class="btn-tab" style="padding: 8px 15px; font-size: 12px; border-color: var(--primary); color: var(--primary);">Register Biometric Device</button>
-                    {% endif %}
-                    <p id="bio-status" style="margin-top: 10px; font-size: 12px;"></p>
-                </div>
-
-                <div style="display: flex; gap: 15px;">
-                    <button type="submit" class="btn-gold" style="flex: 1; padding: 15px; font-weight: 800;">SAVE SECURITY SETTINGS</button>
-                    <a href="{% url 'admin_summary' %}" class="btn-tab" style="padding: 15px 30px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--gray); font-weight: 700; display: flex; align-items: center; justify-content: center;">CANCEL</a>
-                </div>
-            </form>
-        </div>
+            <div style="display: flex; gap: 15px; border-top: 1px solid #eee; padding-top: 25px;">
+                <button type="submit" class="btn-gold" style="flex: 1;">SAVE ALL SETTINGS</button>
+                <a href="{% url 'admin_summary' %}" class="btn-gold" style="background: #f8f9fa; color: #666; border: 1px solid #ddd;">CANCEL</a>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
