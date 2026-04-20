@@ -169,8 +169,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Authentication URLs
 LOGIN_URL = "login"  # URL name for login page
-LOGIN_REDIRECT_URL = "index"  # Where to redirect after login
-LOGOUT_REDIRECT_URL = "index"  # Where to redirect after logout
+LOGIN_REDIRECT_URL = "user_home"  # Where to redirect after login
+LOGOUT_REDIRECT_URL = "user_home"  # Where to redirect after logout
 
 
 # Google reCAPTCHA Keys
