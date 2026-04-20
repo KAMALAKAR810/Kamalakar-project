@@ -1012,6 +1012,22 @@
                 font-size: 11px !important;
             }
         }
+        /* Visual block for screen recording/screenshots on supported platforms */
+        @media only screen and (max-width: 768px) {
+            .security-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: #000;
+                z-index: 20000;
+                display: none;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: #fff;
+                text-align: center;
+                padding: 20px;
+            }
+        }
     </style>
     <style>
         .lottie-container {
@@ -1591,35 +1607,80 @@
 
 {% block extra_js %}{% endblock %}
 
-    <!-- Protection Script -->
+    <div id="security-blocker" class="security-overlay">
+        <i class="fas fa-shield-alt" style="font-size: 50px; color: #ff4444; margin-bottom: 20px;"></i>
+        <h2>SECURITY ALERT</h2>
+        <p>Screen recording and screenshots are strictly prohibited on this platform for your security.</p>
+    </div>
+
+    <!-- Strict Security Restrictions Script -->
     <script>
-        // Disable Right Click
+        // 1. Disable Right Click
         document.addEventListener('contextmenu', event => event.preventDefault());
 
-        // Disable Shortcuts
+        // 2. Strict Keyboard Protection
         document.addEventListener('keydown', function(e) {
-            // Print Screen
+            // Print Screen / Screenshots
             if (e.key === 'PrintScreen' || e.keyCode === 44) {
-                navigator.clipboard.writeText('');
-                alert('Screenshots are disabled on this website.');
+                triggerSecurityBlock();
+                navigator.clipboard.writeText('Screenshot Restricted');
                 e.preventDefault();
             }
-            // Ctrl+P (Print), Ctrl+S (Save), Ctrl+U (Source), Ctrl+Shift+I/J/C (DevTools)
-            if (e.ctrlKey && (e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) {
+            
+            // Common shortcuts for DevTools and Source
+            if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'P' || e.key === 'S' || e.key === 'U')) {
                 e.preventDefault();
             }
             if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'c' || e.key === 'C')) {
                 e.preventDefault();
             }
             // F12
-            if (e.keyCode === 123) {
-                e.preventDefault();
+            if (e.keyCode === 123) e.preventDefault();
+        });
+
+        // 3. Clear Clipboard on Copy attempt
+        document.addEventListener('copy', (e) => {
+            triggerSecurityBlock();
+            e.clipboardData.setData('text/plain', 'Copying content is restricted on this platform.');
+            e.preventDefault();
+        });
+
+        // 4. Prevent dragging
+        document.addEventListener('dragstart', (e) => e.preventDefault());
+
+        // 5. Detect Visibility Change (often triggered by screenshot overlays on mobile)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                // Black out content when user leaves or overlay appears
+                document.body.style.filter = 'brightness(0)';
+            } else {
+                document.body.style.filter = 'none';
             }
         });
 
-        // Prevent dragging of images
-        document.addEventListener('dragstart', function(e) {
-            if (e.target.nodeName === 'IMG') e.preventDefault();
+        function triggerSecurityBlock() {
+            const blocker = document.getElementById('security-blocker');
+            if (blocker) {
+                blocker.style.display = 'flex';
+                setTimeout(() => {
+                    blocker.style.display = 'none';
+                }, 3000);
+            }
+            // Temporarily black out the entire body
+            document.body.style.background = '#000';
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.background = '';
+                document.body.style.opacity = '1';
+            }, 1000);
+        }
+
+        // 6. Focus detection to stop screen recorders that steal focus
+        window.addEventListener('blur', function() {
+            document.body.style.filter = 'brightness(0)';
+        });
+        window.addEventListener('focus', function() {
+            document.body.style.filter = 'none';
         });
     </script>
 </body>

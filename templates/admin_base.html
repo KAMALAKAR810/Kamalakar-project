@@ -113,7 +113,17 @@
         }
 
         @media print {
-            body { display: none !important; }
+            .admin-nav, .header, .footer, .btn-gold, .utility-link, .export-link, .print-link {
+                display: none !important;
+            }
+            .main-content {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .data-panel {
+                box-shadow: none !important;
+                border: 1px solid #000 !important;
+            }
         }
 
         /* ── HEADER ── */
@@ -459,7 +469,7 @@
         <a href="javascript:window.print()" class="nav-link utility-link print-link" title="Print this page">
             PRINT
         </a>
-        <a href="{% url 'admin_summary' %}" class="nav-link" target="_blank">
+        <a href="{% url 'user_home' %}" class="nav-link" target="_blank">
             VIEW SITE
         </a>
     </div>

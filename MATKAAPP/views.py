@@ -382,7 +382,7 @@ def _normalize_indian_mobile(raw):
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('index')
+        return redirect('user_home')
 
     settings_obj = SiteSettings.objects.first()
     enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
