@@ -1650,6 +1650,13 @@
 
         // 5. Detect Visibility Change (often triggered by screenshot overlays on mobile)
         document.addEventListener('visibilitychange', function() {
+            // Skip protection if CAPTCHA is visible
+            const captcha = document.getElementById('captcha-overlay');
+            if (captcha && captcha.style.display === 'flex') {
+                document.body.style.filter = 'none';
+                return;
+            }
+
             if (document.visibilityState === 'hidden') {
                 // Black out content when user leaves or overlay appears
                 document.body.style.filter = 'brightness(0)';
@@ -1659,6 +1666,10 @@
         });
 
         function triggerSecurityBlock() {
+            // Skip protection if CAPTCHA is visible
+            const captcha = document.getElementById('captcha-overlay');
+            if (captcha && captcha.style.display === 'flex') return;
+
             const blocker = document.getElementById('security-blocker');
             if (blocker) {
                 blocker.style.display = 'flex';
@@ -1677,6 +1688,10 @@
 
         // 6. Focus detection to stop screen recorders that steal focus
         window.addEventListener('blur', function() {
+            // Skip protection if CAPTCHA is visible
+            const captcha = document.getElementById('captcha-overlay');
+            if (captcha && captcha.style.display === 'flex') return;
+            
             document.body.style.filter = 'brightness(0)';
         });
         window.addEventListener('focus', function() {
