@@ -493,6 +493,8 @@ def display(request):
 
 
 def user_home(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('admin_summary')
     return render(request, 'user_home.html', {'markets': Market.objects.all()})
 
 
