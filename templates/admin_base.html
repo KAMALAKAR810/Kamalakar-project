@@ -222,6 +222,7 @@
             display: flex;
             justify-content: center;
             gap: 15px;
+            flex-wrap: wrap;
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
         }
@@ -243,11 +244,23 @@
             cursor: pointer;
             font-size: 14px;
             border: none;
+            white-space: nowrap;
         }
 
         .export-btn-bottom { background: #28a745; color: #fff; }
         .print-btn-bottom { background: #007bff; color: #fff; }
         .btn-action-bottom:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        @media (max-width: 600px) {
+            .admin-action-footer {
+                padding: 14px;
+                gap: 10px;
+            }
+            .btn-action-bottom {
+                width: 100%;
+                justify-content: center;
+            }
+        }
 
         body.dark-mode {
             --primary: #4da3ff;
@@ -1111,6 +1124,16 @@
             }
         });
         observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href', 'style', 'class', 'id'] });
+
+        // 8. De-duplicate export/print footer if any page accidentally renders it twice
+        document.addEventListener('DOMContentLoaded', () => {
+            const footers = document.querySelectorAll('.admin-action-footer');
+            if (footers.length > 1) {
+                for (let i = 1; i < footers.length; i++) {
+                    footers[i].remove();
+                }
+            }
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
