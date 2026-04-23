@@ -1154,13 +1154,93 @@
         }
     </style>
     <style>
+        /* ── SECURITY WATERMARK ── */
+        .security-watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.07;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-content: space-around;
+            overflow: hidden;
+            user-select: none;
+        }
+        .watermark-item {
+            transform: rotate(-30deg);
+            font-size: 14px;
+            font-weight: 800;
+            color: #000;
+            white-space: nowrap;
+            padding: 50px;
+        }
+        body.dark-mode .watermark-item { color: #fff; }
+
+        /* ── SUSPICIOUS ACTIVITY BANNER ── */
+        #security-warning-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #ff3366;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            font-weight: 800;
+            z-index: 10001;
+            display: none;
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+        }
+        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+        /* ── PRIVACY SHIELD (blur sensitive areas on focus loss) ── */
+        .security-privacy-shield {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            color: #fff;
+        }
+        .security-privacy-shield h3 {
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .security-privacy-shield p {
+            opacity: 0.85;
+            font-size: 14px;
+            max-width: 520px;
+        }
+        body.security-shield-on .security-sensitive,
+        body.security-shield-on [data-sensitive="true"] {
+            filter: blur(18px) grayscale(0.2) !important;
+        }
+
+        /* ... existing styles ... */
         .lottie-container {
             display: none;
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body data-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+      data-username="{% if user.is_authenticated %}{{ user.username|escapejs }}{% endif %}"
+      data-userid="{% if user.is_authenticated %}{{ user.id }}{% endif %}"
+      data-session="{{ request.session.session_key|default:'' }}"
+      data-page-title="{% if page_title %}{{ page_title|escapejs }}{% endif %}">
 
 {% if user.is_superuser %}
 <div id="admin-alerts-container"></div>
@@ -1649,19 +1729,35 @@
         document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
     }
 
-    // Handle Django Messages as Modals
-    {% if messages %}
-        window.addEventListener('load', () => {
-            {% for message in messages %}
-                showModal(
-                    "{% if message.tags == 'success' %}SUCCESS{% elif message.tags == 'error' %}FAILED{% else %}NOTIFICATION{% endif %}",
-                    "{{ message|escapejs }}",
-                    "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
-                );
-            {% endfor %}
-        });
-    {% endif %}
+    // Handle server messages (data provided via JSON script tag)
+    window.addEventListener('load', () => {
+        try {
+            const el = document.getElementById('dj-messages');
+            const arr = el ? JSON.parse(el.textContent || '[]') : [];
+            for (const m of arr) {
+                showModal(m.title, m.text, m.type);
+            }
+        } catch {
+            // ignore
+        }
+    });
 </script>
+
+{% if messages %}
+<script type="application/json" id="dj-messages">
+[
+{% for message in messages %}
+  {
+    "title": "{% if message.tags == 'success' %}SUCCESS{% elif message.tags == 'error' %}FAILED{% else %}NOTIFICATION{% endif %}",
+    "text": "{{ message|escapejs }}",
+    "type": "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
+  }{% if not forloop.last %},{% endif %}
+{% endfor %}
+]
+</script>
+{% else %}
+<script type="application/json" id="dj-messages">[]</script>
+{% endif %}
 
 <!-- Wallet Animation UI -->
 <div id="wallet-anim-container" class="wallet-anim-container">
@@ -1671,7 +1767,6 @@
 </div>
 
 <script>
-    {% if user.is_authenticated %}
     let lastBalance = null;
 
     function triggerWalletAnimation() {
@@ -1709,6 +1804,7 @@
     }
 
     function updateBalance() {
+        if (!document.body || document.body.dataset.authenticated !== '1') return;
         fetch('/api/wallet/balance/')
             .then(r => r.json())
             .then(d => {
@@ -1733,12 +1829,28 @@
             })
             .catch(() => {});
     }
-    updateBalance();
-    setInterval(updateBalance, 10000); // Check every 10s for better responsiveness
-    {% endif %}
+
+    // Only start polling when authenticated
+    if (document.body && document.body.dataset.authenticated === '1') {
+        updateBalance();
+        setInterval(updateBalance, 10000); // Check every 10s for better responsiveness
+    }
 </script>
 
 {% block extra_js %}{% endblock %}
+
+    <div id="security-warning-banner">SUSPICIOUS SCREEN ACTIVITY DETECTED - ACCESS RESTRICTED</div>
+
+    <div class="security-watermark" id="watermark-overlay">
+        <!-- Dynamic items will be added here -->
+    </div>
+
+    <div class="security-privacy-shield" id="security-privacy-shield" aria-hidden="true">
+        <div>
+            <h3>PRIVACY PROTECTION ENABLED</h3>
+            <p>This screen is blurred while the tab is not active. Return to this tab to continue.</p>
+        </div>
+    </div>
 
     <div id="security-blocker" class="security-overlay">
         <i class="fas fa-shield-alt" style="font-size: 50px; color: #ff4444; margin-bottom: 20px;"></i>
@@ -1748,15 +1860,57 @@
 
     <!-- Strict Security Restrictions Script -->
     <script>
-        // 1. Disable Right Click
+        // 1. Initialize Watermark (user + session + page)
+        function initWatermark() {
+            const overlay = document.getElementById('watermark-overlay');
+            if (!overlay) return;
+
+            const serverSession = (document.body && document.body.dataset.session) ? document.body.dataset.session : "";
+            const clientSession = (function () {
+                try {
+                    const k = 'sec_client_session';
+                    const existing = sessionStorage.getItem(k);
+                    if (existing) return existing;
+                    const v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + '_' + Math.random().toString(16).slice(2);
+                    sessionStorage.setItem(k, v);
+                    return v;
+                } catch {
+                    return String(Date.now());
+                }
+            })();
+
+            const userPart = (function () {
+                const authed = document.body && document.body.dataset.authenticated === '1';
+                if (!authed) return "GUEST";
+                const u = (document.body.dataset.username || 'USER').trim();
+                const id = (document.body.dataset.userid || '').trim();
+                return id ? `${u}#${id}` : u;
+            })();
+            const sessionPart = (serverSession || clientSession).slice(0, 12);
+            const pagePart = (function () {
+                const t = (document.title || '').replace(/\s+/g, ' ').trim();
+                return t ? t : window.location.pathname;
+            })();
+
+            const info = `${userPart} | S:${sessionPart} | ${pagePart}`;
+            for (let i = 0; i < 40; i++) {
+                const item = document.createElement('div');
+                item.className = 'watermark-item';
+                item.innerText = info;
+                overlay.appendChild(item);
+            }
+        }
+        initWatermark();
+
+        // 2. Disable Right Click
         document.addEventListener('contextmenu', event => event.preventDefault());
 
-        // 2. Strict Keyboard Protection
+        // 3. Strict Keyboard Protection
         document.addEventListener('keydown', function(e) {
             // Print Screen / Screenshots
             if (e.key === 'PrintScreen' || e.keyCode === 44) {
-                triggerSecurityBlock();
-                navigator.clipboard.writeText('Screenshot Restricted');
+                triggerSecurityBlock('Screenshot Attempt Blocked');
+                navigator.clipboard.writeText('Security Restriction: Screenshots Prohibited');
                 e.preventDefault();
             }
             
@@ -1771,65 +1925,169 @@
             if (e.keyCode === 123) e.preventDefault();
         });
 
-        // 3. Clear Clipboard on Copy attempt
+        // 4. Clear Clipboard on Copy attempt
         document.addEventListener('copy', (e) => {
-            triggerSecurityBlock();
-            e.clipboardData.setData('text/plain', 'Copying content is restricted on this platform.');
+            triggerSecurityBlock('Copy Attempt Blocked');
+            e.clipboardData.setData('text/plain', 'Security Restriction: Copying content is prohibited.');
             e.preventDefault();
         });
 
-        // 4. Prevent dragging
+        // 5. Prevent dragging
         document.addEventListener('dragstart', (e) => e.preventDefault());
 
-        // 5. Detect Visibility Change (often triggered by screenshot overlays on mobile)
-        document.addEventListener('visibilitychange', function() {
-            // Skip protection if CAPTCHA is visible
-            const captcha = document.getElementById('captcha-overlay');
-            if (captcha && captcha.style.display === 'flex') {
-                document.body.style.filter = 'none';
-                return;
-            }
+        // 6. Detect Visibility & Focus (Blur sensitive content + optional shield)
+        const PRIVACY_SHIELD_ID = 'security-privacy-shield';
 
-            if (document.visibilityState === 'hidden') {
-                // Black out content when user leaves or overlay appears
-                document.body.style.filter = 'brightness(0)';
-            } else {
-                document.body.style.filter = 'none';
-            }
-        });
-
-        function triggerSecurityBlock() {
-            // Skip protection if CAPTCHA is visible
+        function setPrivacyShield(on, reason) {
             const captcha = document.getElementById('captcha-overlay');
             if (captcha && captcha.style.display === 'flex') return;
 
+            const shield = document.getElementById(PRIVACY_SHIELD_ID);
+            const hasExplicitSensitive = !!document.querySelector('.security-sensitive,[data-sensitive="true"]');
+            const shouldUseOverlay = !hasExplicitSensitive; // fallback if page didn't mark sensitive blocks
+
+            document.body.classList.toggle('security-shield-on', on);
+
+            if (shield) {
+                if (on && shouldUseOverlay) {
+                    shield.style.display = 'flex';
+                    shield.setAttribute('aria-hidden', 'false');
+                } else {
+                    shield.style.display = 'none';
+                    shield.setAttribute('aria-hidden', 'true');
+                }
+            }
+
+            if (on) {
+                // keep title short and generic when blurred
+                document.title = reason ? `SECURITY: ${reason}` : "SECURITY PROTECTED";
+            } else {
+                // restore a meaningful page title (tab text)
+                syncPageTitleFromNav();
+            }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            setPrivacyShield(document.visibilityState === 'hidden', 'TAB HIDDEN');
+        });
+
+        window.addEventListener('blur', () => setPrivacyShield(true, 'WINDOW BLUR'));
+        window.addEventListener('focus', () => setPrivacyShield(false));
+
+        // 6.1 Keep tab title synced to active navigation (address bar cannot be changed)
+        function syncPageTitleFromNav() {
+            const base = "ChangeLifeWithNumbers";
+            const explicit = (document.body && document.body.dataset.pageTitle) ? (document.body.dataset.pageTitle || '').trim() : '';
+            if (explicit) {
+                document.title = `${explicit} - ${base}`;
+                return;
+            }
+            const active = document.querySelector('.nav-container .nav-link.active');
+            const txt = active ? (active.textContent || '').trim().replace(/\s+/g, ' ') : '';
+            document.title = txt ? `${txt} - ${base}` : base;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            syncPageTitleFromNav();
+            document.querySelectorAll('.nav-container .nav-link').forEach(a => {
+                a.addEventListener('click', () => {
+                    // allow navigation; update title immediately for SPA-like feel
+                    try { localStorage.setItem('last_page_name', (a.textContent || '').trim()); } catch {}
+                    syncPageTitleFromNav();
+                });
+            });
+        });
+
+        // 7. Monitor for Screen Recording Extensions / DOM changes (heuristics)
+        const REC_KEYWORDS = [
+            'screen', 'record', 'recorder', 'capture', 'screencast', 'stream',
+            'loom', 'screencastify', 'nimbus', 'awesome-screenshot', 'lightshot',
+            'obs', 'bandicam'
+        ];
+        const EXT_PROTOCOLS = ['chrome-extension://', 'moz-extension://', 'safari-extension://', 'ms-browser-extension://'];
+
+        function isSuspiciousNode(node) {
+            if (!node || node.nodeType !== 1) return false;
+            const el = node;
+            const tag = (el.tagName || '').toLowerCase();
+            const id = (el.id || '').toLowerCase();
+            const cls = (el.className || '').toString().toLowerCase();
+
+            const attrSrc = (el.getAttribute && (el.getAttribute('src') || el.getAttribute('href') || '')) || '';
+            const src = String(attrSrc).toLowerCase();
+            const inline = (el.getAttribute && (el.getAttribute('style') || '')) || '';
+
+            if (EXT_PROTOCOLS.some(p => src.includes(p))) return true;
+            if ([id, cls, src].some(s => REC_KEYWORDS.some(k => s.includes(k)))) return true;
+
+            // Common pattern: injected fixed overlay with huge z-index
+            try {
+                const st = window.getComputedStyle(el);
+                const z = parseInt(st.zIndex || '0', 10);
+                if (st.position === 'fixed' && z >= 2147480000) return true;
+            } catch {}
+
+            // injected iframes are common for extensions
+            if (tag === 'iframe' && (src || id || cls)) {
+                if (REC_KEYWORDS.some(k => (src + id + cls).includes(k))) return true;
+            }
+
+            // style attribute flags
+            if (inline && REC_KEYWORDS.some(k => String(inline).toLowerCase().includes(k))) return true;
+
+            return false;
+        }
+
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes || []) {
+                    if (isSuspiciousNode(node)) {
+                        triggerSecurityBlock('SUSPICIOUS OVERLAY / EXTENSION DETECTED');
+                        setPrivacyShield(true, 'SUSPICIOUS ACTIVITY');
+                        return;
+                    }
+                    // scan shallow subtree cheaply
+                    if (node && node.querySelectorAll) {
+                        const candidates = node.querySelectorAll('iframe, video, canvas, script, link, div, section');
+                        for (let i = 0; i < Math.min(candidates.length, 40); i++) {
+                            if (isSuspiciousNode(candidates[i])) {
+                                triggerSecurityBlock('SUSPICIOUS OVERLAY / EXTENSION DETECTED');
+                                setPrivacyShield(true, 'SUSPICIOUS ACTIVITY');
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href', 'style', 'class', 'id'] });
+
+        // 8. Security Block Trigger (warn + temporary overlay)
+        function triggerSecurityBlock(reason = 'Suspicious Activity') {
+            const captcha = document.getElementById('captcha-overlay');
+            if (captcha && captcha.style.display === 'flex') return;
+
+            const banner = document.getElementById('security-warning-banner');
             const blocker = document.getElementById('security-blocker');
+            
+            if (banner) {
+                banner.innerText = reason.toUpperCase() + " - ACTION LOGGED";
+                banner.style.display = 'block';
+                setTimeout(() => banner.style.display = 'none', 5000);
+            }
+
             if (blocker) {
                 blocker.style.display = 'flex';
-                setTimeout(() => {
-                    blocker.style.display = 'none';
-                }, 3000);
+                setTimeout(() => blocker.style.display = 'none', 3000);
             }
-            // Temporarily black out the entire body
+
+            // Force blackout
             document.body.style.background = '#000';
             document.body.style.opacity = '0';
             setTimeout(() => {
                 document.body.style.background = '';
                 document.body.style.opacity = '1';
-            }, 1000);
+            }, 1500);
         }
-
-        // 6. Focus detection to stop screen recorders that steal focus
-        window.addEventListener('blur', function() {
-            // Skip protection if CAPTCHA is visible
-            const captcha = document.getElementById('captcha-overlay');
-            if (captcha && captcha.style.display === 'flex') return;
-            
-            document.body.style.filter = 'brightness(0)';
-        });
-        window.addEventListener('focus', function() {
-            document.body.style.filter = 'none';
-        });
     </script>
 </body>
 </html>
