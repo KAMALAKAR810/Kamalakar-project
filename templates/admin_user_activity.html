@@ -45,4 +45,14 @@
         </table>
     </div>
 </div>
+{% block admin_action_footer %}
+<div class="admin-action-footer">
+  <button onclick="exportCurrentPage()" class="btn-action-bottom export-btn-bottom">
+    <i class="fas fa-file-export"></i> EXPORT TO CSV
+  </button>
+  <button onclick="window.print()" class="btn-action-bottom print-btn-bottom">
+    <i class="fas fa-print"></i> PRINT PAGE
+  </button>
+</div>
+{% endblock %}
 {% endblock %}
