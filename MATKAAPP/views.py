@@ -57,7 +57,8 @@ def admin_2fa_view(request):
                 messages.error(request, "Incorrect answer!")
             
     return render(request, 'admin_2fa.html', {
-        'profile': profile
+        'profile': profile,
+        'page_title': 'Admin 2FA Verification'
     })
 
 @login_required
@@ -82,7 +83,10 @@ def update_admin_security_view(request):
         messages.success(request, "Security settings updated successfully!")
         return redirect('admin_summary')
         
-    return render(request, 'update_admin_security.html', {'profile': profile})
+    return render(request, 'update_admin_security.html', {
+        'profile': profile,
+        'page_title': 'Update Admin Security'
+    })
 
 def create_notification(user, title, message):
     Notification.objects.create(user=user, title=title, message=message)
@@ -92,12 +96,20 @@ def notifications_view(request):
     notifications = request.user.notifications.all()
     # Mark all as read when viewing
     notifications.filter(is_read=False).update(is_read=True)
-    return render(request, 'notifications.html', {'notifications': notifications})
+    return render(request, 'notifications.html', {
+        'notifications': notifications,
+        'page_title': 'My Notifications'
+    })
 
 @login_required
 def wallet_view(request):
     """User can convert game coins to INR and request withdrawal."""
     if request.method == 'POST':
+        # ... logic
+        pass
+    return render(request, 'wallet.html', {
+        'page_title': 'My Wallet & Withdraw'
+    })
         amount = Decimal(request.POST.get('amount', 0))
         upi_id = request.POST.get('upi_id', '').strip()
         mobile_number = request.POST.get('mobile_number', '').strip()
@@ -495,12 +507,18 @@ def display(request):
 def user_home(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('admin_summary')
-    return render(request, 'user_home.html', {'markets': Market.objects.all()})
+    return render(request, 'user_home.html', {
+        'markets': Market.objects.all(),
+        'page_title': 'Home Page'
+    })
 
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_home(request):
-    return render(request, 'admin_home.html', {'markets': Market.objects.all()})
+    return render(request, 'admin_home.html', {
+        'markets': Market.objects.all(),
+        'page_title': 'Admin Home'
+    })
 
 
 def error(request):
@@ -1268,6 +1286,7 @@ def admin_summary(request):
     recent_txns = Transaction.objects.select_related('wallet__user').order_by('-created_at')[:10]
 
     return render(request, "admin_summary.html", {
+        "page_title": "Admin Dashboard",
         "today": today,
         "total_users": total_users,
         "today_collection": today_collection,
@@ -1383,7 +1402,10 @@ def admin_user_activity(request):
     if refund_count > 0:
         messages.info(request, f"Processed {refund_count} pending bet refunds automatically.")
 
-    return render(request, 'admin_user_activity.html', {'activities': activities})
+    return render(request, 'admin_user_activity.html', {
+        'activities': activities,
+        'page_title': 'User Activity Logs'
+    })
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -1392,7 +1414,10 @@ def admin_user_management(request):
     profiles = Profile.objects.select_related('user').all().order_by('-created_at')
     # Mark all as seen when admin visits this page
     Profile.objects.filter(is_new=True).update(is_new=False)
-    return render(request, 'admin_user_management.html', {'profiles': profiles})
+    return render(request, 'admin_user_management.html', {
+        'profiles': profiles,
+        'page_title': 'User Management'
+    })
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -1491,6 +1516,7 @@ def chat_view(request, user_id=None):
         'grouped_messages': grouped_messages,
         'today_date': timezone.now().date().strftime('%Y-%m-%d'),
         'yesterday_date': (timezone.now() - timedelta(days=1)).date().strftime('%Y-%m-%d'),
+        'page_title': f'Chat with {other_user.username}'
     })
 
 

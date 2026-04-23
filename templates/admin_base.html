@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Admin Panel - ChangeLifeWithNumbers</title>
+    <title>{% if page_title %}{{ page_title }} - {% endif %}Admin Panel - ChangeLifeWithNumbers</title>
     <link rel="icon" type="image/png" href="{% static 'logo.jpeg' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -21,7 +21,103 @@
             --border: #e0e0e0;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
+            --neon-green: #00ff88;
+            --neon-red: #ff3366;
+            --neon-blue: #00d2ff;
+            --neon-gold: #ffcc00;
         }
+
+        /* ── NEW GAMING STYLE NOTIFICATIONS ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .gaming-modal {
+            width: 90%;
+            max-width: 450px;
+            background: #121212;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            color: #fff;
+        }
+
+        .gaming-modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .gaming-modal.success::before { background: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+        .gaming-modal.error::before { background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
+        .gaming-modal.info::before { background: var(--neon-gold); box-shadow: 0 0 15px var(--neon-gold); }
+
+        .modal-body { padding: 30px; text-align: center; }
+        .modal-icon-container { width: 80px; height: 80px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+        .success .modal-icon-container { color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); }
+        .error .modal-icon-container { color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
+        .info .modal-icon-container { color: var(--neon-gold); text-shadow: 0 0 20px var(--neon-gold); }
+
+        .modal-title { font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; }
+        .modal-text { font-size: 16px; color: #bbb; margin-bottom: 25px; }
+        .modal-footer { padding: 20px; background: rgba(255,255,255,0.02); display: flex; justify-content: center; }
+        .btn-gaming { padding: 12px 35px; border-radius: 6px; font-weight: 700; text-transform: uppercase; cursor: pointer; border: none; font-family: 'Rajdhani', sans-serif; }
+        .success .btn-gaming { background: var(--neon-green); color: #000; }
+        .error .btn-gaming { background: var(--neon-red); color: #fff; }
+        .info .btn-gaming { background: var(--neon-gold); color: #000; }
+
+        /* ── ADMIN ACTION FOOTER ── */
+        .admin-action-footer {
+            margin-top: 40px;
+            padding: 20px;
+            background: var(--white);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        body.dark-mode .admin-action-footer {
+            background: #1e1e1e;
+            border-color: #333;
+        }
+
+        .btn-action-bottom {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+        }
+
+        .export-btn-bottom { background: #28a745; color: #fff; }
+        .print-btn-bottom { background: #007bff; color: #fff; }
+        .btn-action-bottom:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
         body.dark-mode {
             --primary: #4da3ff;
@@ -375,7 +471,7 @@
     <div class="header-container">
         <a href="{% url 'admin_home' %}" class="logo-section">
             <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
-            <div class="site-name">ADMIN HOME PANEL</div>
+            <div class="site-name">{% if page_title %}{{ page_title|upper }}{% else %}ADMIN PANEL{% endif %}</div>
         </a>
         <div class="user-panel">
             <button id="theme-toggle" class="theme-toggle" title="Toggle Dark/Light Mode">
@@ -478,48 +574,122 @@
 
 <main class="main-content">
     {% block content %}{% endblock %}
+
+    <!-- Dynamic Bottom Actions -->
+    <div class="admin-action-footer">
+        <button onclick="exportCurrentPage()" class="btn-action-bottom export-btn-bottom">
+            <i class="fas fa-file-export"></i> EXPORT TO CSV
+        </button>
+        <button onclick="window.print()" class="btn-action-bottom print-btn-bottom">
+            <i class="fas fa-print"></i> PRINT PAGE
+        </button>
+    </div>
 </main>
 
 <!-- Modal Notification -->
 <div id="modal-notification" class="modal-overlay">
-    <div class="modal-content" id="modal-container">
-        <div id="modal-icon-wrapper" style="font-size: 60px; margin-bottom: 20px;"></div>
-        <h2 id="modal-title" style="margin-bottom: 10px; font-weight: 800;"></h2>
-        <p id="modal-text" style="margin-bottom: 30px; color: var(--gray);"></p>
-        <button onclick="closeModal()" class="btn-gold" style="width: 100%;">CONTINUE</button>
+    <div class="gaming-modal" id="modal-container">
+        <div class="modal-body">
+            <div class="modal-icon-container" id="modal-icon-wrapper">
+                <i id="modal-icon-i" class="fas"></i>
+            </div>
+            <h2 class="modal-title" id="modal-title">Notification</h2>
+            <p class="modal-text" id="modal-text"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-gaming" id="modal-btn-confirm">CONTINUE</button>
+        </div>
     </div>
 </div>
 
 <script>
-    function showModal(title, text, type = 'info') {
+    let modalCallback = null;
+
+    function showModal(title, text, type = 'info', callback = null) {
         const modal = document.getElementById('modal-notification');
-        const iconWrapper = document.getElementById('modal-icon-wrapper');
+        const container = document.getElementById('modal-container');
+        const iconI = document.getElementById('modal-icon-i');
         const titleEl = document.getElementById('modal-title');
         const textEl = document.getElementById('modal-text');
+        const btnConfirm = document.getElementById('modal-btn-confirm');
 
+        modalCallback = callback;
+
+        container.className = 'gaming-modal ' + type;
         titleEl.innerText = title;
         textEl.innerText = text;
+        
+        btnConfirm.innerText = "CONTINUE";
+        btnConfirm.onclick = () => closeModal(true);
 
+        iconI.className = 'fas';
         if (type === 'success') {
-            iconWrapper.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success);"></i>';
+            iconI.classList.add('fa-trophy');
+            if (!title) titleEl.innerText = 'SUCCESS';
         } else if (type === 'error') {
-            iconWrapper.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger);"></i>';
+            iconI.classList.add('fa-exclamation-triangle');
+            if (!title) titleEl.innerText = 'FAILED';
         } else {
-            iconWrapper.innerHTML = '<i class="fas fa-info-circle" style="color: var(--primary);"></i>';
+            iconI.classList.add('fa-info-circle');
+            if (!title) titleEl.innerText = 'NOTIFICATION';
         }
 
         modal.style.display = 'flex';
     }
 
-    function closeModal() {
+    function closeModal(result) {
         document.getElementById('modal-notification').style.display = 'none';
+        if (modalCallback) modalCallback(result);
     }
 
+    // Dynamic Export Function
+    function exportCurrentPage() {
+        const table = document.querySelector('table');
+        if (!table) {
+            showModal('EXPORT ERROR', 'No data table found on this page to export.', 'error');
+            return;
+        }
+
+        let csv = [];
+        const rows = table.querySelectorAll('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = [], cols = rows[i].querySelectorAll('td, th');
+            for (let j = 0; j < cols.length; j++) {
+                // Clean data: remove extra spaces, newlines, and commas
+                let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").replace(/,/g, ";").trim();
+                row.push(data);
+            }
+            csv.push(row.join(","));
+        }
+
+        if (csv.length <= 1) {
+            showModal('EXPORT ERROR', 'No data rows found in the table.', 'error');
+            return;
+        }
+
+        const csvString = csv.join("\n");
+        const filename = 'Export_' + document.title.split('-')[0].trim().replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.csv';
+        const link = document.createElement("a");
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showModal('EXPORT SUCCESS', 'Data exported successfully as ' + filename, 'success');
+    }
+
+    // Handle Django Messages
     {% if messages %}
         window.addEventListener('load', () => {
             {% for message in messages %}
                 showModal(
-                    "{% if message.tags == 'success' %}Success{% elif message.tags == 'error' %}Error{% else %}Notice{% endif %}",
+                    "{% if message.tags == 'success' %}SUCCESS{% elif message.tags == 'error' %}FAILED{% else %}NOTIFICATION{% endif %}",
                     "{{ message|escapejs }}",
                     "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}"
                 );

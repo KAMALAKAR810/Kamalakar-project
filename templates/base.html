@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>ChangeLifeWithNumbers</title>
+    <title>{% if page_title %}{{ page_title }} - {% endif %}ChangeLifeWithNumbers</title>
     <link rel="icon" type="image/png" href="{% static 'logo.jpeg' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -21,6 +21,130 @@
             --border: #e0e0e0;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
+            --neon-green: #00ff88;
+            --neon-red: #ff3366;
+            --neon-blue: #00d2ff;
+            --neon-gold: #ffcc00;
+        }
+
+        /* ── NEW GAMING STYLE NOTIFICATIONS ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .gaming-modal {
+            width: 90%;
+            max-width: 450px;
+            background: #121212;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        .gaming-modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        /* Success / Victory Style */
+        .gaming-modal.success::before { background: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+        .gaming-modal.success { border-color: rgba(0, 255, 136, 0.3); }
+
+        /* Error / Failed Style */
+        .gaming-modal.error::before { background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
+        .gaming-modal.error { border-color: rgba(255, 51, 102, 0.3); }
+
+        /* Info / Challenge Style */
+        .gaming-modal.info::before { background: var(--neon-gold); box-shadow: 0 0 15px var(--neon-gold); }
+        .gaming-modal.info { border-color: rgba(255, 204, 0, 0.3); }
+
+        .modal-body {
+            padding: 30px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .modal-icon-container {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .success .modal-icon-container { color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); }
+        .error .modal-icon-container { color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
+        .info .modal-icon-container { color: var(--neon-gold); text-shadow: 0 0 20px var(--neon-gold); }
+
+        .modal-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .modal-text {
+            font-size: 16px;
+            color: #bbb;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            background: rgba(255,255,255,0.02);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-gaming {
+            padding: 12px 35px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+        }
+
+        .success .btn-gaming { background: var(--neon-green); color: #000; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4); }
+        .error .btn-gaming { background: var(--neon-red); color: #fff; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4); }
+        .info .btn-gaming { background: var(--neon-gold); color: #000; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4); }
+
+        .btn-gaming:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-gaming:active { transform: translateY(0); }
+
+        /* reCAPTCHA style adjustment */
+        #captcha-overlay {
+            background: rgba(0,0,0,0.92) !important;
         }
 
         body.dark-mode {
@@ -1080,8 +1204,8 @@
             <a href="{% url 'user_home' %}" class="logo-section">
                 <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
                 <div class="site-name">
-                    ChangeLifeWithNumbers
-                    <span>Experience the power of prediction</span>
+                    {% if page_title %}{{ page_title }}{% else %}ChangeLifeWithNumbers{% endif %}
+                    <span>{% if page_title %}Experience the power of prediction{% else %}Experience the power of prediction{% endif %}</span>
                 </div>
             </a>
         </div>
@@ -1426,13 +1550,17 @@
 
 <!-- Modal Notification -->
 <div id="modal-notification" class="modal-overlay">
-    <div class="modal-content" id="modal-container">
-        <div class="modal-icon" style="font-size: 64px; margin-bottom: 20px;"><i id="modal-icon-i" class="fas"></i></div>
-        <h2 class="modal-title" id="modal-title" style="margin-bottom: 10px; font-weight: 800;"></h2>
-        <p class="modal-text" id="modal-text" style="margin-bottom: 30px; color: var(--gray);"></p>
-        <div id="modal-actions" style="display: flex; justify-content: center; gap: 10px;">
-            <button id="modal-btn-confirm" class="modal-btn">OK</button>
-            <button id="modal-btn-cancel" class="modal-btn modal-btn-cancel" style="display: none;" onclick="closeModal(false)">Cancel</button>
+    <div class="gaming-modal" id="modal-container">
+        <div class="modal-body">
+            <div class="modal-icon-container" id="modal-icon-wrapper">
+                <i id="modal-icon-i" class="fas"></i>
+            </div>
+            <h2 class="modal-title" id="modal-title">Notification</h2>
+            <p class="modal-text" id="modal-text"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-gaming" id="modal-btn-confirm">CONTINUE</button>
+            <button class="btn-gaming error" id="modal-btn-cancel" style="display: none; margin-left: 10px;">CANCEL</button>
         </div>
     </div>
 </div>
@@ -1455,21 +1583,30 @@
 
         modalCallback = callback;
 
-        container.className = 'modal-content modal-' + type;
+        // Apply gaming styles
+        container.className = 'gaming-modal ' + type;
         titleEl.innerText = title;
         textEl.innerText = text;
         
-        btnConfirm.innerText = "OK";
+        btnConfirm.innerText = "CONTINUE";
         btnConfirm.onclick = () => closeModal(true);
         btnCancel.style.display = "none";
 
-        // Show standard icon based on type
-        iconI.style.display = 'inline-block';
+        // Show gaming icons based on type
         iconI.className = 'fas';
-        if (type === 'success') iconI.classList.add('fa-check-circle');
-        else if (type === 'error') iconI.classList.add('fa-times-circle');
-        else if (type === 'warning') iconI.classList.add('fa-exclamation-triangle');
-        else iconI.classList.add('fa-info-circle');
+        if (type === 'success') {
+            iconI.classList.add('fa-trophy');
+            if (!title) titleEl.innerText = 'VICTORY!';
+        } else if (type === 'error') {
+            iconI.classList.add('fa-exclamation-triangle');
+            if (!title) titleEl.innerText = 'PAYMENT FAILED';
+        } else if (type === 'warning') {
+            iconI.classList.add('fa-exclamation-circle');
+            if (!title) titleEl.innerText = 'WARNING';
+        } else {
+            iconI.classList.add('fa-info-circle');
+            if (!title) titleEl.innerText = 'NOTIFICATION';
+        }
 
         modal.style.display = 'flex';
     }
@@ -1485,17 +1622,18 @@
 
         modalCallback = callback;
 
-        container.className = 'modal-content modal-warning';
+        container.className = 'gaming-modal info';
         titleEl.innerText = title;
         textEl.innerText = text;
 
-        btnConfirm.innerText = "Yes, Continue";
+        btnConfirm.innerText = "YES, CONTINUE";
         btnConfirm.onclick = () => closeModal(true);
-        btnCancel.style.display = "inline-block";
-
-        iconI.style.display = 'inline-block';
-        iconI.className = 'fas fa-question-circle';
         
+        btnCancel.style.display = "inline-block";
+        btnCancel.innerText = "CANCEL";
+        btnCancel.onclick = () => closeModal(false);
+
+        iconI.className = 'fas fa-question-circle';
         modal.style.display = 'flex';
     }
 
@@ -1516,7 +1654,7 @@
         window.addEventListener('load', () => {
             {% for message in messages %}
                 showModal(
-                    "{% if message.tags == 'success' %}Success{% elif message.tags == 'error' %}Error{% else %}Notice{% endif %}",
+                    "{% if message.tags == 'success' %}SUCCESS{% elif message.tags == 'error' %}FAILED{% else %}NOTIFICATION{% endif %}",
                     "{{ message|escapejs }}",
                     "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
                 );
