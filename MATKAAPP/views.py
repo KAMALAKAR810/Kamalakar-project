@@ -105,11 +105,6 @@ def notifications_view(request):
 def wallet_view(request):
     """User can convert game coins to INR and request withdrawal."""
     if request.method == 'POST':
-        # ... logic
-        pass
-    return render(request, 'wallet.html', {
-        'page_title': 'My Wallet & Withdraw'
-    })
         amount = Decimal(request.POST.get('amount', 0))
         upi_id = request.POST.get('upi_id', '').strip()
         mobile_number = request.POST.get('mobile_number', '').strip()
@@ -185,7 +180,9 @@ def wallet_view(request):
         messages.success(request, f"Withdrawal request for ₹{amount} submitted!")
         return redirect('wallet_history')
         
-    return render(request, 'wallet.html')
+    return render(request, 'wallet.html', {
+        'page_title': 'My Wallet & Withdraw'
+    })
 
 
 @login_required
