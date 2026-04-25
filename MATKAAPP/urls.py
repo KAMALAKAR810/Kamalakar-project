@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
+from .security_txt import security_txt
 
 urlpatterns = [
+    path(".well-known/security.txt", security_txt, name="security_txt"),
     # --- Public Pages ---
     path("", views.user_home, name="user_home"),
     path("admin-home/", views.admin_home, name="admin_home"),

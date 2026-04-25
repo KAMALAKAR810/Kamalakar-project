@@ -9,6 +9,45 @@ from decimal import Decimal
 from django.db import transaction as db_transaction
 import time
 
+class ContentSecurityPolicyMiddleware:
+    """
+    Adds a CSP header to reduce XSS risk.
+    Note: this project uses inline <script>/<style>, so we allow 'unsafe-inline'.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        # Don't override if already set by upstream.
+        if response.get("Content-Security-Policy"):
+            return response
+
+        # Allow required CDNs and Google reCAPTCHA.
+        csp_parts = [
+            "default-src 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+            "frame-ancestors 'self'",
+            "form-action 'self'",
+            "img-src 'self' data: https:",
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com",
+            "connect-src 'self' https:",
+            "frame-src https://www.google.com",
+        ]
+
+        # In production, prefer upgrading any http subresources.
+        if not settings.DEBUG:
+            csp_parts.append("upgrade-insecure-requests")
+
+        response["Content-Security-Policy"] = "; ".join(csp_parts)
+        response["Referrer-Policy"] = response.get("Referrer-Policy", "same-origin")
+        response["Permissions-Policy"] = response.get("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        return response
+
 class DelayedWinningCreditMiddleware:
     """
     Task 11: Credits winning bets 30 minutes after result declaration.

@@ -3,6 +3,7 @@ from decimal import Decimal
 import json
 import re
 import random
+import os
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -457,6 +458,22 @@ def register_view(request):
                 profile.mobile = mobile_digits
                 pic = request.FILES.get("profile_pic")
                 if pic:
+                    # Upload hardening: limit to image types, random filename, size limit
+                    max_bytes = int(getattr(settings, "PROFILE_PIC_MAX_BYTES", 2 * 1024 * 1024))
+                    if pic.size > max_bytes:
+                        raise ValidationError(f"Profile picture too large. Max allowed is {max_bytes // (1024 * 1024)}MB.")
+
+                    content_type = (getattr(pic, "content_type", "") or "").lower()
+                    if not content_type.startswith("image/"):
+                        raise ValidationError("Invalid profile picture type. Only images are allowed.")
+
+                    _, ext = os.path.splitext(pic.name or "")
+                    ext = (ext or "").lower().lstrip(".")
+                    allowed = {"jpg", "jpeg", "png"}
+                    if ext not in allowed:
+                        raise ValidationError("Invalid image extension. Allowed: jpg, jpeg, png.")
+
+                    pic.name = f"profiles/{uuid.uuid4().hex}.{ext}"
                     profile.profile_pic = pic
                 profile.save()
 
@@ -471,8 +488,12 @@ def register_view(request):
                         content="Welcome to ChangeLifeWithNumbers! Play smart, win big."
                     )
 
-        except IntegrityError:
-            messages.error(request, "Username or mobile is already in use. Please try again.")
+        except (IntegrityError, ValidationError) as e:
+            if isinstance(e, ValidationError):
+                for msg in e.messages:
+                    messages.error(request, msg)
+            else:
+                messages.error(request, "Username or mobile is already in use. Please try again.")
             return render(request, 'register.html', {'enable_captcha': enable_captcha})
 
         messages.success(

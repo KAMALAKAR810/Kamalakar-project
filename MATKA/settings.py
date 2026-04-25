@@ -45,6 +45,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",
+    "MATKAAPP.middleware.ContentSecurityPolicyMiddleware",
     "MATKAAPP.middleware.OneSessionPerUserMiddleware",
     "MATKAAPP.middleware.Admin2FAMiddleware",
     "MATKAAPP.middleware.SessionTimeoutMiddleware",
@@ -53,8 +54,14 @@ MIDDLEWARE = [
 
 # Security Settings
 if not DEBUG:
+    # Cookies
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SAMESITE = "Lax"
+
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_SSL_REDIRECT = True
@@ -63,18 +70,29 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+    X_FRAME_OPTIONS = "DENY"
 else:
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SAMESITE = "Lax"
     SECURE_BROWSER_XSS_FILTER = False
     SECURE_CONTENT_TYPE_NOSNIFF = False
     SECURE_SSL_REDIRECT = False
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+    X_FRAME_OPTIONS = "DENY"
 
 # Axes Settings
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # 1 hour cooloff
 AXES_LOCKOUT_TEMPLATE = 'lockout.html'
 AXES_RESET_ON_SUCCESS = True
+AXES_LOCK_OUT_AT_FAILURE = True
 
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
@@ -83,6 +101,7 @@ AUTHENTICATION_BACKENDS = [
 
 # File Upload Restrictions
 ALLOWED_EXTENSIONS = ['jpg', 'png', 'pdf']
+PROFILE_PIC_MAX_BYTES = int(os.getenv("PROFILE_PIC_MAX_BYTES", str(2 * 1024 * 1024)))
 
 # Session Security
 SESSION_COOKIE_AGE = 600  # 10 minutes in seconds
