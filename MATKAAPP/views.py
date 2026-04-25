@@ -22,6 +22,7 @@ from django.utils import timezone
 import requests
 from django.conf import settings
 import base64
+from django_ratelimit.decorators import ratelimit
 
 from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
 import uuid
@@ -309,6 +310,8 @@ TRIPPLE_PATTI_GROUPS = {
 
 # --- AUTH VIEWS ---
 
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
+@ratelimit(key='post:username', rate='6/d', method='POST', block=True)
 def login_view(request):
     if request.user.is_authenticated:
         if request.user.is_superuser:
@@ -390,6 +393,7 @@ def _normalize_indian_mobile(raw):
     return digits, None
 
 
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('user_home')
@@ -517,6 +521,18 @@ def error_403(request, exception):
 
 def error_400(request, exception):
     return render(request, 'error.html', status=400)
+
+def ratelimit_exceeded(request, exception=None):
+    is_ajax = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or request.content_type == "application/json"
+    )
+    if is_ajax:
+        return JsonResponse(
+            {"status": "error", "message": "Too many requests. Please wait and try again."},
+            status=429,
+        )
+    return render(request, "429.html", status=429)
 
 def display(request):
     return render(request, 'display_page.html', {'markets': Market.objects.all()})
@@ -1550,6 +1566,7 @@ def send_welcome_msg(request, user_id):
 
 
 @login_required
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 def payment_page(request):
     """Payment form with QR redirect and UTR submission."""
     if request.method == 'POST':

@@ -41,11 +41,11 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "csp.middleware.CSPMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",
-    "MATKAAPP.middleware.ContentSecurityPolicyMiddleware",
     "MATKAAPP.middleware.OneSessionPerUserMiddleware",
     "MATKAAPP.middleware.Admin2FAMiddleware",
     "MATKAAPP.middleware.SessionTimeoutMiddleware",
@@ -108,6 +108,22 @@ SESSION_COOKIE_AGE = 600  # 10 minutes in seconds
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_TIMEOUT_SECONDS = 600  # 10 minutes
+
+# django-csp baseline policy
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com")
+CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "data:")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://www.google.com", "https://www.gstatic.com")
+CSP_IMG_SRC = ("'self'", "data:", "https:")
+CSP_CONNECT_SRC = ("'self'", "https:")
+CSP_FRAME_SRC = ("https://www.google.com",)
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'self'",)
+CSP_FORM_ACTION = ("'self'",)
+
+# django-ratelimit defaults
+RATELIMIT_USE_CACHE = "default"
+RATELIMIT_VIEW = "MATKAAPP.views.ratelimit_exceeded"
 
 
 ROOT_URLCONF = "MATKA.urls"
