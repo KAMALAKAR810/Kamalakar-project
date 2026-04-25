@@ -94,6 +94,7 @@ AXES_COOLOFF_TIME = 1  # 1 hour cooloff
 AXES_LOCKOUT_TEMPLATE = 'auth/lockout.html'
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCK_OUT_AT_FAILURE = True
+AXES_WHITELIST_CALLABLE = "MATKAAPP.axes_utils.axes_whitelist"
 
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
