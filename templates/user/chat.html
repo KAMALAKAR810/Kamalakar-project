@@ -30,7 +30,8 @@
         display: flex;
         flex-direction: column;
         gap: 15px;
-        background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+        /* Avoid loading cross-domain background images (scanner noise + privacy). */
+        background: linear-gradient(180deg, #eef2f7 0%, #e9edf3 100%);
     }
     .date-separator {
         align-self: center;

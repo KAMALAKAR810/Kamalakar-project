@@ -9,6 +9,44 @@ from decimal import Decimal
 from django.db import transaction as db_transaction
 import time
 
+class SecurityHeadersMiddleware:
+    """
+    Adds baseline security headers consistently (including error responses).
+    Django's SecurityMiddleware covers many of these, but scanners often flag
+    missing headers when upstream/proxy config varies. This keeps them uniform.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        # Prevent MIME sniffing
+        response.setdefault("X-Content-Type-Options", "nosniff")
+
+        # Clickjacking protection (also set via settings, but ensure present)
+        response.setdefault("X-Frame-Options", "DENY")
+
+        # Legacy XSS header (deprecated in modern browsers, but helps scanners)
+        response.setdefault("X-XSS-Protection", "0")
+
+        # Reduce referrer leakage
+        response.setdefault("Referrer-Policy", "same-origin")
+
+        # Basic permissions policy (avoid sensitive APIs)
+        response.setdefault(
+            "Permissions-Policy",
+            "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        )
+
+        # Tighten caching for auth endpoints (helps avoid auth leaks)
+        if request.path.startswith("/login") or request.path.startswith("/register") or request.path.startswith("/verify-email"):
+            response.setdefault("Cache-Control", "no-store")
+            response.setdefault("Pragma", "no-cache")
+
+        return response
+
 class ContentSecurityPolicyMiddleware:
     """
     Adds a CSP header to reduce XSS risk.
@@ -32,8 +70,8 @@ class ContentSecurityPolicyMiddleware:
             "frame-ancestors 'self'",
             "form-action 'self'",
             "img-src 'self' data: https:",
-            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+            "font-src 'self' https://cdnjs.cloudflare.com data:",
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
             "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com",
             "connect-src 'self' https:",
             "frame-src https://www.google.com",

@@ -689,7 +689,7 @@ def error_500(request):
     return render(request, 'errors/error.html', status=500)
 
 def error_403(request, exception):
-    return render(request, 'errors/error.html', status=403)
+    return render(request, 'errors/403.html', status=403)
 
 def error_400(request, exception):
     return render(request, 'errors/error.html', status=400)
@@ -700,11 +700,21 @@ def ratelimit_exceeded(request, exception=None):
         or request.content_type == "application/json"
     )
     if is_ajax:
-        return JsonResponse(
+        resp = JsonResponse(
             {"status": "error", "message": "Too many requests. Please wait and try again."},
             status=429,
         )
-    return render(request, "errors/429.html", status=429)
+        resp["Retry-After"] = "60"
+        return resp
+    resp = render(request, "errors/429.html", status=429)
+    resp["Retry-After"] = "60"
+    return resp
+
+
+def csrf_failure(request, reason=""):
+    # Keep response generic (avoid leaking details), but helpful for users.
+    context = {"reason": reason} if settings.DEBUG else {}
+    return render(request, "errors/csrf_403.html", context, status=403)
 
 def display(request):
     return render(request, 'user/display_page.html', {'markets': Market.objects.all()})

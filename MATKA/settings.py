@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "MATKAAPP.middleware.SecurityHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -217,6 +218,17 @@ RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")
 RECAPTCHA_USE_SSL = True
 RECAPTCHA_VERIFY_TIMEOUT = 10
 RECAPTCHA_OPTIONS = {"theme": "light"}  # for django-recaptcha
+
+# Trust origins when behind a proxy/domain (needed to avoid CSRF false 403s on production).
+# Example: CSRF_TRUSTED_ORIGINS="https://changelifewithnumbers.pythonanywhere.com"
+CSRF_TRUSTED_ORIGINS_ENV = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS_ENV.split(",") if o.strip()]
+
+# Custom CSRF failure handler (shows friendly page; still 403).
+CSRF_FAILURE_VIEW = "MATKAAPP.views.csrf_failure"
+
+# Optional: allow disabling captcha during automated scans only
+CAPTCHA_DISABLED = os.getenv("CAPTCHA_DISABLED", "False") == "True"
 
 # --- Email (Yahoo SMTP) ---
 # Uses Yahoo Mail app password. See .env.example for variable names.
