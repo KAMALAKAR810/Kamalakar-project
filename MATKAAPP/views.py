@@ -313,8 +313,8 @@ TRIPPLE_PATTI_GROUPS = {
 
 # --- AUTH VIEWS ---
 
-@ratelimit(key='ip', rate='10/m', method='POST', block=True)
-@ratelimit(key='post:username', rate='6/d', method='POST', block=True)
+@ratelimit(key='ip', rate='10/m', method='POST', block=False)
+@ratelimit(key='post:username', rate='6/d', method='POST', block=False)
 def login_view(request):
     if request.user.is_authenticated:
         if request.user.is_superuser:
@@ -330,6 +330,15 @@ def login_view(request):
         
         user_n = request.POST.get('username')
         psw = request.POST.get('password')
+
+        # Allow admins/staff to try unlimited times (no rate-limit blocks).
+        # Keep rate limits for non-admin users and scanners.
+        is_admin_username = False
+        if user_n:
+            is_admin_username = User.objects.filter(username__iexact=user_n, is_staff=True).exists()
+
+        if getattr(request, "limited", False) and not is_admin_username:
+            return ratelimit_exceeded(request)
 
         user = authenticate(request, username=user_n, password=psw)
         
