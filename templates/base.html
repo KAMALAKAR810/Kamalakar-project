@@ -1312,14 +1312,8 @@
             <a href="{% url 'user_home' %}" class="logo-section">
                 <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
                 <div class="site-name">
-                    {% if request.resolver_match.url_name == 'user_home' %}
-                        Change Life With Numbers
-                    {% elif page_title %}
-                        {{ page_title }}
-                    {% else %}
-                        ChangeLifeWithNumbers
-                    {% endif %}
-                    <span>{% if page_title %}Experience the power of prediction{% else %}Experience the power of prediction{% endif %}</span>
+                    Change Life With Numbers
+                    <span>Experience the power of prediction</span>
                 </div>
             </a>
         </div>
