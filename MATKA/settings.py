@@ -217,3 +217,22 @@ RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")
 RECAPTCHA_USE_SSL = True
 RECAPTCHA_VERIFY_TIMEOUT = 10
 RECAPTCHA_OPTIONS = {"theme": "light"}  # for django-recaptcha
+
+# --- Email (Yahoo SMTP) ---
+# Uses Yahoo Mail app password. See .env.example for variable names.
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.mail.yahoo.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True") == "True"
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False") == "True"
+EMAIL_HOST_USER = os.getenv("YAHOO_SMTP_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("YAHOO_SMTP_APP_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@example.com")
+SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
+
+# --- Email OTP settings ---
+EMAIL_OTP_TTL_SECONDS = int(os.getenv("EMAIL_OTP_TTL_SECONDS", os.getenv("OTP_TTL_SECONDS", "300")))
+EMAIL_OTP_MAX_ATTEMPTS = int(os.getenv("EMAIL_OTP_MAX_ATTEMPTS", os.getenv("OTP_MAX_ATTEMPTS", "5")))
+EMAIL_OTP_RESEND_COOLDOWN_SECONDS = int(
+    os.getenv("EMAIL_OTP_RESEND_COOLDOWN_SECONDS", os.getenv("OTP_RESEND_COOLDOWN_SECONDS", "60"))
+)

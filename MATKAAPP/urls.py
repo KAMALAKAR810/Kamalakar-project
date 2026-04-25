@@ -16,6 +16,8 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("admin-2fa/", views.admin_2fa_view, name="admin_2fa"),
     path("admin-security-settings/", views.update_admin_security_view, name="admin_security_settings"),
+    path("verify-email/", views.verify_email_otp_view, name="verify_email_otp"),
+    path("resend-email-otp/", views.resend_email_otp_view, name="resend_email_otp"),
 
     # --- Game Pages ---
     path("single/", views.single, name="single"),

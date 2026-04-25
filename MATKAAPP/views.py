@@ -23,8 +23,11 @@ import requests
 from django.conf import settings
 import base64
 from django_ratelimit.decorators import ratelimit
+from django.core.mail import send_mail
+from django.contrib.auth.hashers import make_password, check_password
+import secrets
 
-from .models import Bet, Transaction, Market, Wallet, Profile, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
+from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
 import uuid
 
 @login_required
@@ -331,6 +334,17 @@ def login_view(request):
         user = authenticate(request, username=user_n, password=psw)
         
         if user is not None:
+            # Enforce email verification for non-admin users
+            if not user.is_superuser and not user.is_staff:
+                try:
+                    prof = user.profile
+                    if prof.email and not prof.is_email_verified:
+                        request.session["pending_email_verification_user_id"] = user.id
+                        messages.error(request, "Please verify your email OTP before logging in.")
+                        return redirect("verify_email_otp")
+                except Profile.DoesNotExist:
+                    pass
+
             # Task 2: Enforce one session per user
             from django.contrib.sessions.models import Session
             try:
@@ -393,6 +407,45 @@ def _normalize_indian_mobile(raw):
     return digits, None
 
 
+def _normalize_email(raw):
+    raw = (raw or "").strip()
+    if not raw:
+        return None, "Email is required."
+    if "@" not in raw or "." not in raw.split("@")[-1]:
+        return None, "Enter a valid email address."
+    return raw.lower(), None
+
+
+def _generate_otp_6():
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def _send_email_otp(profile: Profile):
+    ttl = int(getattr(settings, "EMAIL_OTP_TTL_SECONDS", 300))
+    otp = _generate_otp_6()
+    now = timezone.now()
+    expires_at = now + timedelta(seconds=ttl)
+
+    EmailOTP.objects.update_or_create(
+        profile=profile,
+        defaults={
+            "otp_hash": make_password(otp),
+            "expires_at": expires_at,
+            "attempts": 0,
+            "last_sent_at": now,
+        },
+    )
+
+    send_mail(
+        subject="Your verification OTP",
+        message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[profile.email],
+        fail_silently=False,
+    )
+    return ttl
+
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
     if request.user.is_authenticated:
@@ -409,6 +462,7 @@ def register_view(request):
 
         name = (request.POST.get('name') or '').strip()
         user_n = (request.POST.get('username') or '').strip()
+        email_raw = request.POST.get('email') or ''
         psw = request.POST.get('password') or ''
         psw2 = request.POST.get('password2') or ''
         mob = request.POST.get('mobile') or ''
@@ -416,32 +470,45 @@ def register_view(request):
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
             return render(request, 'auth/register.html', {
-                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if psw != psw2:
             messages.error(request, "Passwords do not match.")
             return render(request, 'auth/register.html', {
-                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+            })
+
+        email_norm, email_err = _normalize_email(email_raw)
+        if email_err:
+            messages.error(request, email_err)
+            return render(request, 'auth/register.html', {
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         mobile_digits, mobile_err = _normalize_indian_mobile(mob)
         if mobile_err:
             messages.error(request, mobile_err)
             return render(request, 'auth/register.html', {
-                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if User.objects.filter(username__iexact=user_n).exists():
             messages.error(request, "Username already taken.")
             return render(request, 'auth/register.html', {
-                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if Profile.objects.filter(mobile=mobile_digits).exists():
             messages.error(request, "This mobile number is already registered.")
             return render(request, 'auth/register.html', {
-                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+            })
+
+        if Profile.objects.filter(email=email_norm).exists():
+            messages.error(request, "This email is already registered.")
+            return render(request, 'auth/register.html', {
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         candidate = User(username=user_n, first_name=name)
@@ -451,15 +518,18 @@ def register_view(request):
             for msg in e.messages:
                 messages.error(request, msg)
             return render(request, 'auth/register.html', {
-                'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         try:
             with db_transaction.atomic():
-                user = User.objects.create_user(username=user_n, password=psw, first_name=name)
+                user = User.objects.create_user(username=user_n, password=psw, first_name=name, email=email_norm)
                 # Profile and user_code are automatically created via signals.
                 profile = Profile.objects.select_for_update().get(user=user)
                 profile.mobile = mobile_digits
+                profile.email = email_norm
+                profile.is_email_verified = False
+                profile.email_verified_at = None
                 pic = request.FILES.get("profile_pic")
                 if pic:
                     # Upload hardening: limit to image types, random filename, size limit
@@ -492,6 +562,9 @@ def register_view(request):
                         content="Welcome to ChangeLifeWithNumbers! Play smart, win big."
                     )
 
+                _send_email_otp(profile)
+                request.session["pending_email_verification_user_id"] = user.id
+
         except (IntegrityError, ValidationError) as e:
             if isinstance(e, ValidationError):
                 for msg in e.messages:
@@ -500,12 +573,111 @@ def register_view(request):
                 messages.error(request, "Username or mobile is already in use. Please try again.")
             return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
 
-        messages.success(
-            request,
-            f"Registration successful! Welcome to ChangeLifeWithNumbers {user_n}. You can log in now.",
-        )
-        return redirect('login')
+        messages.success(request, "Registration successful! Please verify the OTP sent to your email.")
+        return redirect('verify_email_otp')
     return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
+
+
+@ratelimit(key="ip", rate="10/m", method="POST", block=True)
+def verify_email_otp_view(request):
+    user_id = request.session.get("pending_email_verification_user_id")
+    if not user_id:
+        messages.error(request, "No pending email verification found. Please register again.")
+        return redirect("register")
+
+    user = get_object_or_404(User, id=user_id)
+    try:
+        profile = user.profile
+    except Profile.DoesNotExist:
+        messages.error(request, "Profile not found.")
+        return redirect("register")
+
+    if not profile.email:
+        messages.error(request, "Email not found for verification.")
+        return redirect("register")
+
+    if profile.is_email_verified:
+        request.session.pop("pending_email_verification_user_id", None)
+        messages.success(request, "Email already verified. You can log in now.")
+        return redirect("login")
+
+    ttl_seconds = int(getattr(settings, "EMAIL_OTP_TTL_SECONDS", 300))
+
+    if request.method == "POST":
+        otp = (request.POST.get("otp") or "").strip()
+        if not otp or not otp.isdigit() or len(otp) != 6:
+            messages.error(request, "Please enter a valid 6-digit OTP.")
+            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+
+        try:
+            rec = profile.email_otp
+        except EmailOTP.DoesNotExist:
+            messages.error(request, "OTP not found. Please resend OTP.")
+            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+
+        if timezone.now() > rec.expires_at:
+            messages.error(request, "OTP expired. Please resend OTP.")
+            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+
+        max_attempts = int(getattr(settings, "EMAIL_OTP_MAX_ATTEMPTS", 5))
+        if rec.attempts >= max_attempts:
+            messages.error(request, "Maximum OTP attempts exceeded. Please resend OTP.")
+            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+
+        if not check_password(otp, rec.otp_hash):
+            rec.attempts = rec.attempts + 1
+            rec.save(update_fields=["attempts"])
+            remaining = max(0, max_attempts - rec.attempts)
+            messages.error(request, f"Invalid OTP. Attempts remaining: {remaining}.")
+            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+
+        profile.is_email_verified = True
+        profile.email_verified_at = timezone.now()
+        profile.save(update_fields=["is_email_verified", "email_verified_at"])
+        EmailOTP.objects.filter(profile=profile).delete()
+        request.session.pop("pending_email_verification_user_id", None)
+
+        messages.success(request, "Email verified successfully! You can log in now.")
+        return redirect("login")
+
+    return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+
+
+@ratelimit(key="ip", rate="10/m", method="POST", block=True)
+def resend_email_otp_view(request):
+    if request.method != "POST":
+        return redirect("verify_email_otp")
+
+    user_id = request.session.get("pending_email_verification_user_id")
+    if not user_id:
+        messages.error(request, "No pending email verification found.")
+        return redirect("register")
+
+    user = get_object_or_404(User, id=user_id)
+    profile = getattr(user, "profile", None)
+    if not profile or not profile.email:
+        messages.error(request, "Email not found for verification.")
+        return redirect("register")
+
+    if profile.is_email_verified:
+        request.session.pop("pending_email_verification_user_id", None)
+        messages.success(request, "Email already verified.")
+        return redirect("login")
+
+    cooldown = int(getattr(settings, "EMAIL_OTP_RESEND_COOLDOWN_SECONDS", 60))
+    now = timezone.now()
+    try:
+        rec = profile.email_otp
+        if rec.last_sent_at and (now - rec.last_sent_at).total_seconds() < cooldown:
+            wait = int(cooldown - (now - rec.last_sent_at).total_seconds())
+            messages.error(request, f"Please wait {wait} seconds before requesting another OTP.")
+            return redirect("verify_email_otp")
+    except EmailOTP.DoesNotExist:
+        pass
+
+    _send_email_otp(profile)
+    messages.success(request, "A new OTP has been sent to your email.")
+    return redirect("verify_email_otp")
 
 
 # --- BASIC PAGES ---

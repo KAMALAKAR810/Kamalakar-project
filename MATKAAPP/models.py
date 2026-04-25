@@ -38,6 +38,14 @@ class Profile(models.Model):
         editable=False,
         help_text="Public ID e.g. KMWU0001",
     )
+    email = models.EmailField(
+        blank=True,
+        null=True,
+        unique=True,
+        help_text="User email (Yahoo/Gmail/etc) used for OTP verification.",
+    )
+    is_email_verified = models.BooleanField(default=False)
+    email_verified_at = models.DateTimeField(blank=True, null=True)
     mobile = models.CharField(
         max_length=15,
         blank=True,
@@ -73,6 +81,23 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+
+class EmailOTP(models.Model):
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="email_otp")
+    otp_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    last_sent_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["expires_at"]),
+            models.Index(fields=["last_sent_at"]),
+        ]
+
+    def __str__(self):
+        return f"EmailOTP({self.profile.user.username})"
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
