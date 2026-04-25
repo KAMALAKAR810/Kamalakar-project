@@ -90,7 +90,7 @@ else:
 # Axes Settings
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # 1 hour cooloff
-AXES_LOCKOUT_TEMPLATE = 'lockout.html'
+AXES_LOCKOUT_TEMPLATE = 'auth/lockout.html'
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCK_OUT_AT_FAILURE = True
 

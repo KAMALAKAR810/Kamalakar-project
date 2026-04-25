@@ -58,7 +58,7 @@ def admin_2fa_view(request):
             else:
                 messages.error(request, "Incorrect answer!")
             
-    return render(request, 'admin_2fa.html', {
+    return render(request, 'auth/admin_2fa.html', {
         'profile': profile,
         'page_title': 'Admin 2FA Verification'
     })
@@ -85,7 +85,7 @@ def update_admin_security_view(request):
         messages.success(request, "Security settings updated successfully!")
         return redirect('admin_summary')
         
-    return render(request, 'update_admin_security.html', {
+    return render(request, 'auth/update_admin_security.html', {
         'profile': profile,
         'page_title': 'Update Admin Security'
     })
@@ -98,7 +98,7 @@ def notifications_view(request):
     notifications = request.user.notifications.all()
     # Mark all as read when viewing
     notifications.filter(is_read=False).update(is_read=True)
-    return render(request, 'notifications.html', {
+    return render(request, 'user/notifications.html', {
         'notifications': notifications,
         'page_title': 'My Notifications'
     })
@@ -182,7 +182,7 @@ def wallet_view(request):
         messages.success(request, f"Withdrawal request for ₹{amount} submitted!")
         return redirect('wallet_history')
         
-    return render(request, 'wallet.html', {
+    return render(request, 'user/wallet.html', {
         'page_title': 'My Wallet & Withdraw'
     })
 
@@ -192,7 +192,7 @@ def wallet_history_view(request):
     """User can see their wallet transactions and withdrawal status."""
     transactions = Transaction.objects.filter(wallet=request.user.wallet).order_by('-created_at')
     withdrawals = WithdrawalRequest.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'wallet_history.html', {
+    return render(request, 'user/wallet_history.html', {
         'transactions': transactions,
         'withdrawals': withdrawals
     })
@@ -235,7 +235,7 @@ def admin_withdrawal_management(request):
         return redirect('admin_withdrawal_management')
         
     requests = WithdrawalRequest.objects.all().order_by('-created_at')
-    return render(request, 'admin_withdrawal_management.html', {'withdrawal_requests': requests})
+    return render(request, 'admin/admin_withdrawal_management.html', {'withdrawal_requests': requests})
 
 def _markets_betting_payload():
     """Per-market OPEN/CLOSE windows for UI locks (matches Market.is_betting_allowed)."""
@@ -366,9 +366,9 @@ def login_view(request):
                 return JsonResponse({'status': 'error', 'message': 'Invalid username or password.'})
             
             messages.error(request, "Invalid username or password.")
-            return render(request, 'login.html', {'enable_captcha': enable_captcha})
+            return render(request, 'auth/login.html', {'enable_captcha': enable_captcha})
 
-    return render(request, 'login.html', {'enable_captcha': enable_captcha})
+    return render(request, 'auth/login.html', {'enable_captcha': enable_captcha})
 
 
 def logout_view(request):
@@ -405,7 +405,7 @@ def register_view(request):
         # Honeypot — bots often fill hidden fields
         if request.POST.get("website", "").strip():
             messages.error(request, "Registration could not be completed.")
-            return render(request, 'register.html', {'enable_captcha': enable_captcha})
+            return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
 
         name = (request.POST.get('name') or '').strip()
         user_n = (request.POST.get('username') or '').strip()
@@ -415,32 +415,32 @@ def register_view(request):
         
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
-            return render(request, 'register.html', {
+            return render(request, 'auth/register.html', {
                 'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if psw != psw2:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'register.html', {
+            return render(request, 'auth/register.html', {
                 'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         mobile_digits, mobile_err = _normalize_indian_mobile(mob)
         if mobile_err:
             messages.error(request, mobile_err)
-            return render(request, 'register.html', {
+            return render(request, 'auth/register.html', {
                 'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if User.objects.filter(username__iexact=user_n).exists():
             messages.error(request, "Username already taken.")
-            return render(request, 'register.html', {
+            return render(request, 'auth/register.html', {
                 'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
         if Profile.objects.filter(mobile=mobile_digits).exists():
             messages.error(request, "This mobile number is already registered.")
-            return render(request, 'register.html', {
+            return render(request, 'auth/register.html', {
                 'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
@@ -450,7 +450,7 @@ def register_view(request):
         except ValidationError as e:
             for msg in e.messages:
                 messages.error(request, msg)
-            return render(request, 'register.html', {
+            return render(request, 'auth/register.html', {
                 'name': name, 'username': user_n, 'mobile': mob, 'enable_captcha': enable_captcha
             })
 
@@ -498,29 +498,29 @@ def register_view(request):
                     messages.error(request, msg)
             else:
                 messages.error(request, "Username or mobile is already in use. Please try again.")
-            return render(request, 'register.html', {'enable_captcha': enable_captcha})
+            return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
 
         messages.success(
             request,
             f"Registration successful! Welcome to ChangeLifeWithNumbers {user_n}. You can log in now.",
         )
         return redirect('login')
-    return render(request, 'register.html', {'enable_captcha': enable_captcha})
+    return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
 
 
 # --- BASIC PAGES ---
 
 def error_404(request, exception):
-    return render(request, 'error.html', status=404)
+    return render(request, 'errors/error.html', status=404)
 
 def error_500(request):
-    return render(request, 'error.html', status=500)
+    return render(request, 'errors/error.html', status=500)
 
 def error_403(request, exception):
-    return render(request, 'error.html', status=403)
+    return render(request, 'errors/error.html', status=403)
 
 def error_400(request, exception):
-    return render(request, 'error.html', status=400)
+    return render(request, 'errors/error.html', status=400)
 
 def ratelimit_exceeded(request, exception=None):
     is_ajax = (
@@ -532,16 +532,16 @@ def ratelimit_exceeded(request, exception=None):
             {"status": "error", "message": "Too many requests. Please wait and try again."},
             status=429,
         )
-    return render(request, "429.html", status=429)
+    return render(request, "errors/429.html", status=429)
 
 def display(request):
-    return render(request, 'display_page.html', {'markets': Market.objects.all()})
+    return render(request, 'user/display_page.html', {'markets': Market.objects.all()})
 
 
 def user_home(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('admin_summary')
-    return render(request, 'user_home.html', {
+    return render(request, 'user/user_home.html', {
         'markets': Market.objects.all(),
         'page_title': 'Home Page'
     })
@@ -549,14 +549,14 @@ def user_home(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_home(request):
-    return render(request, 'admin_home.html', {
+    return render(request, 'admin/admin_home.html', {
         'markets': Market.objects.all(),
         'page_title': 'Admin Home'
     })
 
 
 def error(request):
-    return render(request, 'error.html')
+    return render(request, 'errors/error.html')
 
 
 # --- UNIFIED BET PLACEMENT ENGINE ---
@@ -667,7 +667,7 @@ def place_bet(request):
 def single(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('admin_summary')
-    return render(request, "single.html", {
+    return render(request, "user/single.html", {
         "markets": Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
         "game_title": "SINGLE",
@@ -679,7 +679,7 @@ def single(request):
 def jodi(request):
     if request.user.is_superuser:
         return redirect('admin_summary')
-    return render(request, 'jodi.html', {
+    return render(request, 'user/jodi.html', {
         'markets': Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
         'game_title': 'JODI',
@@ -691,7 +691,7 @@ def jodi(request):
 def single_pathi(request):
     if request.user.is_superuser:
         return redirect('admin_summary')
-    return render(request, "single_pathi.html", {
+    return render(request, "user/single_pathi.html", {
         "markets": Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
         "game_title": "SINGLE PATTI",
@@ -704,7 +704,7 @@ def single_pathi(request):
 def double_pathi(request):
     if request.user.is_superuser:
         return redirect('admin_summary')
-    return render(request, 'single_pathi.html', {
+    return render(request, 'user/single_pathi.html', {
         'markets': Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
         'game_title': 'DOUBLE PATTI',
@@ -717,7 +717,7 @@ def double_pathi(request):
 def tripple_pathi(request):
     if request.user.is_superuser:
         return redirect('admin_summary')
-    return render(request, 'single_pathi.html', {
+    return render(request, 'user/single_pathi.html', {
         'markets': Market.objects.all(),
         "markets_betting": _markets_betting_payload(),
         'game_title': 'TRIPPLE PATTI',
@@ -777,7 +777,7 @@ def bet_history(request):
 
     markets = Market.objects.all()
     
-    return render(request, 'bet_history.html', {
+    return render(request, 'user/bet_history.html', {
         'user_bets': bets,
         'markets': markets,
         'total_betted': total_betted,
@@ -812,7 +812,7 @@ def admin_bet_history(request):
     markets = Market.objects.all()
     all_users = User.objects.exclude(is_superuser=True).select_related('profile')
 
-    return render(request, 'admin_bet_history.html', {
+    return render(request, 'admin/admin_bet_history.html', {
         'bets': bets,
         'markets': markets,
         'all_users': all_users,
@@ -884,7 +884,7 @@ def declare_result(request):
         messages.success(request, f"Results updated for {market.name} successfully!")
         return redirect('declare_result')
         
-    return render(request, 'admin_declare_result.html', {'markets': markets})
+    return render(request, 'admin/admin_declare_result.html', {'markets': markets})
 
 
 def calculate_winners(market, session_to_calculate=None):
@@ -1026,7 +1026,7 @@ def jodi_winners_view(request):
         winners = winners.filter(created_at__date=date_filter)
         
     markets = Market.objects.all()
-    return render(request, 'jodi_winners.html', {
+    return render(request, 'admin/jodi_winners.html', {
         'winners': winners,
         'markets': markets,
         'selected_market_id': market_id,
@@ -1065,7 +1065,7 @@ def winners_list(request):
     else:
         latest_result = Market.objects.exclude(open_single__isnull=True).order_by('-id').first()
 
-    return render(request, 'admin_winners.html', {
+    return render(request, 'admin/admin_winners.html', {
         'winners': winners,
         'markets': markets,
         'latest_result': latest_result,
@@ -1121,7 +1121,7 @@ def organize_data_view(request):
         }
         table_rows.append(row)
 
-    return render(request, 'organize_data.html', {
+    return render(request, 'admin/organize_data.html', {
         'markets': markets,
         'selected_market_id': selected_market_id,
         'selected_session': selected_session,
@@ -1183,7 +1183,7 @@ def admin_report(request):
     markets = Market.objects.all()
     all_users = User.objects.exclude(is_superuser=True).select_related('profile')
     
-    return render(request, 'admin_report.html', {
+    return render(request, 'admin/admin_report.html', {
         'report_data': report_data,
         'markets': markets,
         'all_users': all_users,
@@ -1319,7 +1319,7 @@ def admin_summary(request):
     # Recent Transactions (Last 10)
     recent_txns = Transaction.objects.select_related('wallet__user').order_by('-created_at')[:10]
 
-    return render(request, "admin_summary.html", {
+    return render(request, "admin/admin_summary.html", {
         "page_title": "Admin Dashboard",
         "today": today,
         "total_users": total_users,
@@ -1436,7 +1436,7 @@ def admin_user_activity(request):
     if refund_count > 0:
         messages.info(request, f"Processed {refund_count} pending bet refunds automatically.")
 
-    return render(request, 'admin_user_activity.html', {
+    return render(request, 'admin/admin_user_activity.html', {
         'activities': activities,
         'page_title': 'User Activity Logs'
     })
@@ -1448,7 +1448,7 @@ def admin_user_management(request):
     profiles = Profile.objects.select_related('user').all().order_by('-created_at')
     # Mark all as seen when admin visits this page
     Profile.objects.filter(is_new=True).update(is_new=False)
-    return render(request, 'admin_user_management.html', {
+    return render(request, 'admin/admin_user_management.html', {
         'profiles': profiles,
         'page_title': 'User Management'
     })
@@ -1476,7 +1476,7 @@ def admin_chat_list(request):
         unread_count=Count('sent_messages', filter=Q(sent_messages__receiver=request.user, sent_messages__is_read=False))
     ).order_by('-last_message_at')
     
-    return render(request, 'admin_chat_list.html', {
+    return render(request, 'admin/admin_chat_list.html', {
         'users': users,
         'search_query': search_query
     })
@@ -1545,7 +1545,7 @@ def chat_view(request, user_id=None):
             grouped_messages[date_str] = []
         grouped_messages[date_str].append(msg)
 
-    return render(request, 'chat.html', {
+    return render(request, 'user/chat.html', {
         'other_user': other_user,
         'grouped_messages': grouped_messages,
         'today_date': timezone.now().date().strftime('%Y-%m-%d'),
@@ -1591,7 +1591,7 @@ def payment_page(request):
             # Generate UPI URL with natural note
             upi_url = f"upi://pay?pa={upi_id}&pn={payee_name}&am={amount}&cu=INR"
             
-            return render(request, 'payment_qr.html', {
+            return render(request, 'user/payment_qr.html', {
                 'amount': amount,
                 'upi_url': upi_url
             })
@@ -1621,7 +1621,7 @@ def payment_page(request):
 
     # Standard GET: Show initial amount entry form
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    return render(request, 'payment.html', {
+    return render(request, 'user/payment.html', {
         'username': request.user.username,
         'mobile': profile.mobile or "Not set",
         'user_code': profile.user_code or "N/A"
@@ -1733,7 +1733,7 @@ def admin_payment_management(request):
     # Get approved history
     recent_approved = DepositRequest.objects.filter(status='APPROVED').order_by('-updated_at')[:20]
 
-    return render(request, 'admin_payment_management.html', {
+    return render(request, 'admin/admin_payment_management.html', {
         'active_upi': active_config.upi_id if active_config else '',
         'active_payee': active_config.payee_name if active_config else '',
         'pending_deposits': pending_deposits,
@@ -1784,7 +1784,7 @@ def market_history_view(request):
     View for admin to see all archived market history.
     """
     history = MarketHistory.objects.select_related('market').all()
-    return render(request, 'admin_market_history.html', {'history': history})
+    return render(request, 'admin/admin_market_history.html', {'history': history})
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -1819,12 +1819,12 @@ def manage_markets(request):
         messages.success(request, f"Market '{name}' created successfully!")
         return redirect('manage_markets')
         
-    return render(request, "manage_markets.html", {"markets": Market.objects.all().order_by('name')})
+    return render(request, "admin/manage_markets.html", {"markets": Market.objects.all().order_by('name')})
 
 
 @user_passes_test(lambda u: u.is_staff)
 def market_bets(request):
-    return render(request, "market_bets.html", {"bets": Bet.objects.all()})
+    return render(request, "admin/market_bets.html", {"bets": Bet.objects.all()})
 
 
 
