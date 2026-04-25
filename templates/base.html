@@ -1209,33 +1209,6 @@
         }
     </style>
     <style>
-        /* ── SECURITY WATERMARK ── */
-        .security-watermark {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.07;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            align-content: space-around;
-            overflow: hidden;
-            user-select: none;
-        }
-        .watermark-item {
-            transform: rotate(-30deg);
-            font-size: 14px;
-            font-weight: 800;
-            color: #000;
-            white-space: nowrap;
-            padding: 50px;
-        }
-        body.dark-mode .watermark-item { color: #fff; }
-
         /* ── SUSPICIOUS ACTIVITY BANNER ── */
         #security-warning-banner {
             position: fixed;
@@ -1339,7 +1312,13 @@
             <a href="{% url 'user_home' %}" class="logo-section">
                 <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
                 <div class="site-name">
-                    {% if page_title %}{{ page_title }}{% else %}ChangeLifeWithNumbers{% endif %}
+                    {% if request.resolver_match.url_name == 'user_home' %}
+                        Change Life With Numbers
+                    {% elif page_title %}
+                        {{ page_title }}
+                    {% else %}
+                        ChangeLifeWithNumbers
+                    {% endif %}
                     <span>{% if page_title %}Experience the power of prediction{% else %}Experience the power of prediction{% endif %}</span>
                 </div>
             </a>
@@ -1896,10 +1875,6 @@
 
     <div id="security-warning-banner">SUSPICIOUS SCREEN ACTIVITY DETECTED - ACCESS RESTRICTED</div>
 
-    <div class="security-watermark" id="watermark-overlay">
-        <!-- Dynamic items will be added here -->
-    </div>
-
     <div class="security-privacy-shield" id="security-privacy-shield" aria-hidden="true">
         <div>
             <h3>PRIVACY PROTECTION ENABLED</h3>
@@ -1915,48 +1890,6 @@
 
     <!-- Strict Security Restrictions Script -->
     <script>
-        // 1. Initialize Watermark (user + session + page)
-        function initWatermark() {
-            const overlay = document.getElementById('watermark-overlay');
-            if (!overlay) return;
-
-            const serverSession = (document.body && document.body.dataset.session) ? document.body.dataset.session : "";
-            const clientSession = (function () {
-                try {
-                    const k = 'sec_client_session';
-                    const existing = sessionStorage.getItem(k);
-                    if (existing) return existing;
-                    const v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + '_' + Math.random().toString(16).slice(2);
-                    sessionStorage.setItem(k, v);
-                    return v;
-                } catch {
-                    return String(Date.now());
-                }
-            })();
-
-            const userPart = (function () {
-                const authed = document.body && document.body.dataset.authenticated === '1';
-                if (!authed) return "GUEST";
-                const u = (document.body.dataset.username || 'USER').trim();
-                const id = (document.body.dataset.userid || '').trim();
-                return id ? `${u}#${id}` : u;
-            })();
-            const sessionPart = (serverSession || clientSession).slice(0, 12);
-            const pagePart = (function () {
-                const t = (document.title || '').replace(/\s+/g, ' ').trim();
-                return t ? t : window.location.pathname;
-            })();
-
-            const info = `${userPart} | S:${sessionPart} | ${pagePart}`;
-            for (let i = 0; i < 40; i++) {
-                const item = document.createElement('div');
-                item.className = 'watermark-item';
-                item.innerText = info;
-                overlay.appendChild(item);
-            }
-        }
-        initWatermark();
-
         // 2. Disable Right Click
         document.addEventListener('contextmenu', event => event.preventDefault());
 
