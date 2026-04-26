@@ -317,9 +317,6 @@ def login_view(request):
             return redirect('admin_home')
         return redirect('user_home')
     
-    settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-
     if request.method == 'POST':
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
         is_ajax = request.content_type == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -385,9 +382,9 @@ def login_view(request):
                 return JsonResponse({'status': 'error', 'message': 'Invalid username or password.'})
             
             messages.error(request, "Invalid username or password.")
-            return render(request, 'auth/login.html', {'enable_captcha': enable_captcha})
+            return render(request, 'auth/login.html')
 
-    return render(request, 'auth/login.html', {'enable_captcha': enable_captcha})
+    return render(request, 'auth/login.html')
 
 
 def logout_view(request):
@@ -2028,15 +2025,11 @@ from django.shortcuts import render
 from .forms import MyContactForm
 
 def contact_view(request):
-    settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    
     if request.method == 'POST':
         form = MyContactForm(request.POST)
         if form.is_valid():
-            # If we are here, Google has already confirmed they are human (if enabled)!
             return render(request, 'success.html')
     else:
         form = MyContactForm()
     
-    return render(request, 'contact.html', {'form': form, 'enable_captcha': enable_captcha})
+    return render(request, 'contact.html', {'form': form})
