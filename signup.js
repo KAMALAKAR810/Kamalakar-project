@@ -39,19 +39,19 @@ function verifyPassword(password, storedHash) {
   return crypto.timingSafeEqual(expected, candidate);
 }
 
-const smtpUser = process.env.YAHOO_SMTP_USER;
-const smtpPass = process.env.YAHOO_SMTP_APP_PASSWORD;
+const smtpUser = process.env.EMAIL_HOST_USER;
+const smtpPass = process.env.EMAIL_HOST_PASSWORD;
 if (!smtpUser || !smtpPass) {
-  throw new Error("Missing SMTP credentials. Set YAHOO_SMTP_USER and YAHOO_SMTP_APP_PASSWORD.");
+  throw new Error("Missing SMTP credentials. Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD.");
 }
 if (!JWT_SECRET) {
   throw new Error("Missing JWT secret. Set JWT_SECRET in environment.");
 }
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.mail.yahoo.com",
-  port: 465,
-  secure: true,
+  host: process.env.EMAIL_HOST || "smtp.gmail.com",
+  port: Number(process.env.EMAIL_PORT || 587),
+  secure: String(process.env.EMAIL_USE_SSL || "false").toLowerCase() === "true",
   auth: {
     user: smtpUser,
     pass: smtpPass,

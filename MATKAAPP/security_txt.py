@@ -6,7 +6,7 @@ def security_txt(request):
     host = request.get_host()
     body = "\n".join(
         [
-            "Contact: mailto:ChangeLifeWithNumbers@yahoo.com",
+            "Contact: mailto:ChangeLifeWithNumbers@gmail.com",
             "Expires: 2027-01-01T00:00:00.000Z",
             "Preferred-Languages: en, hi",
             f"Policy: https://{host}/terms/",
