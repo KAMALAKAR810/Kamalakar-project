@@ -445,13 +445,19 @@ def _send_email_otp(profile: Profile):
         },
     )
 
-    send_mail(
-        subject="Your verification OTP",
-        message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[profile.email],
-        fail_silently=False,
-    )
+    try:
+        send_mail(
+            subject="Your verification OTP",
+            message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[profile.email],
+            fail_silently=False,
+        )
+    except Exception:
+        # Surface a clean user-facing error and avoid a 500.
+        raise ValidationError(
+            "We could not send the OTP email right now. Please try again in a minute or contact support."
+        )
     return ttl
 
 

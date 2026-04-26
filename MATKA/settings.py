@@ -231,17 +231,26 @@ CSRF_FAILURE_VIEW = "MATKAAPP.views.csrf_failure"
 # Optional: allow disabling captcha during automated scans only
 CAPTCHA_DISABLED = os.getenv("CAPTCHA_DISABLED", "False") == "True"
 
-# --- Email (Yahoo SMTP) ---
-# Uses Yahoo Mail app password. See .env.example for variable names.
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.mail.yahoo.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True") == "True"
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False") == "True"
-EMAIL_HOST_USER = os.getenv("YAHOO_SMTP_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("YAHOO_SMTP_APP_PASSWORD", "")
+# --- Email (Gmail SMTP by default; PythonAnywhere-friendly) ---
+# Recommended for PythonAnywhere (especially free tier): Gmail SMTP on 587/TLS.
+# Set these env vars in PythonAnywhere Web tab:
+# - EMAIL_HOST_USER, EMAIL_HOST_PASSWORD (Gmail App Password), DEFAULT_FROM_EMAIL (optional)
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
+
+# Prefer generic env vars; keep Yahoo legacy vars as fallback.
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", os.getenv("YAHOO_SMTP_USER", ""))
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", os.getenv("YAHOO_SMTP_APP_PASSWORD", ""))
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@example.com")
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
+
+# In local development, default to console backend if SMTP isn't configured.
+# This prevents signup/OTP from crashing when no mail server is reachable.
+if DEBUG and not EMAIL_HOST_USER and not EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # --- Email OTP settings ---
 EMAIL_OTP_TTL_SECONDS = int(os.getenv("EMAIL_OTP_TTL_SECONDS", os.getenv("OTP_TTL_SECONDS", "300")))
