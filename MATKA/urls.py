@@ -4,11 +4,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'logo.jpeg')),
     path('secure-admin-5266/', admin.site.urls),
     path('', include('MATKAAPP.urls')),
-
 ] 
 
 handler404 = 'MATKAAPP.views.error_404'
