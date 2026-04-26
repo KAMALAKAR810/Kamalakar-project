@@ -1923,8 +1923,10 @@
         const PRIVACY_SHIELD_ID = 'security-privacy-shield';
 
         function setPrivacyShield(on, reason) {
+            // Disable protection during reCAPTCHA or on Auth pages (Signup/Login)
             const captcha = document.getElementById('captcha-overlay');
             if (captcha && captcha.style.display === 'flex') return;
+            if (document.getElementById('auth-page-flag')) return;
 
             const shield = document.getElementById(PRIVACY_SHIELD_ID);
             const hasExplicitSensitive = !!document.querySelector('.security-sensitive,[data-sensitive="true"]');
@@ -1991,6 +1993,7 @@
 
         function isSuspiciousNode(node) {
             if (!node || node.nodeType !== 1) return false;
+            
             const el = node;
             const tag = (el.tagName || '').toLowerCase();
             const id = (el.id || '').toLowerCase();
@@ -1998,6 +2001,12 @@
 
             const attrSrc = (el.getAttribute && (el.getAttribute('src') || el.getAttribute('href') || '')) || '';
             const src = String(attrSrc).toLowerCase();
+
+            // Ignore reCAPTCHA nodes
+            if (src.includes('google.com/recaptcha') || src.includes('gstatic.com/recaptcha') || cls.includes('g-recaptcha')) {
+                return false;
+            }
+
             const inline = (el.getAttribute && (el.getAttribute('style') || '')) || '';
 
             if (EXT_PROTOCOLS.some(p => src.includes(p))) return true;
@@ -2047,8 +2056,10 @@
 
         // 8. Security Block Trigger (warn + temporary overlay)
         function triggerSecurityBlock(reason = 'Suspicious Activity') {
+            // Disable protection during reCAPTCHA or on Auth pages (Signup/Login)
             const captcha = document.getElementById('captcha-overlay');
             if (captcha && captcha.style.display === 'flex') return;
+            if (document.getElementById('auth-page-flag')) return;
 
             const banner = document.getElementById('security-warning-banner');
             const blocker = document.getElementById('security-blocker');
