@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_recaptcha",
     "axes",
     "MATKAAPP",
 ]
@@ -211,18 +210,6 @@ LOGIN_REDIRECT_URL = "user_home"  # Where to redirect after login
 LOGOUT_REDIRECT_URL = "user_home"  # Where to redirect after logout
 
 
-# Google reCAPTCHA Keys
-# Use Google test keys in DEBUG/local to avoid "Invalid site key" lockouts.
-# In production, set real values via environment variables.
-RECAPTCHA_PUBLIC_KEY = (os.getenv("RECAPTCHA_PUBLIC_KEY", "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT") or "").strip().strip('"').strip("'")
-RECAPTCHA_PRIVATE_KEY = (os.getenv("RECAPTCHA_PRIVATE_KEY", "6LdBk8ssAAAAAN60vJ9zIlqIKI-IgJ7Pt6RLnHZe") or "").strip().strip('"').strip("'")
-
-# Optional: PythonAnywhere usually works fine, but you can force
-# the use of HTTPS for the verification request:
-RECAPTCHA_USE_SSL = True
-RECAPTCHA_VERIFY_TIMEOUT = 10
-RECAPTCHA_OPTIONS = {"theme": "light"}  # for django-recaptcha
-
 # Trust origins when behind a proxy/domain (needed to avoid CSRF false 403s on production).
 # Example: CSRF_TRUSTED_ORIGINS="https://changelifewithnumbers.pythonanywhere.com"
 CSRF_TRUSTED_ORIGINS_ENV = os.getenv("CSRF_TRUSTED_ORIGINS", "")
@@ -230,9 +217,6 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS_ENV.split(",") i
 
 # Custom CSRF failure handler (shows friendly page; still 403).
 CSRF_FAILURE_VIEW = "MATKAAPP.views.csrf_failure"
-
-# Optional: allow disabling captcha during automated scans only
-CAPTCHA_DISABLED = os.getenv("CAPTCHA_DISABLED", "False") == "True"
 
 # --- Email (provider-agnostic; free-tier hosting friendly) ---
 # Supports:

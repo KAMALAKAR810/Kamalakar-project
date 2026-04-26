@@ -30,31 +30,6 @@ import secrets
 from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
 import uuid
 
-RECAPTCHA_TEST_PUBLIC_KEY = "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT"
-RECAPTCHA_TEST_PRIVATE_KEY = "6LdBk8ssAAAAAN60vJ9zIlqIKI-IgJ7Pt6RLnHZe"
-
-
-def _is_local_request_host(request):
-    """Detect localhost/dev hosts where domain-restricted production keys fail."""
-    if not request:
-        return False
-    try:
-        host = (request.get_host() or "").split(":")[0].strip().lower()
-    except Exception:
-        return False
-    if not host:
-        return False
-    return host in {"localhost", "127.0.0.1", "::1"} or host.endswith(".localhost") or host.endswith(".local")
-
-
-def _recaptcha_keys_for_request(request=None):
-    """Use test keys for local host; production keys otherwise."""
-    public_key = (getattr(settings, "RECAPTCHA_PUBLIC_KEY", "") or "").strip()
-    private_key = (getattr(settings, "RECAPTCHA_PRIVATE_KEY", "") or "").strip()
-    if _is_local_request_host(request):
-        return RECAPTCHA_TEST_PUBLIC_KEY, RECAPTCHA_TEST_PRIVATE_KEY
-    return public_key, private_key
-
 
 @login_required
 def admin_2fa_view(request):
@@ -281,14 +256,7 @@ def _markets_betting_payload():
 
 def _get_admin_notifications(request):
     """Context processor for admin notification dots. Must accept 'request'."""
-    settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    recaptcha_public_key, _ = _recaptcha_keys_for_request(request)
-    
-    context = {
-        'enable_captcha': enable_captcha,
-        'recaptcha_public_key': recaptcha_public_key,
-    }
+    context = {}
     
     # Safety check: ensure 'user' attribute exists before accessing it
     if hasattr(request, 'user') and request.user.is_authenticated:
@@ -489,51 +457,13 @@ def _send_email_otp(profile: Profile):
     return ttl
 
 
-def _verify_recaptcha_token(token: str, request=None, remote_ip: str | None = None):
-    """Return True when Google verifies the captcha token."""
-    if getattr(settings, "CAPTCHA_DISABLED", False):
-        return True
-
-    _, secret_key = _recaptcha_keys_for_request(request)
-    if not secret_key:
-        return False
-
-    if not token:
-        return False
-
-    payload = {
-        "secret": secret_key,
-        "response": token,
-    }
-    if remote_ip:
-        payload["remoteip"] = remote_ip
-
-    try:
-        resp = requests.post(
-            "https://www.google.com/recaptcha/api/siteverify",
-            data=payload,
-            timeout=int(getattr(settings, "RECAPTCHA_VERIFY_TIMEOUT", 10)),
-        )
-        data = resp.json() if resp.ok else {}
-        return bool(data.get("success"))
-    except requests.RequestException:
-        return False
-
-
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('user_home')
 
-    settings_obj = SiteSettings.objects.first()
-    enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
-    recaptcha_public_key, _ = _recaptcha_keys_for_request(request)
-
     def _register_context(extra=None):
-        context = {
-            "enable_captcha": enable_captcha,
-            "recaptcha_public_key": recaptcha_public_key,
-        }
+        context = {}
         if extra:
             context.update(extra)
         return context
@@ -543,17 +473,6 @@ def register_view(request):
         if request.POST.get("website", "").strip():
             messages.error(request, "Registration could not be completed.")
             return render(request, 'auth/register.html', _register_context())
-
-        if enable_captcha and not getattr(settings, "CAPTCHA_DISABLED", False):
-            recaptcha_token = request.POST.get("g-recaptcha-response", "").strip()
-            is_human = _verify_recaptcha_token(
-                recaptcha_token,
-                request=request,
-                remote_ip=request.META.get("REMOTE_ADDR"),
-            )
-            if not is_human:
-                messages.error(request, "Please verify that you are not a robot.")
-                return render(request, 'auth/register.html', _register_context())
 
         name = (request.POST.get('name') or '').strip()
         user_n = (request.POST.get('username') or '').strip()
@@ -565,20 +484,20 @@ def register_view(request):
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         if psw != psw2:
             messages.error(request, "Passwords do not match.")
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         email_norm, email_err = _normalize_email(email_raw)
         if email_err:
             messages.error(request, email_err)
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         mobile_digits, mobile_err = _normalize_indian_mobile(mob)
