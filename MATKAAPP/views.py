@@ -257,9 +257,11 @@ def _get_admin_notifications(request):
     """Context processor for admin notification dots. Must accept 'request'."""
     settings_obj = SiteSettings.objects.first()
     enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    recaptcha_public_key = (getattr(settings, "RECAPTCHA_PUBLIC_KEY", "") or "").strip()
     
     context = {
-        'enable_captcha': enable_captcha
+        'enable_captcha': enable_captcha,
+        'recaptcha_public_key': recaptcha_public_key,
     }
     
     # Safety check: ensure 'user' attribute exists before accessing it
