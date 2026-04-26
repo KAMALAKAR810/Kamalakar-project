@@ -214,12 +214,8 @@ LOGOUT_REDIRECT_URL = "user_home"  # Where to redirect after logout
 # Google reCAPTCHA Keys
 # Use Google test keys in DEBUG/local to avoid "Invalid site key" lockouts.
 # In production, set real values via environment variables.
-if DEBUG:
-    RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", "6LdqhcssAAAAAcSeywb9qi0ODaclvYcxtfZR3U4")
-    RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "6LdqhcssAAAAAJKQbRIU6UJnt5bp5Fa_aZq6eOj")
-else:
-    RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", "6LdqhcssAAAAAcSeywb9qi0ODaclvYcxtfZR3U4")
-    RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "6LdqhcssAAAAAJKQbRIU6UJnt5bp5Fa_aZq6eOj")
+RECAPTCHA_PUBLIC_KEY = (os.getenv("RECAPTCHA_PUBLIC_KEY", "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT") or "").strip().strip('"').strip("'")
+RECAPTCHA_PRIVATE_KEY = (os.getenv("RECAPTCHA_PRIVATE_KEY", "6LdBk8ssAAAAAN60vJ9zIlqIKI-IgJ7Pt6RLnHZe") or "").strip().strip('"').strip("'")
 
 # Optional: PythonAnywhere usually works fine, but you can force
 # the use of HTTPS for the verification request:
