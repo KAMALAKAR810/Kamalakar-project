@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.utils import timezone
-from .models import Profile, Wallet, Market, Bet, Transaction, RegistrationCounter, Message, Notification, PaymentSettings, WithdrawalRequest, DepositRequest, UserActivity, SiteSettings
-
+from .models import Profile, Wallet, Market, Bet, Transaction, RegistrationCounter, Message, Notification, PaymentSettings, WithdrawalRequest, DepositRequest, UserActivity
 
 @admin.register(UserActivity)
 class UserActivityAdmin(admin.ModelAdmin):
@@ -123,13 +122,6 @@ class NotificationAdmin(admin.ModelAdmin):
 class PaymentSettingsAdmin(admin.ModelAdmin):
     list_display = ('upi_id', 'is_active', 'updated_at')
     list_editable = ('is_active',)
-
-
-@admin.register(SiteSettings)
-class SiteSettingsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'is_captcha_enabled', 'updated_at')
-    list_editable = ('is_captcha_enabled',)
-    list_display_links = ('id',)
 
 
 @admin.register(DepositRequest)

@@ -27,7 +27,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password, check_password
 import secrets
 
-from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
+from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity
 import uuid
 
 
@@ -501,25 +501,25 @@ def register_view(request):
         if mobile_err:
             messages.error(request, mobile_err)
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         if User.objects.filter(username__iexact=user_n).exists():
             messages.error(request, "Username already taken.")
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         if Profile.objects.filter(mobile=mobile_digits).exists():
             messages.error(request, "This mobile number is already registered.")
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         if Profile.objects.filter(email=email_norm).exists():
             messages.error(request, "This email is already registered.")
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         candidate = User(username=user_n, first_name=name)
@@ -529,7 +529,7 @@ def register_view(request):
             for msg in e.messages:
                 messages.error(request, msg)
             return render(request, 'auth/register.html', _register_context({
-                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
         try:

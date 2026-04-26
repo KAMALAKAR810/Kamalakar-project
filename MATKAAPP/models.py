@@ -336,13 +336,6 @@ class DepositRequest(models.Model):
     def __str__(self):
         return f"{self.user.username} - ₹{self.amount} (UTR: {self.utr_number})"
 
-class SiteSettings(models.Model):
-    is_captcha_enabled = models.BooleanField(default=True)  
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Site Settings (Captcha: {self.is_captcha_enabled})"
-
 class WithdrawalRequest(models.Model):
     """
     Task 13: Withdrawal requests from user.

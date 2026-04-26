@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block content %}
-<div data-page-type="auth" id="auth-page-flag"></div>
 <style>
     .auth-shell {
         min-height: calc(100vh - 250px);
@@ -205,12 +204,6 @@
         font-weight: 700;
     }
 
-    .captcha-wrap {
-        display: flex;
-        justify-content: center;
-        padding: 4px 0 2px;
-    }
-
     .auth-btn {
         width: 100%;
         background: var(--primary);
@@ -365,12 +358,6 @@
                         </label>
                     </div>
 
-                    {% if enable_captcha and recaptcha_public_key %}
-                    <div class="captcha-wrap">
-                        <div class="g-recaptcha" data-sitekey="{{ recaptcha_public_key }}"></div>
-                    </div>
-                    {% endif %}
-
                     <button type="submit" class="auth-btn">Create account</button>
                 </form>
             </div>
@@ -381,10 +368,6 @@
         </div>
     </div>
 </div>
-
-{% if enable_captcha and recaptcha_public_key %}
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-{% endif %}
 
 <script>
     const togglePassword = document.querySelector('#togglePassword');
@@ -421,10 +404,5 @@
             }
         });
     }
-
-    const registerForm = document.getElementById('register-form');
-    registerForm.addEventListener('submit', function (e) {
-        // reCAPTCHA is now global in base.html
-    });
 </script>
 {% endblock %}
