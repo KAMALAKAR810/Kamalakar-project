@@ -30,8 +30,8 @@ import secrets
 from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, SiteSettings
 import uuid
 
-RECAPTCHA_TEST_PUBLIC_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-RECAPTCHA_TEST_PRIVATE_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+RECAPTCHA_TEST_PUBLIC_KEY = "6LdqhcssAAAAAACSeywb9qiOODaclvYcxtfZR3U4"
+RECAPTCHA_TEST_PRIVATE_KEY = "6LdqhcssAAAAAJkQbRIIU6UJnt5bp5Fa_aZq6eOj"
 
 
 def _is_local_request_host(request):
