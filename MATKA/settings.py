@@ -211,8 +211,8 @@ LOGOUT_REDIRECT_URL = "user_home"  # Where to redirect after logout
 
 
 # Google reCAPTCHA Keys
-RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", "")
-RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "")
+RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", "6LfJp8osAAAAAG8ons3ZOCYNk9-QCPOTzyrkigWd")
+RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", "6LfJp8osAAAAAMRmBAo45ivenWTi7zAuwsN8xv_F")
 
 # Optional: PythonAnywhere usually works fine, but you can force
 # the use of HTTPS for the verification request:

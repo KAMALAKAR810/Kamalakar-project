@@ -461,6 +461,37 @@ def _send_email_otp(profile: Profile):
     return ttl
 
 
+def _verify_recaptcha_token(token: str, remote_ip: str | None = None):
+    """Return True when Google verifies the captcha token."""
+    if getattr(settings, "CAPTCHA_DISABLED", False):
+        return True
+
+    secret_key = (getattr(settings, "RECAPTCHA_PRIVATE_KEY", "") or "").strip()
+    if not secret_key:
+        return False
+
+    if not token:
+        return False
+
+    payload = {
+        "secret": secret_key,
+        "response": token,
+    }
+    if remote_ip:
+        payload["remoteip"] = remote_ip
+
+    try:
+        resp = requests.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data=payload,
+            timeout=int(getattr(settings, "RECAPTCHA_VERIFY_TIMEOUT", 10)),
+        )
+        data = resp.json() if resp.ok else {}
+        return bool(data.get("success"))
+    except requests.RequestException:
+        return False
+
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
     if request.user.is_authenticated:
@@ -468,12 +499,29 @@ def register_view(request):
 
     settings_obj = SiteSettings.objects.first()
     enable_captcha = settings_obj.is_captcha_enabled if settings_obj else True
+    recaptcha_public_key = (getattr(settings, "RECAPTCHA_PUBLIC_KEY", "") or "").strip()
+
+    def _register_context(extra=None):
+        context = {
+            "enable_captcha": enable_captcha,
+            "recaptcha_public_key": recaptcha_public_key,
+        }
+        if extra:
+            context.update(extra)
+        return context
 
     if request.method == 'POST':
         # Honeypot — bots often fill hidden fields
         if request.POST.get("website", "").strip():
             messages.error(request, "Registration could not be completed.")
-            return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
+            return render(request, 'auth/register.html', _register_context())
+
+        if enable_captcha and not getattr(settings, "CAPTCHA_DISABLED", False):
+            recaptcha_token = request.POST.get("g-recaptcha-response", "").strip()
+            is_human = _verify_recaptcha_token(recaptcha_token, request.META.get("REMOTE_ADDR"))
+            if not is_human:
+                messages.error(request, "Please verify that you are not a robot.")
+                return render(request, 'auth/register.html', _register_context())
 
         name = (request.POST.get('name') or '').strip()
         user_n = (request.POST.get('username') or '').strip()
@@ -484,47 +532,47 @@ def register_view(request):
         
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         if psw != psw2:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         email_norm, email_err = _normalize_email(email_raw)
         if email_err:
             messages.error(request, email_err)
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         mobile_digits, mobile_err = _normalize_indian_mobile(mob)
         if mobile_err:
             messages.error(request, mobile_err)
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         if User.objects.filter(username__iexact=user_n).exists():
             messages.error(request, "Username already taken.")
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         if Profile.objects.filter(mobile=mobile_digits).exists():
             messages.error(request, "This mobile number is already registered.")
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         if Profile.objects.filter(email=email_norm).exists():
             messages.error(request, "This email is already registered.")
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         candidate = User(username=user_n, first_name=name)
         try:
@@ -532,9 +580,9 @@ def register_view(request):
         except ValidationError as e:
             for msg in e.messages:
                 messages.error(request, msg)
-            return render(request, 'auth/register.html', {
+            return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob, 'enable_captcha': enable_captcha
-            })
+            }))
 
         try:
             with db_transaction.atomic():
@@ -586,11 +634,11 @@ def register_view(request):
                     messages.error(request, msg)
             else:
                 messages.error(request, "Username or mobile is already in use. Please try again.")
-            return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
+            return render(request, 'auth/register.html', _register_context())
 
         messages.success(request, "Registration successful! Please verify the OTP sent to your email.")
         return redirect('verify_email_otp')
-    return render(request, 'auth/register.html', {'enable_captcha': enable_captcha})
+    return render(request, 'auth/register.html', _register_context())
 
 
 @ratelimit(key="ip", rate="10/m", method="POST", block=True)
