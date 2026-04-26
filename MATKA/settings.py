@@ -238,19 +238,37 @@ CSRF_FAILURE_VIEW = "MATKAAPP.views.csrf_failure"
 # Optional: allow disabling captcha during automated scans only
 CAPTCHA_DISABLED = os.getenv("CAPTCHA_DISABLED", "False") == "True"
 
-# --- Email (Gmail SMTP by default; PythonAnywhere-friendly) ---
-# Recommended for PythonAnywhere (especially free tier): Gmail SMTP on 587/TLS.
-# Set these env vars in PythonAnywhere Web tab:
-# - EMAIL_HOST_USER, EMAIL_HOST_PASSWORD (Gmail App Password), DEFAULT_FROM_EMAIL (optional)
+# --- Email (provider-agnostic; free-tier hosting friendly) ---
+# Supports:
+# - EMAIL_PROVIDER=gmail    -> smtp.gmail.com + app password
+# - EMAIL_PROVIDER=sendgrid -> smtp.sendgrid.net + SENDGRID_API_KEY
+# - EMAIL_PROVIDER=smtp     -> fully custom SMTP via EMAIL_HOST/EMAIL_PORT/etc
+EMAIL_PROVIDER = (os.getenv("EMAIL_PROVIDER", "smtp") or "smtp").strip().lower()
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
 
-# Gmail SMTP credentials from environment.
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+if EMAIL_PROVIDER == "gmail":
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+elif EMAIL_PROVIDER == "sendgrid":
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.sendgrid.net")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
+    # SendGrid SMTP requires username "apikey" and password as the API key.
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "apikey")
+    EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY", os.getenv("EMAIL_HOST_PASSWORD", ""))
+else:
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False") == "True"
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@example.com")
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 
