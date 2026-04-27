@@ -440,6 +440,13 @@ def _generate_otp_6():
 
 
 def _send_email_otp(profile: Profile):
+    """
+    Sends OTP via Gmail SMTP server.
+    Configured in .env with Gmail address and App Password.
+    """
+    from django.core.mail import send_mail
+    from django.conf import settings
+
     ttl = int(getattr(settings, "EMAIL_OTP_TTL_SECONDS", 300))
     otp = _generate_otp_6()
     now = timezone.now()
@@ -455,79 +462,42 @@ def _send_email_otp(profile: Profile):
         },
     )
 
-    # Use EmailJS REST API for sending OTP
-    emailjs_service_id = os.getenv("EMAILJS_SERVICE_ID", "service_veolegr").strip('"').strip("'")
-    emailjs_template_id = os.getenv("EMAILJS_TEMPLATE_ID", "template_6pjgpyr").strip('"').strip("'")
-    emailjs_public_key = os.getenv("EMAILJS_PUBLIC_KEY", "XbvEexF33TQ64MuiG").strip('"').strip("'")
-    emailjs_private_key = os.getenv("EMAILJS_PRIVATE_KEY", "PJcAipnlivT5jlOtNw3vw").strip('"').strip("'")
-
-    payload = {
-        "service_id": emailjs_service_id,
-        "template_id": emailjs_template_id,
-        "user_id": emailjs_public_key,
-        "template_params": {
-            "email": profile.email or profile.user.email,
-            "passcode": otp,
-            "time": "2 minutes",
-        },
-        "accessToken": emailjs_private_key
-    }
-
     try:
-        response = requests.post(
-            "https://api.emailjs.com/api/v1.0/email/send",
-            json=payload,
-            headers={
-                "Content-Type": "application/json",
-                "Origin": "https://api.emailjs.com"  # Some APIs require an origin
-            },
-            timeout=15
+        # Professional HTML template for Gmail
+        html_message = f"""
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #2c3e50;">Email Verification Code</h2>
+            </div>
+            <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px; text-align: center;">
+                <p style="font-size: 16px; color: #555;">To authenticate your account, please use the following One-Time Password (OTP):</p>
+                <div style="font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 5px; margin: 20px 0; padding: 15px; border: 2px dashed #007bff; display: inline-block; background: #fff;">
+                    {otp}
+                </div>
+                <p style="font-size: 14px; color: #888;">This OTP is valid for 5 minutes (300 seconds).</p>
+            </div>
+            <div style="margin-top: 25px; font-size: 13px; color: #999; text-align: center; line-height: 1.6;">
+                <p>If you did not request this code, please ignore this email.</p>
+                <p style="margin-top: 10px; font-weight: bold; color: #666;">&copy; {timezone.now().year} Changelifewithnumbers Team</p>
+            </div>
+        </div>
+        """
+        
+        send_mail(
+            subject="Your Verification Code - Changelifewithnumbers",
+            message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[profile.email or profile.user.email],
+            fail_silently=False,
+            html_message=html_message
         )
-        if response.status_code != 200:
-            # Log the error from EmailJS
-            print(f"EmailJS Error: {response.status_code} - {response.text}")
-            # Fallback to standard Django send_mail if EmailJS fails
-            try:
-                send_mail(
-                    subject="Your verification OTP",
-                    message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[profile.email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"Fallback send_mail Error: {str(e)}")
-                raise ValidationError(
-                    f"EmailJS failed ({response.status_code}) and fallback mail failed. Please contact support."
-                )
-    except requests.exceptions.RequestException as e:
-        print(f"Request Error: {str(e)}")
-        # Check for PythonAnywhere restriction (ProxyError)
-        if "ProxyError" in str(e) or "403" in str(e):
-            raise ValidationError(
-                "Email service blocked by host. If using PythonAnywhere Free, this is a known restriction. Please contact support."
-            )
-        # If even the request fails (e.g. timeout), try fallback
-        try:
-            send_mail(
-                subject="Your verification OTP",
-                message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[profile.email],
-                fail_silently=False,
-            )
-        except Exception as e2:
-            print(f"Fallback after Request Error failed: {str(e2)}")
-            raise ValidationError(
-                f"Connection failed: {str(e)}. Fallback mail also failed. Please try again."
-            )
+        return ttl
     except Exception as e:
-        print(f"General Error in _send_email_otp: {str(e)}")
-        # Surface a clean user-facing error and avoid a 500.
+        print(f"Gmail SMTP Error: {str(e)}")
+        # Surface a clean user-facing error.
         raise ValidationError(
-            f"Error: {str(e)}. Please try again in a minute."
+            f"Unable to send verification email. Please try again in a moment."
         )
-    return ttl
 
 
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
