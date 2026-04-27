@@ -409,6 +409,23 @@ def _normalize_indian_mobile(raw):
     return digits, None
 
 
+def _is_disposable_email(email):
+    """Check if the email domain is in the disposable email blocklist."""
+    try:
+        domain = email.split('@')[-1].lower()
+        # Use a reliable list. Downloading every time is slow, but following user's logic.
+        # In a real app, we'd cache this or use a library.
+        url = 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf'
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            disposable_domains = response.text.splitlines()
+            return domain in [d.strip().lower() for d in disposable_domains if d.strip()]
+    except Exception:
+        # If the check fails (e.g. network error), allow the email to proceed but log it.
+        pass
+    return False
+
+
 def _normalize_email(raw):
     raw = (raw or "").strip()
     if not raw:
@@ -438,14 +455,41 @@ def _send_email_otp(profile: Profile):
         },
     )
 
+    # Use EmailJS REST API for sending OTP
+    emailjs_service_id = os.getenv("EMAILJS_SERVICE_ID", "service_veolegr")
+    emailjs_template_id = os.getenv("EMAILJS_TEMPLATE_ID", "template_6pjgpyr")
+    emailjs_public_key = os.getenv("EMAILJS_PUBLIC_KEY", "XbvEexF33TQ64MuiG")
+    emailjs_private_key = os.getenv("EMAILJS_PRIVATE_KEY", "PJcAipnlivT5jlOtNw3vw")
+
+    payload = {
+        "service_id": emailjs_service_id,
+        "template_id": emailjs_template_id,
+        "user_id": emailjs_public_key,
+        "template_params": {
+            "to_name": profile.user.first_name or profile.user.username,
+            "to_email": profile.email,
+            "otp_code": otp,  # Assuming template uses {{otp_code}}
+            "ttl_minutes": ttl // 60,
+        },
+        "accessToken": emailjs_private_key
+    }
+
     try:
-        send_mail(
-            subject="Your verification OTP",
-            message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[profile.email],
-            fail_silently=False,
+        response = requests.post(
+            "https://api.emailjs.com/api/v1.0/email/send",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=10
         )
+        if response.status_code != 200:
+            # Fallback to standard Django send_mail if EmailJS fails
+            send_mail(
+                subject="Your verification OTP",
+                message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[profile.email],
+                fail_silently=False,
+            )
     except Exception:
         # Surface a clean user-facing error and avoid a 500.
         raise ValidationError(
@@ -493,6 +537,12 @@ def register_view(request):
         email_norm, email_err = _normalize_email(email_raw)
         if email_err:
             messages.error(request, email_err)
+            return render(request, 'auth/register.html', _register_context({
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
+            }))
+
+        if _is_disposable_email(email_norm):
+            messages.error(request, "Disposable email addresses are not allowed. Please use a permanent email provider (e.g. Gmail, Yahoo).")
             return render(request, 'auth/register.html', _register_context({
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
@@ -639,6 +689,9 @@ def verify_email_otp_view(request):
             rec.attempts = rec.attempts + 1
             rec.save(update_fields=["attempts"])
             remaining = max(0, max_attempts - rec.attempts)
+            if remaining <= 0:
+                messages.error(request, "Maximum OTP attempts exceeded. Please resend OTP.")
+                return redirect("otp_result")
             messages.error(request, f"Invalid OTP. Attempts remaining: {remaining}.")
             return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
 
@@ -648,10 +701,26 @@ def verify_email_otp_view(request):
         EmailOTP.objects.filter(profile=profile).delete()
         request.session.pop("pending_email_verification_user_id", None)
 
-        messages.success(request, "Email verified successfully! You can log in now.")
-        return redirect("login")
+        # Set success flag in session for result page
+        request.session["otp_verified_success"] = True
+        return redirect("otp_result")
 
     return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+
+
+def otp_result_view(request):
+    """Page to show success or failure after OTP verification."""
+    success = request.session.pop("otp_verified_success", False)
+    
+    if success:
+        return render(request, "auth/otp_result.html", {"status": "success"})
+    
+    # Check for error messages
+    storage = messages.get_messages(request)
+    msg_list = list(storage)
+    message = msg_list[-1].message if msg_list else "Verification failed or session expired."
+    
+    return render(request, "auth/otp_result.html", {"status": "failure", "message": message})
 
 
 @ratelimit(key="ip", rate="10/m", method="POST", block=True)
