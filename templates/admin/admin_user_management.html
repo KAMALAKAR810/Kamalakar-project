@@ -1,95 +1,112 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<div class="page-shell">
-    <h2 class="page-title">User Management</h2>
-    <p class="page-sub">Review new users and verification status</p>
 
-    <div class="data-panel">
-        <div class="table-responsive">
-            <table class="app-table">
-            <thead>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">User Management</h2>
+        <p class="text-muted small">Review new users and verification status</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fas fa-file-export me-1"></i> Export
+        </button>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
                 <tr>
-                    <th>Profile</th>
-                    <th>Full Name</th>
-                    <th>Username</th>
-                    <th>Mobile</th>
-                    <th>Joined Date</th>
-                    <th>Verified</th>
-                    <th>Actions</th>
+                    <th class="border-0 px-4 py-3 small text-uppercase text-muted">Profile</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Full Name</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Username</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Mobile</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Joined Date</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Verified</th>
+                    <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for profile in profiles %}
                 <tr>
-                    <td>
-                        <img src="{{ profile.profile_pic.url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" alt="P">
-                    </td>
-                    <td>{{ profile.user.first_name }}</td>
-                    <td>{{ profile.user.username }}</td>
-                    <td>{{ profile.mobile }}</td>
-                    <td>{{ profile.created_at|date:"d M Y H:i" }}</td>
-                    <td>
-                        {% if profile.is_mobile_verified %}
-                            <span style="color: #2e7d32; font-size: 18px; font-weight: bold;">✔✔</span>
+                    <td class="px-4">
+                        {% if profile.profile_pic %}
+                            <img src="{{ profile.profile_pic.url }}" class="rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;" alt="P">
                         {% else %}
-                            <span style="color: #c62828;">No</span>
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user"></i>
+                            </div>
                         {% endif %}
                     </td>
+                    <td class="fw-bold text-slate-700">{{ profile.user.first_name }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ profile.user.username }}</span></td>
+                    <td>{{ profile.mobile }}</td>
+                    <td class="small text-muted">{{ profile.created_at|date:"d M Y H:i" }}</td>
                     <td>
-                        <button onclick="sendWelcome('{{ profile.user.id }}')" class="btn-gold" style="padding: 5px 10px;">
-                            <i class="fa fa-envelope"></i> Message
-                        </button>
-                        <a href="{% url 'admin_chat_user' profile.user.id %}" class="btn-gold" style="padding: 5px 10px; background: #333; color: #fff !important;">
-                            <i class="fa fa-comments"></i> Chat
-                        </a>
+                        {% if profile.is_mobile_verified %}
+                            <span class="badge bg-success-subtle text-success px-3 rounded-pill">
+                                <i class="fas fa-check-double me-1"></i> Verified
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger px-3 rounded-pill">
+                                <i class="fas fa-times me-1"></i> Unverified
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 text-end">
+                        <div class="btn-group">
+                            <button onclick="sendWelcome('{{ profile.user.id }}')" class="btn btn-sm btn-outline-primary rounded-start-pill px-3">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                            <a href="{% url 'admin_chat_user' profile.user.id %}" class="btn btn-sm btn-primary rounded-end-pill px-3">
+                                <i class="fas fa-comments me-1"></i> Chat
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center;">No users found.</td>
+                    <td colspan="7" class="text-center py-5 text-muted">No users found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-</div>
 
 <script>
     function sendWelcome(userId) {
-        showConfirm(
-            "Send Message?", 
-            "Do you want to send a welcome message to this user?", 
-            (confirmed) => {
-                if (!confirmed) return;
-                
-                showLoading(true);
-                fetch(`/api/send-welcome/${userId}/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-                })
-                .then(r => r.json())
-                .then(d => {
-                    showLoading(false);
-                    if (d.status === 'success') showModal("Success", "Welcome message sent successfully!", "success");
-                    else showModal("Error", "Error sending message.", "error");
-                })
-                .catch(() => {
-                    showLoading(false);
-                    showModal("Error", "A connection error occurred.", "error");
-                });
-            }
-        );
+        if (!confirm("Do you want to send a welcome message to this user?")) return;
+        
+        // Show basic loading state
+        const btn = event.currentTarget;
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        fetch(`/api/send-welcome/${userId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'success') alert("Welcome message sent successfully!");
+            else alert("Error sending message.");
+        })
+        .catch(() => alert("A connection error occurred."))
+        .finally(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        });
+    }
+
+    function exportCurrentPage() {
+        // Basic CSV export logic can be added here
+        alert("Exporting to CSV...");
     }
 </script>
-{% block admin_action_footer %}
-<div class="admin-action-footer">
-  <button onclick="exportCurrentPage()" class="btn-action-bottom export-btn-bottom">
-    <i class="fas fa-file-export"></i> EXPORT TO CSV
-  </button>
-  <button onclick="window.print()" class="btn-action-bottom print-btn-bottom">
-    <i class="fas fa-print"></i> PRINT PAGE
-  </button>
-</div>
-{% endblock %}
 {% endblock %}

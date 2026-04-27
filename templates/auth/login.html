@@ -106,8 +106,36 @@
                 <i class="fas fa-eye toggle-password" id="togglePassword"></i>
             </div>
 
+            <div style="margin-bottom: 15px; display: flex; justify-content: center;">
+                <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+            </div>
+
             <button type="submit" class="auth-btn">Sign In</button>
         </form>
+        
+        <!-- Social Login Divider -->
+        <div style="text-align: center; margin: 25px 0; position: relative;">
+            <div style="border-top: 1px solid var(--border);"></div>
+            <span style="background: var(--white); padding: 0 15px; color: var(--gray); font-size: 13px; position: relative; top: -10px;">
+                Or continue with
+            </span>
+        </div>
+        
+        <!-- Social Login Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <a href="{% url 'google_login' %}" class="social-btn google-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--dark); font-weight: 600; transition: var(--transition);">
+                <i class="fab fa-google" style="font-size: 18px; color: #DB4437;"></i>
+                Continue with Google
+            </a>
+            <a href="{% url 'facebook_login' %}" class="social-btn facebook-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--dark); font-weight: 600; transition: var(--transition);">
+                <i class="fab fa-facebook" style="font-size: 18px; color: #4267B2;"></i>
+                Continue with Facebook
+            </a>
+            <a href="{% url 'telegram_login' %}" class="social-btn telegram-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--dark); font-weight: 600; transition: var(--transition);">
+                <i class="fab fa-telegram" style="font-size: 18px; color: #0088cc;"></i>
+                Continue with Telegram
+            </a>
+        </div>
         
         <div class="auth-footer">
             Don't have an account? <a href="{% url 'register' %}">Create one now</a>

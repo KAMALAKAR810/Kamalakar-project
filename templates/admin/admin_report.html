@@ -1,93 +1,116 @@
 {% extends "admin_base.html" %}
+
 {% block content %}
-<div class="page-shell">
-    <h2 class="page-title">Market-Wise & Date-Wise Report</h2>
-    <p class="page-sub">Analyze user activity and profitability across markets</p>
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-1 fw-bold text-dark">Market-Wise & Date-Wise Report</h2>
+            <p class="text-muted small mb-0">Analyze user activity and profitability across markets</p>
+        </div>
+    </div>
 
     <!-- Filters Section -->
-    <div class="data-panel" style="margin-bottom: 25px; padding: 20px;">
-        <form method="GET" class="row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">DATE</label>
-                <input type="date" name="date" class="bet-input" value="{{ selected_date }}" style="padding: 10px; font-size: 13px;">
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">MARKET</label>
-                <select name="market" class="bet-input" style="padding: 10px; font-size: 13px;">
-                    <option value="">All Markets</option>
-                    {% for m in markets %}
-                        <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">USER</label>
-                <select name="user" class="bet-input" style="padding: 10px; font-size: 13px;">
-                    <option value="">All Users</option>
-                    {% for u in all_users %}
-                        <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" class="btn-gold" style="padding: 10px 20px;">Generate Report</button>
-                <a href="{% url 'admin_report' %}" class="btn-gold" style="padding: 10px 20px; background: var(--gray);">Reset</a>
-            </div>
-        </form>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Date</label>
+                    <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Market</label>
+                    <select name="market" class="form-select form-select-sm">
+                        <option value="">All Markets</option>
+                        {% for m in markets %}
+                            <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-uppercase text-muted">User</label>
+                    <select name="user" class="form-select form-select-sm">
+                        <option value="">All Users</option>
+                        {% for u in all_users %}
+                            <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
+                        <i class="fas fa-file-invoice me-1"></i> Generate Report
+                    </button>
+                    <a href="{% url 'admin_report' %}" class="btn btn-light border btn-sm w-100 fw-bold">
+                        Reset
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <div class="data-panel">
-    {% if report_data %}
-    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--primary);">Filtered Individual User Data</h3>
-    <div class="table-responsive">
-        <table class="app-table table table-bordered" style="width: 100%;">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>User Name</th>
-                    <th>Total Betted</th>
-                    <th>Total Won</th>
-                    <th>Current Balance</th>
-                    <th>Net P/L</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for data in report_data %}
-                <tr>
-                    <td><strong style="color: var(--primary);">{{ data.user_code }}</strong></td>
-                    <td>{{ data.user.username }}</td>
-                    <td style="font-weight: 600;">₹{{ data.total_betted }}</td>
-                    <td style="font-weight: 600; color: var(--success);">₹{{ data.total_won }}</td>
-                    <td style="font-weight: 600;">₹{{ data.balance }}</td>
-                    <td style="font-weight: 700; color: {% if data.net_pl > 0 %}var(--success){% elif data.net_pl < 0 %}#dc3545{% else %}var(--dark){% endif %};">
-                        {% if data.total_won == data.total_betted %}
-                            ----
-                        {% else %}
-                            ₹{{ data.net_pl }}
-                            {% if data.net_pl > 0 %}(Profit){% else %}(Loss){% endif %}
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="mb-0 fw-bold text-primary">Filtered Individual User Data</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">User ID</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">User Name</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Total Betted</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Total Won</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Current Balance</th>
+                        <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Net P/L</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if report_data %}
+                        {% for data in report_data %}
+                        <tr>
+                            <td class="px-4 fw-bold text-primary">{{ data.user_code }}</td>
+                            <td>{{ data.user.username }}</td>
+                            <td class="fw-bold">₹{{ data.total_betted }}</td>
+                            <td class="fw-bold text-success">₹{{ data.total_won }}</td>
+                            <td class="fw-bold">₹{{ data.balance }}</td>
+                            <td class="px-4 text-end fw-bold">
+                                {% if data.total_won == data.total_betted %}
+                                    <span class="text-muted small">----</span>
+                                {% else %}
+                                    <span class="{% if data.net_pl > 0 %}text-success{% elif data.net_pl < 0 %}text-danger{% else %}text-dark{% endif %}">
+                                        ₹{{ data.net_pl }}
+                                        <small class="d-block text-uppercase" style="font-size: 0.65rem;">
+                                            {% if data.net_pl > 0 %}PROFIT{% elif data.net_pl < 0 %}LOSS{% else %}BREAK-EVEN{% endif %}
+                                        </small>
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="mb-3 opacity-25">
+                                    <i class="fas fa-chart-pie fa-4x"></i>
+                                </div>
+                                <h5 class="fw-bold">No Data Available</h5>
+                                <p class="small mb-0">No data found for the selected criteria.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    {% else %}
-    <div style="padding: 40px; text-align: center; color: var(--gray);">
-        <i class="fas fa-chart-pie" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
-        <p>No data available for the selected date and market.</p>
-    </div>
-    {% endif %}
-    </div>
-</div> 
-{% block admin_action_footer %}
-<div class="admin-action-footer">
-  <button onclick="exportCurrentPage()" class="btn-action-bottom export-btn-bottom">
-    <i class="fas fa-file-export"></i> EXPORT TO CSV
-  </button>
-  <button onclick="window.print()" class="btn-action-bottom print-btn-bottom">
-    <i class="fas fa-print"></i> PRINT PAGE
-  </button>
+</div>
+
+<!-- Bottom Actions -->
+<div class="d-flex justify-content-center gap-3 mt-4 mb-5">
+    <button onclick="exportCurrentPage()" class="btn btn-outline-secondary px-4 fw-bold">
+        <i class="fas fa-file-export me-2"></i> EXPORT TO CSV
+    </button>
+    <button onclick="window.print()" class="btn btn-outline-secondary px-4 fw-bold">
+        <i class="fas fa-print me-2"></i> PRINT PAGE
+    </button>
 </div>
 {% endblock %}
-{% endblock %}
+

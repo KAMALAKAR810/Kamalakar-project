@@ -1,0 +1,502 @@
+{% extends "admin_dashboard.html" %}
+{% load static %}
+
+{% block dashboard_content %}
+<style>
+    /* Card hover animation */
+    .stat-card {
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Gradient animations */
+    .gradient-animate {
+        background-size: 200% 200%;
+        animation: gradientShift 15s ease infinite;
+    }
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Table row hover */
+    .table-row-hover:hover {
+        background-color: #f1f5f9;
+    }
+</style>
+
+<!-- Welcome Banner -->
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 
+            p-8 mb-8 text-white gradient-animate shadow-xl">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full translate-y-1/3 -translate-x-1/4"></div>
+    
+    <div class="relative z-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-bold mb-2">Welcome back, {{ user.username }}! 👋</h2>
+                <p class="text-white/80 text-lg">Here's what's happening with your platform today.</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{% url 'declare_result' %}" class="px-6 py-3 bg-white text-blue-600 rounded-xl 
+                    font-semibold hover:bg-blue-50 transition-colors shadow-lg inline-flex items-center gap-2">
+                    <i class="fas fa-bolt"></i>
+                    Quick Action
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Users Card -->
+    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-dark-500 text-sm font-medium mb-1">Total Users</p>
+                <h3 class="text-3xl font-bold text-dark-800">{{ total_users }}</h3>
+                <div class="flex items-center gap-1 mt-2 text-green-600 text-sm">
+                    <i class="fas fa-arrow-up"></i>
+                    <span class="font-semibold">12%</span>
+                    <span class="text-dark-400">this month</span>
+                </div>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 
+                        flex items-center justify-center text-white text-xl shadow-lg shadow-blue-200">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Collection Card -->
+    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-dark-500 text-sm font-medium mb-1">Today's Collection</p>
+                <h3 class="text-3xl font-bold text-dark-800">₹{{ today_collection }}</h3>
+                <div class="flex items-center gap-1 mt-2 text-green-600 text-sm">
+                    <i class="fas fa-arrow-up"></i>
+                    <span class="font-semibold">8.3%</span>
+                    <span class="text-dark-400">vs yesterday</span>
+                </div>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-400 to-green-600 
+                        flex items-center justify-center text-white text-xl shadow-lg shadow-green-200">
+                <i class="fas fa-coins"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Payouts Card -->
+    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-dark-500 text-sm font-medium mb-1">Today's Payouts</p>
+                <h3 class="text-3xl font-bold text-dark-800">₹{{ today_payouts }}</h3>
+                <div class="flex items-center gap-1 mt-2 text-orange-600 text-sm">
+                    <i class="fas fa-arrow-down"></i>
+                    <span class="font-semibold">3.2%</span>
+                    <span class="text-dark-400">payout rate</span>
+                </div>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 
+                        flex items-center justify-center text-white text-xl shadow-lg shadow-orange-200">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Net P/L Card -->
+    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-dark-500 text-sm font-medium mb-1">Today's Net P/L</p>
+                <h3 class="text-3xl font-bold {% if today_profit >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    ₹{{ today_profit }}
+                </h3>
+                <div class="flex items-center gap-1 mt-2 {% if today_profit >= 0 %}text-green-600{% else %}text-red-600{% endif %} text-sm">
+                    <i class="fas {% if today_profit >= 0 %}fa-chart-line{% else %}fa-chart-line-down{% endif %}"></i>
+                    <span class="font-semibold">{% if today_profit >= 0 %}Profit{% else %}Loss{% endif %}</span>
+                    <span class="text-dark-400">today</span>
+                </div>
+            </div>
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br {% if today_profit >= 0 %}from-emerald-400 to-emerald-600 shadow-emerald-200{% else %}from-red-400 to-red-600 shadow-red-200{% endif %} 
+                        flex items-center justify-center text-white text-xl shadow-lg">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Tables Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Revenue Chart -->
+    <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-dark-800">
+                <i class="fas fa-chart-area text-blue-500 mr-2"></i>
+                Revenue Overview
+            </h3>
+            <select class="border border-dark-200 rounded-lg px-3 py-1.5 text-sm text-dark-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option>Last 7 Days</option>
+                <option>Last 30 Days</option>
+                <option>Last 90 Days</option>
+            </select>
+        </div>
+        <div class="h-72">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Market Performance -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <h3 class="text-lg font-bold text-dark-800 mb-6">
+            <i class="fas fa-chart-pie text-purple-500 mr-2"></i>
+            Market Distribution
+        </h3>
+        <div class="h-48 flex items-center justify-center mb-4">
+            <canvas id="marketChart"></canvas>
+        </div>
+        <div class="space-y-3">
+            {% for item in market_summary %}
+            <div class="flex items-center justify-between py-2 border-b border-dark-100 last:border-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full {% forloop.counter0|divisibleby:4 as idx %}{% if idx == 0 %}bg-blue-500{% elif idx == 1 %}bg-purple-500{% elif idx == 2 %}bg-pink-500{% else %}bg-orange-500{% endif %}"></div>
+                    <span class="text-sm font-medium text-dark-700">{{ item.market__name }}</span>
+                </div>
+                <span class="text-sm font-bold text-dark-800">₹{{ item.total_amount }}</span>
+            </div>
+            {% empty %}
+            <div class="text-center text-dark-400 py-4">No market data available</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions & Recent Transactions -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Quick Actions -->
+    <div class="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <h3 class="text-lg font-bold text-dark-800 mb-6">
+            <i class="fas fa-rocket text-green-500 mr-2"></i>
+            Quick Actions
+        </h3>
+        <div class="grid grid-cols-2 gap-4">
+            <a href="{% url 'declare_result' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
+                        hover:border-blue-500 hover:bg-blue-50 transition-all text-center">
+                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-100 group-hover:bg-blue-500 
+                            flex items-center justify-center transition-colors">
+                    <i class="fas fa-bullhorn text-blue-600 group-hover:text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-dark-700 group-hover:text-blue-700">Declare Result</span>
+            </a>
+            
+            <a href="{% url 'admin_withdrawal_management' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
+                        hover:border-red-500 hover:bg-red-50 transition-all text-center relative">
+                {% if pending_withdrawals %}
+                <span class="absolute top-2 right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full 
+                            flex items-center justify-center">{{ pending_withdrawals }}</span>
+                {% endif %}
+                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-red-100 group-hover:bg-red-500 
+                            flex items-center justify-center transition-colors">
+                    <i class="fas fa-money-bill-wave text-red-600 group-hover:text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-dark-700 group-hover:text-red-700">Withdrawals</span>
+            </a>
+            
+            <a href="{% url 'admin_user_management' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
+                        hover:border-purple-500 hover:bg-purple-50 transition-all text-center">
+                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-purple-100 group-hover:bg-purple-500 
+                            flex items-center justify-center transition-colors">
+                    <i class="fas fa-user-plus text-purple-600 group-hover:text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-dark-700 group-hover:text-purple-700">New Users</span>
+            </a>
+            
+            <a href="{% url 'admin_security_settings' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
+                        hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center">
+                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-emerald-100 group-hover:bg-emerald-500 
+                            flex items-center justify-center transition-colors">
+                    <i class="fas fa-shield-alt text-emerald-600 group-hover:text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-dark-700 group-hover:text-emerald-700">Security</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-dark-800">
+                <i class="fas fa-exchange-alt text-orange-500 mr-2"></i>
+                Recent Transactions
+            </h3>
+            <a href="{% url 'admin_report' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium 
+                        flex items-center gap-1 group">
+                View All <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </a>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-dark-200">
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">User</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Type</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Amount</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Status</th>
+                        <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in recent_txns %}
+                    <tr class="table-row-hover border-b border-dark-100 last:border-0 transition-colors">
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-dark-100 flex items-center justify-center 
+                                            text-dark-600 text-sm font-bold">
+                                    {{ txn.wallet.user.username|slice:":1"|upper }}
+                                </div>
+                                <span class="font-medium text-dark-800">{{ txn.wallet.user.username }}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if txn.txn_type == 'WIN' %}bg-green-100 text-green-700
+                                {% elif txn.txn_type == 'BET' %}bg-blue-100 text-blue-700
+                                {% elif txn.txn_type == 'DEPOSIT' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ txn.txn_type }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-bold text-dark-800">₹{{ txn.amount }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center gap-1 text-sm text-green-600">
+                                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                Completed
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-right text-sm text-dark-500">
+                            {{ txn.created_at|date:"H:i" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-dark-400">
+                            <i class="fas fa-inbox text-3xl mb-2"></i>
+                            <p>No transactions recorded today</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Active Markets & System Status -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Active Markets -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-dark-800">
+                <i class="fas fa-store text-indigo-500 mr-2"></i>
+                Active Markets
+            </h3>
+            <a href="{% url 'manage_markets' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                Manage <i class="fas fa-chevron-right text-xs ml-1"></i>
+            </a>
+        </div>
+        <div class="space-y-3">
+            {% for item in market_summary %}
+            <div class="flex items-center justify-between p-4 rounded-xl bg-dark-50 hover:bg-blue-50 
+                        transition-colors group cursor-pointer">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500 
+                                flex items-center justify-center text-white">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-dark-800 group-hover:text-blue-700 transition-colors">
+                            {{ item.market__name }}
+                        </h4>
+                        <span class="text-xs text-dark-500">{{ item.game_type }} • {{ item.count }} bets</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-dark-800">₹{{ item.total_amount }}</p>
+                    <span class="text-xs text-green-600">
+                        <i class="fas fa-circle text-[8px] animate-pulse"></i> Live
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8 text-dark-400">
+                <i class="fas fa-store-slash text-3xl mb-2"></i>
+                <p>No active markets</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- System Status & Cleanup -->
+    <div class="space-y-6">
+        <!-- System Status -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+            <h3 class="text-lg font-bold text-dark-800 mb-6">
+                <i class="fas fa-server text-emerald-500 mr-2"></i>
+                System Status
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-dark-700 font-medium">Server Status</span>
+                    </div>
+                    <span class="text-sm text-green-600 font-semibold">Online</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="text-dark-700 font-medium">Database</span>
+                    </div>
+                    <span class="text-sm text-dark-600">Healthy</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                        <span class="text-dark-700 font-medium">Storage</span>
+                    </div>
+                    <span class="text-sm text-dark-600">72% Used</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="text-dark-700 font-medium">API Response</span>
+                    </div>
+                    <span class="text-sm text-green-600">45ms avg</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Cleanup -->
+        <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 shadow-sm border border-red-100 animate-on-scroll">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-trash-alt text-red-500 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-red-700 mb-2">System Cleanup</h3>
+                    <p class="text-sm text-red-600/80 mb-4">
+                        Permanently delete data older than 30 days to optimize system performance and free up storage.
+                    </p>
+                    <form method="POST" onsubmit="return confirm('ARE YOU ABSOLUTELY SURE? This action cannot be undone!')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cleanup_30days">
+                        <button type="submit" class="w-full py-3 px-4 bg-red-500 hover:bg-red-600 text-white 
+                                    font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-trash"></i>
+                            Run 30-Day Cleanup
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueGradient = revenueCtx.createLinearGradient(0, 0, 0, 300);
+    revenueGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+    revenueGradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Revenue',
+                data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                borderColor: '#3b82f6',
+                backgroundColor: revenueGradient,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#e2e8f0'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Market Distribution Chart
+    const marketCtx = document.getElementById('marketChart').getContext('2d');
+    new Chart(marketCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for item in market_summary %}'{{ item.market__name }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for item in market_summary %}{{ item.total_amount }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: [
+                    '#3b82f6',
+                    '#8b5cf6',
+                    '#ec4899',
+                    '#f97316',
+                    '#10b981'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,7 +1,8 @@
+{% load static %}
 <style>
     .market-results-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
     }
 
@@ -11,10 +12,12 @@
         border-radius: 12px;
         overflow: hidden;
         transition: var(--transition);
+        position: relative;
     }
 
     .market-card:hover {
         box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
     }
 
     .market-card-header {
@@ -33,9 +36,26 @@
         letter-spacing: 0.5px;
     }
 
-    .market-time {
+    .market-status {
         font-size: 11px;
-        opacity: 0.9;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .market-status.open {
+        background: rgba(34, 197, 94, 0.3);
+        color: #4ade80;
+    }
+
+    .market-status.closed {
+        background: rgba(239, 68, 68, 0.3);
+        color: #f87171;
+    }
+
+    .market-status.upcoming {
+        background: rgba(251, 191, 36, 0.3);
+        color: #fbbf24;
     }
 
     .market-card-body {
@@ -46,7 +66,14 @@
         gap: 20px;
         background: linear-gradient(to bottom, #fff, #f8f9fa);
     }
-    .result-patti { font-size: 16px; font-weight: 600; color: var(--gray); letter-spacing: 2px; }
+
+    .result-patti { 
+        font-size: 16px; 
+        font-weight: 600; 
+        color: var(--gray); 
+        letter-spacing: 2px; 
+    }
+
     .result-jodi {
         font-size: 32px;
         font-weight: 800;
@@ -55,6 +82,83 @@
         border-right: 2px solid var(--border);
         padding: 0 15px;
     }
+
+    /* Countdown Timer Styles */
+    .countdown-section {
+        padding: 15px;
+        background: var(--light);
+        border-top: 1px solid var(--border);
+    }
+
+    .countdown-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .countdown-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .session-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--dark);
+        text-transform: uppercase;
+    }
+
+    .countdown-timer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .countdown-timer.open-session {
+        color: #2563eb;
+    }
+
+    .countdown-timer.close-session {
+        color: #dc2626;
+    }
+
+    .countdown-timer.ended {
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    .countdown-timer.expiring-soon {
+        color: #dc2626;
+        animation: pulse-text 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-text {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .timer-icon {
+        font-size: 12px;
+    }
+
+    .market-card-footer {
+        padding: 10px 15px;
+        background: var(--light);
+        border-top: 1px solid var(--border);
+        font-size: 11px;
+        color: var(--gray);
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Loading state */
+    .countdown-loading {
+        color: var(--gray);
+        font-size: 12px;
+    }
 </style>
 
 <div class="page-shell">
@@ -62,19 +166,215 @@
     
     <div class="market-results-grid">
         {% for market in markets %}
-        <div class="market-card">
+        <div class="market-card" data-market-id="{{ market.id }}">
             <div class="market-card-header">
                 <span class="market-name">{{ market.name }}</span>
-                <span class="market-time">LIVE RESULT</span>
+                <span class="market-status" id="status-{{ market.id }}">
+                    <i class="fas fa-circle text-[8px] mr-1"></i>
+                    <span class="status-text">Loading...</span>
+                </span>
             </div>
+            
             <div class="market-card-body">
                 <div class="result-patti">{{ market.open_patti|default:"***" }}</div>
                 <div class="result-jodi">
-                    {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
+                    {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}
+                    {% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
                 </div>
                 <div class="result-patti">{{ market.close_patti|default:"***" }}</div>
+            </div>
+
+            <!-- Countdown Timers -->
+            <div class="countdown-section">
+                <!-- Open Session Countdown -->
+                <div class="countdown-row">
+                    <span class="session-label">
+                        <i class="fas fa-sun text-yellow-500 mr-1"></i> OPEN
+                    </span>
+                    <div class="countdown-timer open-session" id="open-timer-{{ market.id }}">
+                        <i class="fas fa-clock timer-icon"></i>
+                        <span class="timer-text">--:--:--</span>
+                    </div>
+                </div>
+                
+                <!-- Close Session Countdown -->
+                <div class="countdown-row">
+                    <span class="session-label">
+                        <i class="fas fa-moon text-blue-500 mr-1"></i> CLOSE
+                    </span>
+                    <div class="countdown-timer close-session" id="close-timer-{{ market.id }}">
+                        <i class="fas fa-clock timer-icon"></i>
+                        <span class="timer-text">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Info Footer -->
+            <div class="market-card-footer">
+                <span>
+                    {% if market.open_end_time %}
+                    <i class="far fa-calendar-alt mr-1"></i>
+                    Open: {{ market.open_end_time|date:"H:i" }}
+                    {% endif %}
+                </span>
+                <span>
+                    {% if market.close_end_time %}
+                    Close: {{ market.close_end_time|date:"H:i" }}
+                    {% endif %}
+                </span>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<script>
+// Market timing data from Django
+const marketTimings = [
+    {% for market in markets %}
+    {
+        id: {{ market.id }},
+        name: "{{ market.name }}",
+        openEndTime: "{{ market.open_end_time|date:'c' }}",
+        closeEndTime: "{{ market.close_end_time|date:'c' }}",
+        openDeclared: {% if market.open_single %}true{% else %}false{% endif %},
+        closeDeclared: {% if market.close_single %}true{% else %}false{% endif %}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Function to calculate time difference
+function getTimeDiff(endTimeStr, declared) {
+    if (declared) {
+        return { status: 'ended', text: 'Result Declared', class: 'ended' };
+    }
+    
+    if (!endTimeStr) {
+        return { status: 'no-time', text: 'No timing set', class: 'ended' };
+    }
+    
+    const endTime = new Date(endTimeStr);
+    const now = new Date();
+    const diff = endTime - now;
+    
+    if (diff <= 0) {
+        return { status: 'ended', text: 'Market Closed', class: 'ended' };
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Check if expiring soon (within 10 minutes)
+    const expiringSoon = diff <= 10 * 60 * 1000;
+    
+    return {
+        status: expiringSoon ? 'expiring' : 'active',
+        text: timeStr,
+        class: expiringSoon ? 'expiring-soon' : ''
+    };
+}
+
+// Function to update countdown timers
+function updateCountdowns() {
+    marketTimings.forEach(market => {
+        // Update Open Timer
+        const openTimerEl = document.getElementById(`open-timer-${market.id}`);
+        if (openTimerEl) {
+            const openDiff = getTimeDiff(market.openEndTime, market.openDeclared);
+            const timerTextEl = openTimerEl.querySelector('.timer-text');
+            timerTextEl.textContent = openDiff.text;
+            openTimerEl.className = `countdown-timer open-session ${openDiff.class}`;
+        }
+        
+        // Update Close Timer
+        const closeTimerEl = document.getElementById(`close-timer-${market.id}`);
+        if (closeTimerEl) {
+            const closeDiff = getTimeDiff(market.closeEndTime, market.closeDeclared);
+            const timerTextEl = closeTimerEl.querySelector('.timer-text');
+            timerTextEl.textContent = closeDiff.text;
+            closeTimerEl.className = `countdown-timer close-session ${closeDiff.class}`;
+        }
+        
+        // Update Status Badge
+        const statusEl = document.getElementById(`status-${market.id}`);
+        if (statusEl) {
+            const statusTextEl = statusEl.querySelector('.status-text');
+            
+            // Determine overall market status
+            const now = new Date();
+            const openEnd = market.openEndTime ? new Date(market.openEndTime) : null;
+            const closeEnd = market.closeEndTime ? new Date(market.closeEndTime) : null;
+            
+            let status, statusClass;
+            
+            if (market.closeDeclared) {
+                status = 'Closed';
+                statusClass = 'closed';
+            } else if (closeEnd && now >= closeEnd) {
+                status = 'Closing...';
+                statusClass = 'closed';
+            } else if (openEnd && now >= openEnd && !market.openDeclared) {
+                status = 'Open Now';
+                statusClass = 'open';
+            } else if (openEnd && now < openEnd) {
+                status = 'Upcoming';
+                statusClass = 'upcoming';
+            } else {
+                status = 'Active';
+                statusClass = 'open';
+            }
+            
+            statusEl.className = `market-status ${statusClass}`;
+            statusTextEl.textContent = status;
+        }
+    });
+}
+
+// Initial update
+updateCountdowns();
+
+// Update every second
+setInterval(updateCountdowns, 1000);
+
+// Also fetch fresh data from API periodically (every 30 seconds)
+setInterval(function() {
+    fetch("{% url 'market_timing_api' %}")
+        .then(response => response.json())
+        .then(data => {
+            // Update market timings with fresh data
+            data.forEach(apiMarket => {
+                const market = marketTimings.find(m => m.name === apiMarket.market_name);
+                if (market) {
+                    // Parse times from API format (HH:MM AM/PM)
+                    const today = new Date().toISOString().split('T')[0];
+                    if (apiMarket.open_time && apiMarket.open_time !== 'N/A') {
+                        market.openEndTime = `${today}T${convertTo24Hour(apiMarket.open_time)}`;
+                    }
+                    if (apiMarket.close_time && apiMarket.close_time !== 'N/A') {
+                        market.closeEndTime = `${today}T${convertTo24Hour(apiMarket.close_time)}`;
+                    }
+                }
+            });
+        })
+        .catch(err => console.log('Error fetching market timings:', err));
+}, 30000);
+
+// Helper function to convert 12-hour to 24-hour format
+function convertTo24Hour(time12h) {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    
+    if (hours === '12') {
+        hours = '00';
+    }
+    
+    if (modifier.toUpperCase() === 'PM') {
+        hours = parseInt(hours, 10) + 12;
+    }
+    
+    return `${hours}:${minutes}`;
+}
+</script>

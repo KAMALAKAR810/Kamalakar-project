@@ -4,6 +4,12 @@ from .security_txt import security_txt
 
 urlpatterns = [
     path(".well-known/security.txt", security_txt, name="security_txt"),
+    
+    # --- Social Authentication ---
+    path("accounts/google/login/", views.google_login, name="google_login"),
+    path("accounts/facebook/login/", views.facebook_login, name="facebook_login"),
+    path("accounts/telegram/login/", views.telegram_login, name="telegram_login"),
+    
     # --- Public Pages ---
     path("", views.user_home, name="user_home"),
     path("admin-home/", views.admin_home, name="admin_home"),
@@ -52,6 +58,7 @@ urlpatterns = [
 
     # --- Admin Pages ---
     path("admin-summary/", views.admin_summary, name="admin_summary"),
+    path("admin-dashboard/", views.admin_dashboard_enhanced, name="admin_dashboard_enhanced"),
     path("admin-manage-markets/", views.manage_markets, name="manage_markets"),
     path("admin-reset-market/<int:market_id>/", views.reset_market, name="reset_market"),
     path("admin-market-history/", views.market_history_view, name="market_history"),
@@ -68,4 +75,5 @@ urlpatterns = [
     # --- Wallet REST Endpoints ---
     path("api/wallet/balance/", views.wallet_balance_api, name="wallet_balance_api"),
     path("api/wallet/history/", views.wallet_history_api, name="wallet_history_api"),
+    path("api/market-timing/", views.market_timing_api, name="market_timing_api"),
 ]

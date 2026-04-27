@@ -31,15 +31,25 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "axes",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.facebook",
+    "allauth.socialaccount.providers.telegram",
     "MATKAAPP",
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "MATKAAPP.middleware.SecurityHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+    "MATKAAPP.middleware.SecurityHeadersMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -99,17 +109,61 @@ AXES_WHITELIST_CALLABLE = "MATKAAPP.axes_utils.axes_whitelist"
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+# Django Allauth Settings
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_SESSION_REMEMBER = True
+
+# Social Auth Providers
+SOCIALACCOUNT_AUTO_SIGNUP = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    },
+    'facebook': {
+        'APP': {
+            'client_id': os.getenv('FACEBOOK_APP_ID', ''),
+            'secret': os.getenv('FACEBOOK_APP_SECRET', ''),
+            'key': ''
+        },
+        'SCOPE': ['email', 'public_profile'],
+        'METHOD': 'oauth2',
+    },
+    'telegram': {
+        'APP': {
+            'client_id': os.getenv('TELEGRAM_BOT_TOKEN', ''),
+            'secret': os.getenv('TELEGRAM_BOT_USERNAME', ''),
+            'key': ''
+        },
+    },
+}
 
 # File Upload Restrictions
 ALLOWED_EXTENSIONS = ['jpg', 'png', 'pdf']
 PROFILE_PIC_MAX_BYTES = int(os.getenv("PROFILE_PIC_MAX_BYTES", str(2 * 1024 * 1024)))
 
 # Session Security
-SESSION_COOKIE_AGE = 600  # 10 minutes in seconds
+SESSION_COOKIE_AGE = 7200  # 2 hours in seconds
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_TIMEOUT_SECONDS = 600  # 10 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_TIMEOUT_SECONDS = 7200  # 2 hours
 
 # django-csp baseline policy
 CSP_DEFAULT_SRC = ("'self'",)

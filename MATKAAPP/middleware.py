@@ -168,8 +168,8 @@ class OneSessionPerUserMiddleware:
                 # Task 2: If the session key in profile doesn't match current session, logout
                 if profile.session_key and profile.session_key != session_key:
                     from django.contrib.sessions.models import Session
-                    # Optional: delete the old session from DB
-                    Session.objects.filter(session_key=session_key).delete()
+                    # Task 2: Delete the old session from DB
+                    Session.objects.filter(session_key=profile.session_key).delete()
                     logout(request)
                     messages.error(request, "You have been logged out because your account was logged in from another device.")
                     return redirect('login')

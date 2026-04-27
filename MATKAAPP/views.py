@@ -317,7 +317,14 @@ def login_view(request):
             return redirect('admin_home')
         return redirect('user_home')
     
+    context = {'recaptcha_site_key': "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT"}
+    
     if request.method == 'POST':
+        # 0. Verify reCAPTCHA
+        if not _verify_recaptcha(request):
+            messages.error(request, "Please complete the reCAPTCHA correctly.")
+            return render(request, 'auth/login.html', context)
+
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
         is_ajax = request.content_type == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         
@@ -382,9 +389,9 @@ def login_view(request):
                 return JsonResponse({'status': 'error', 'message': 'Invalid username or password.'})
             
             messages.error(request, "Invalid username or password.")
-            return render(request, 'auth/login.html')
+            return render(request, 'auth/login.html', context)
 
-    return render(request, 'auth/login.html')
+    return render(request, 'auth/login.html', context)
 
 
 def logout_view(request):
@@ -439,28 +446,44 @@ def _generate_otp_6():
     return f"{secrets.randbelow(1_000_000):06d}"
 
 
-def _send_email_otp(profile: Profile):
+def _send_email_otp(profile: Profile = None, email: str = None):
     """
     Sends OTP via Gmail SMTP server.
-    Configured in .env with Gmail address and App Password.
+    Can be called with a Profile (for existing users) or an email (for pending registrations).
     """
     from django.core.mail import send_mail
     from django.conf import settings
 
+    if not profile and not email:
+        raise ValueError("Either profile or email must be provided to send OTP.")
+
+    target_email = email or profile.email or profile.user.email
     ttl = int(getattr(settings, "EMAIL_OTP_TTL_SECONDS", 300))
     otp = _generate_otp_6()
     now = timezone.now()
     expires_at = now + timedelta(seconds=ttl)
 
-    EmailOTP.objects.update_or_create(
-        profile=profile,
-        defaults={
-            "otp_hash": make_password(otp),
-            "expires_at": expires_at,
-            "attempts": 0,
-            "last_sent_at": now,
-        },
-    )
+    if profile:
+        EmailOTP.objects.update_or_create(
+            profile=profile,
+            defaults={
+                "otp_hash": make_password(otp),
+                "expires_at": expires_at,
+                "attempts": 0,
+                "last_sent_at": now,
+            },
+        )
+    else:
+        # For pending registration, store by email
+        EmailOTP.objects.update_or_create(
+            email=target_email,
+            defaults={
+                "otp_hash": make_password(otp),
+                "expires_at": expires_at,
+                "attempts": 0,
+                "last_sent_at": now,
+            },
+        )
 
     try:
         # Professional HTML template for Gmail
@@ -487,7 +510,7 @@ def _send_email_otp(profile: Profile):
             subject="Your Verification Code - Changelifewithnumbers",
             message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[profile.email or profile.user.email],
+            recipient_list=[target_email],
             fail_silently=False,
             html_message=html_message
         )
@@ -500,18 +523,44 @@ def _send_email_otp(profile: Profile):
         )
 
 
+import requests
+
+def _verify_recaptcha(request):
+    """Verifies Google reCAPTCHA v2 response."""
+    recaptcha_response = request.POST.get('g-recaptcha-response')
+    if not recaptcha_response:
+        return False
+    
+    secret_key = "6LdBk8ssAAAAAN60vJ9zIlqIKI-IgJ7Pt6RLnHZe"
+    data = {
+        'secret': secret_key,
+        'response': recaptcha_response
+    }
+    try:
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data, timeout=10)
+        result = r.json()
+        return result.get('success', False)
+    except Exception as e:
+        print(f"reCAPTCHA Error: {str(e)}")
+        return False
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('user_home')
 
     def _register_context(extra=None):
-        context = {}
+        context = {'recaptcha_site_key': "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT"}
         if extra:
             context.update(extra)
         return context
 
     if request.method == 'POST':
+        # 1. Verify reCAPTCHA
+        if not _verify_recaptcha(request):
+            messages.error(request, "Please complete the reCAPTCHA correctly.")
+            return render(request, 'auth/register.html', _register_context())
+
         # Honeypot — bots often fill hidden fields
         if request.POST.get("website", "").strip():
             messages.error(request, "Registration could not be completed.")
@@ -584,82 +633,54 @@ def register_view(request):
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
+        # Store data in session instead of creating user
+        request.session['pending_registration_data'] = {
+            'username': user_n,
+            'password': psw,
+            'name': name,
+            'email': email_norm,
+            'mobile': mobile_digits,
+        }
+        
         try:
-            with db_transaction.atomic():
-                user = User.objects.create_user(username=user_n, password=psw, first_name=name, email=email_norm)
-                # Profile and user_code are automatically created via signals.
-                profile = Profile.objects.select_for_update().get(user=user)
-                profile.mobile = mobile_digits
-                profile.email = email_norm
-                profile.is_email_verified = False
-                profile.email_verified_at = None
-                pic = request.FILES.get("profile_pic")
-                if pic:
-                    # Upload hardening: limit to image types, random filename, size limit
-                    max_bytes = int(getattr(settings, "PROFILE_PIC_MAX_BYTES", 2 * 1024 * 1024))
-                    if pic.size > max_bytes:
-                        raise ValidationError(f"Profile picture too large. Max allowed is {max_bytes // (1024 * 1024)}MB.")
-
-                    content_type = (getattr(pic, "content_type", "") or "").lower()
-                    if not content_type.startswith("image/"):
-                        raise ValidationError("Invalid profile picture type. Only images are allowed.")
-
-                    _, ext = os.path.splitext(pic.name or "")
-                    ext = (ext or "").lower().lstrip(".")
-                    allowed = {"jpg", "jpeg", "png"}
-                    if ext not in allowed:
-                        raise ValidationError("Invalid image extension. Allowed: jpg, jpeg, png.")
-
-                    pic.name = f"profiles/{uuid.uuid4().hex}.{ext}"
-                    profile.profile_pic = pic
-                profile.save()
-
-                # Wallet is also automatically created via signals.
-
-                # Task 8: Send welcome message to user
-                admin_user = User.objects.filter(is_superuser=True).first()
-                if admin_user:
-                    Message.objects.create(
-                        sender=admin_user,
-                        receiver=user,
-                        content="Welcome to ChangeLifeWithNumbers! Play smart, win big."
-                    )
-
-                _send_email_otp(profile)
-                request.session["pending_email_verification_user_id"] = user.id
-
-        except (IntegrityError, ValidationError) as e:
-            if isinstance(e, ValidationError):
-                for msg in e.messages:
-                    messages.error(request, msg)
-            else:
-                messages.error(request, "Username or mobile is already in use. Please try again.")
+            _send_email_otp(email=email_norm)
+            messages.success(request, "Please verify the OTP sent to your email to complete registration.")
+            return redirect('verify_email_otp')
+        except ValidationError as e:
+            messages.error(request, str(e))
             return render(request, 'auth/register.html', _register_context())
 
-        messages.success(request, "Registration successful! Please verify the OTP sent to your email.")
-        return redirect('verify_email_otp')
     return render(request, 'auth/register.html', _register_context())
 
 
 @ratelimit(key="ip", rate="10/m", method="POST", block=True)
 def verify_email_otp_view(request):
     user_id = request.session.get("pending_email_verification_user_id")
-    if not user_id:
+    reg_data = request.session.get("pending_registration_data")
+    
+    if not user_id and not reg_data:
         messages.error(request, "No pending email verification found. Please register again.")
         return redirect("register")
 
-    user = get_object_or_404(User, id=user_id)
-    try:
-        profile = user.profile
-    except Profile.DoesNotExist:
-        messages.error(request, "Profile not found.")
-        return redirect("register")
+    # Determine email for verification
+    email = None
+    profile = None
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+        try:
+            profile = user.profile
+            email = profile.email
+        except Profile.DoesNotExist:
+            messages.error(request, "Profile not found.")
+            return redirect("register")
+    elif reg_data:
+        email = reg_data.get('email')
 
-    if not profile.email:
+    if not email:
         messages.error(request, "Email not found for verification.")
         return redirect("register")
 
-    if profile.is_email_verified:
+    if profile and profile.is_email_verified:
         request.session.pop("pending_email_verification_user_id", None)
         messages.success(request, "Email already verified. You can log in now.")
         return redirect("login")
@@ -670,22 +691,25 @@ def verify_email_otp_view(request):
         otp = (request.POST.get("otp") or "").strip()
         if not otp or not otp.isdigit() or len(otp) != 6:
             messages.error(request, "Please enter a valid 6-digit OTP.")
-            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+            return render(request, "auth/verify_email_otp.html", {"email": email, "ttl_seconds": ttl_seconds})
 
         try:
-            rec = profile.email_otp
+            if profile:
+                rec = profile.email_otp
+            else:
+                rec = EmailOTP.objects.get(email=email, profile__isnull=True)
         except EmailOTP.DoesNotExist:
             messages.error(request, "OTP not found. Please resend OTP.")
-            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+            return render(request, "auth/verify_email_otp.html", {"email": email, "ttl_seconds": ttl_seconds})
 
         if timezone.now() > rec.expires_at:
             messages.error(request, "OTP expired. Please resend OTP.")
-            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+            return render(request, "auth/verify_email_otp.html", {"email": email, "ttl_seconds": ttl_seconds})
 
         max_attempts = int(getattr(settings, "EMAIL_OTP_MAX_ATTEMPTS", 5))
         if rec.attempts >= max_attempts:
             messages.error(request, "Maximum OTP attempts exceeded. Please resend OTP.")
-            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+            return render(request, "auth/verify_email_otp.html", {"email": email, "ttl_seconds": ttl_seconds})
 
         if not check_password(otp, rec.otp_hash):
             rec.attempts = rec.attempts + 1
@@ -695,19 +719,54 @@ def verify_email_otp_view(request):
                 messages.error(request, "Maximum OTP attempts exceeded. Please resend OTP.")
                 return redirect("otp_result")
             messages.error(request, f"Invalid OTP. Attempts remaining: {remaining}.")
-            return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+            return render(request, "auth/verify_email_otp.html", {"email": email, "ttl_seconds": ttl_seconds})
 
-        profile.is_email_verified = True
-        profile.email_verified_at = timezone.now()
-        profile.save(update_fields=["is_email_verified", "email_verified_at"])
-        EmailOTP.objects.filter(profile=profile).delete()
-        request.session.pop("pending_email_verification_user_id", None)
+        # Verification successful
+        if reg_data:
+            # Create the user now
+            try:
+                with db_transaction.atomic():
+                    user = User.objects.create_user(
+                        username=reg_data['username'],
+                        password=reg_data['password'],
+                        first_name=reg_data['name'],
+                        email=reg_data['email']
+                    )
+                    profile = user.profile
+                    profile.mobile = reg_data['mobile']
+                    profile.email = reg_data['email']
+                    profile.is_email_verified = True
+                    profile.email_verified_at = timezone.now()
+                    profile.save()
+                    
+                    # Send welcome message
+                    admin_user = User.objects.filter(is_superuser=True).first()
+                    if admin_user:
+                        Message.objects.create(
+                            sender=admin_user,
+                            receiver=user,
+                            content="Welcome to ChangeLifeWithNumbers! Play smart, win big."
+                        )
+                    
+                    # Cleanup
+                    EmailOTP.objects.filter(email=email).delete()
+                    request.session.pop("pending_registration_data", None)
+            except Exception as e:
+                messages.error(request, f"Error creating account: {str(e)}")
+                return redirect("register")
+        else:
+            # Legacy flow for existing users
+            profile.is_email_verified = True
+            profile.email_verified_at = timezone.now()
+            profile.save(update_fields=["is_email_verified", "email_verified_at"])
+            EmailOTP.objects.filter(profile=profile).delete()
+            request.session.pop("pending_email_verification_user_id", None)
 
         # Set success flag in session for result page
         request.session["otp_verified_success"] = True
         return redirect("otp_result")
 
-    return render(request, "auth/verify_email_otp.html", {"email": profile.email, "ttl_seconds": ttl_seconds})
+    return render(request, "auth/verify_email_otp.html", {"email": email, "ttl_seconds": ttl_seconds})
 
 
 def otp_result_view(request):
@@ -731,25 +790,42 @@ def resend_email_otp_view(request):
         return redirect("verify_email_otp")
 
     user_id = request.session.get("pending_email_verification_user_id")
-    if not user_id:
+    reg_data = request.session.get("pending_registration_data")
+
+    if not user_id and not reg_data:
         messages.error(request, "No pending email verification found.")
         return redirect("register")
 
-    user = get_object_or_404(User, id=user_id)
-    profile = getattr(user, "profile", None)
-    if not profile or not profile.email:
-        messages.error(request, "Email not found for verification.")
+    email = None
+    profile = None
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+        profile = getattr(user, "profile", None)
+        if not profile or not profile.email:
+            messages.error(request, "Email not found for verification.")
+            return redirect("register")
+        email = profile.email
+    elif reg_data:
+        email = reg_data.get('email')
+
+    if not email:
+        messages.error(request, "Email not found.")
         return redirect("register")
 
-    if profile.is_email_verified:
+    if profile and profile.is_email_verified:
         request.session.pop("pending_email_verification_user_id", None)
         messages.success(request, "Email already verified.")
         return redirect("login")
 
     cooldown = int(getattr(settings, "EMAIL_OTP_RESEND_COOLDOWN_SECONDS", 60))
     now = timezone.now()
+    
     try:
-        rec = profile.email_otp
+        if profile:
+            rec = profile.email_otp
+        else:
+            rec = EmailOTP.objects.get(email=email, profile__isnull=True)
+            
         if rec.last_sent_at and (now - rec.last_sent_at).total_seconds() < cooldown:
             wait = int(cooldown - (now - rec.last_sent_at).total_seconds())
             messages.error(request, f"Please wait {wait} seconds before requesting another OTP.")
@@ -757,12 +833,33 @@ def resend_email_otp_view(request):
     except EmailOTP.DoesNotExist:
         pass
 
-    _send_email_otp(profile)
-    messages.success(request, "A new OTP has been sent to your email.")
+    try:
+        if profile:
+            _send_email_otp(profile=profile)
+        else:
+            _send_email_otp(email=email)
+        messages.success(request, "A new OTP has been sent to your email.")
+    except ValidationError as e:
+        messages.error(request, str(e))
+
     return redirect("verify_email_otp")
 
 
 # --- BASIC PAGES ---
+
+def market_timing_api(request):
+    """Returns JSON data with market name, open time, close time, and timezone."""
+    markets = Market.objects.all()
+    data = []
+    for m in markets:
+        data.append({
+            "market_name": m.name,
+            "open_time": m.open_end_time.strftime("%I:%M %p") if m.open_end_time else "N/A",
+            "close_time": m.close_end_time.strftime("%I:%M %p") if m.close_end_time else "N/A",
+            "timezone": settings.TIME_ZONE
+        })
+    return JsonResponse(data, safe=False)
+
 
 def error_404(request, exception):
     return render(request, 'errors/error.html', status=404)
@@ -807,7 +904,8 @@ def user_home(request):
         return redirect('admin_summary')
     return render(request, 'user/user_home.html', {
         'markets': Market.objects.all(),
-        'page_title': 'Home Page'
+        'page_title': 'Home Page',
+        'recaptcha_site_key': "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT"
     })
 
 
@@ -1600,6 +1698,61 @@ def admin_summary(request):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_dashboard_enhanced(request):
+    """Enhanced admin dashboard with Tailwind CSS styling."""
+    if request.method == 'POST' and request.POST.get('action') == 'cleanup_30days':
+        cutoff_date = timezone.now() - timedelta(days=30)
+        
+        with db_transaction.atomic():
+            MarketHistory.objects.filter(archived_at__lt=cutoff_date).delete()
+            Message.objects.filter(created_at__lt=cutoff_date).delete()
+            Bet.objects.filter(created_at__lt=cutoff_date).delete()
+            DepositRequest.objects.filter(created_at__lt=cutoff_date).delete()
+            WithdrawalRequest.objects.filter(created_at__lt=cutoff_date).delete()
+            Notification.objects.filter(created_at__lt=cutoff_date).delete()
+            
+            UserActivity.objects.create(
+                user=request.user,
+                activity_type='CLEANUP',
+                description=f"Admin performed 30-day data cleanup"
+            )
+            
+        messages.success(request, "Successfully cleaned up all data older than 30 days.")
+        return redirect('admin_dashboard_enhanced')
+
+    total_users = User.objects.exclude(is_superuser=True).count()
+    
+    today = timezone.now().date()
+    today_bets = Bet.objects.filter(created_at__date=today, is_deleted=False)
+    today_collection = today_bets.aggregate(Sum('amount'))['amount__sum'] or 0
+    today_payouts = today_bets.aggregate(Sum('win_amount'))['win_amount__sum'] or 0
+    today_profit = today_collection - today_payouts
+    
+    pending_withdrawals = WithdrawalRequest.objects.filter(status='PENDING').count()
+    pending_deposits = DepositRequest.objects.filter(status='PENDING').count()
+    
+    market_summary = today_bets.values('market__name', 'game_type').annotate(
+        total_amount=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total_amount')
+    
+    recent_txns = Transaction.objects.select_related('wallet__user').order_by('-created_at')[:10]
+
+    return render(request, "admin/dashboard_content.html", {
+        "page_title": "Admin Dashboard",
+        "total_users": total_users,
+        "today_collection": today_collection,
+        "today_payouts": today_payouts,
+        "today_profit": today_profit,
+        "pending_withdrawals": pending_withdrawals,
+        "pending_deposits": pending_deposits,
+        "market_summary": market_summary,
+        "recent_txns": recent_txns,
+    })
+
+
+@login_required
 def delete_bet(request, bet_id):
     """User can delete their own bet with specific restrictions."""
     if request.method != 'POST':
@@ -2104,3 +2257,66 @@ def contact_view(request):
         form = MyContactForm()
     
     return render(request, 'contact.html', {'form': form})
+
+
+# --- Social Authentication Views ---
+
+def google_login(request):
+    """Redirect to Google OAuth login."""
+    from allauth.socialaccount.providers.google.views import GoogleOAuth2View
+    from allauth.socialaccount.providers.google.provider import GoogleProvider
+    
+    provider = GoogleProvider(request)
+    app = provider.app
+    if not app or not app.client_id:
+        messages.error(request, "Google login is not configured. Please contact admin.")
+        return redirect('login')
+    
+    # Redirect to allauth's Google login
+    return redirect('/accounts/google/login/?process=login')
+
+
+def facebook_login(request):
+    """Redirect to Facebook OAuth login."""
+    from allauth.socialaccount.providers.facebook.provider import FacebookProvider
+    
+    provider = FacebookProvider(request)
+    try:
+        app = provider.app
+        if not app or not app.client_id:
+            messages.error(request, "Facebook login is not configured. Please contact admin.")
+            return redirect('login')
+    except:
+        messages.error(request, "Facebook login is not configured. Please contact admin.")
+        return redirect('login')
+    
+    return redirect('/accounts/facebook/login/?process=login')
+
+
+def telegram_login(request):
+    """Redirect to Telegram OAuth login."""
+    # Telegram login via allauth
+    return redirect('/accounts/telegram/login/?process=login')
+
+
+def social_signup_complete(request):
+    """Handle social signup completion - require email verification."""
+    if request.user.is_authenticated:
+        # User is already logged in via social auth
+        # Check if email is verified
+        try:
+            profile = request.user.profile
+            if not profile.is_email_verified:
+                # Send OTP and redirect to verification
+                _send_email_otp(profile=profile)
+                messages.success(request, "Please verify your email to complete registration.")
+                return redirect('verify_email_otp')
+        except Profile.DoesNotExist:
+            pass
+        
+        # Email is verified, redirect to home
+        if request.user.is_superuser:
+            return redirect('admin_summary')
+        return redirect('user_home')
+    
+    return redirect('login')

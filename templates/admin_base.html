@@ -6,1070 +6,331 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>{% if page_title %}{{ page_title }} - {% endif %}Admin Panel - ChangeLifeWithNumbers</title>
     <link rel="icon" type="image/png" href="{% static 'logo.jpeg' %}">
-    {# Avoid external Google Fonts to reduce supply-chain risk and scanner noise (missing SRI). #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
-        /* ── SUSPICIOUS ACTIVITY BANNER ── */
-        #security-warning-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: #ff3366;
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-            font-weight: 800;
-            z-index: 10001;
-            display: none;
-            animation: slideDown 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
-        }
-        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-
-        /* ── PRIVACY SHIELD (blur sensitive areas on focus loss) ── */
-        .security-privacy-shield {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.88);
-            backdrop-filter: blur(10px);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 24px;
-            color: #fff;
-        }
-        .security-privacy-shield h3 {
-            font-size: 18px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-        .security-privacy-shield p {
-            opacity: 0.85;
-            font-size: 14px;
-            max-width: 520px;
-        }
-        body.security-shield-on .security-sensitive,
-        body.security-shield-on [data-sensitive="true"] {
-            filter: blur(18px) grayscale(0.2) !important;
-        }
-
         :root {
-            --primary: #002244;
-            --secondary: #ff4444;
-            --dark: #1a1a1a;
-            --light: #f8f9fa;
-            --white: #ffffff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --gray: #6c757d;
-            --border: #e0e0e0;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
-            --neon-green: #00ff88;
-            --neon-red: #ff3366;
-            --neon-blue: #00d2ff;
-            --neon-gold: #ffcc00;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --primary-bg: #0f172a;
+            --sidebar-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --text-muted: #94a3b8;
+            --transition-speed: 0.3s;
         }
-
-        /* ── NEW GAMING STYLE NOTIFICATIONS ── */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .gaming-modal {
-            width: 92%;
-            max-width: 520px;
-            position: relative;
-            overflow: hidden;
-            border-radius: 14px;
-            color: #fff;
-            background:
-                radial-gradient(120% 120% at 20% 10%, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.0) 100%),
-                linear-gradient(180deg, rgba(18,18,18,0.92), rgba(10,10,10,0.92));
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow:
-                0 18px 55px rgba(0,0,0,0.65),
-                0 0 0 1px rgba(0,0,0,0.35) inset;
-        }
-
-        /* Glowing frame like the reference image */
-        .gaming-modal::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 14px;
-            padding: 2px;
-            background: linear-gradient(90deg, rgba(0,210,255,0.0), rgba(0,210,255,0.9), rgba(0,210,255,0.0));
-            -webkit-mask:
-                linear-gradient(#000 0 0) content-box,
-                linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask:
-                linear-gradient(#000 0 0) content-box,
-                linear-gradient(#000 0 0);
-            mask-composite: exclude;
-            opacity: 0.9;
-            pointer-events: none;
-        }
-
-        .gaming-modal::after {
-            content: '';
-            position: absolute;
-            inset: -40px;
-            background: radial-gradient(circle at 20% 20%, rgba(0,210,255,0.22), rgba(0,0,0,0) 55%);
-            filter: blur(12px);
-            opacity: 0.9;
-            pointer-events: none;
-        }
-
-        .gaming-modal.success::before {
-            background: linear-gradient(90deg, rgba(0,255,136,0.0), rgba(0,255,136,0.95), rgba(0,255,136,0.0));
-        }
-        .gaming-modal.success::after {
-            background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.22), rgba(0,0,0,0) 55%);
-        }
-
-        .gaming-modal.error::before {
-            background: linear-gradient(90deg, rgba(255,51,102,0.0), rgba(255,51,102,0.95), rgba(255,51,102,0.0));
-        }
-        .gaming-modal.error::after {
-            background: radial-gradient(circle at 20% 20%, rgba(255,51,102,0.22), rgba(0,0,0,0) 55%);
-        }
-
-        .gaming-modal.info::before {
-            background: linear-gradient(90deg, rgba(255,204,0,0.0), rgba(255,204,0,0.95), rgba(255,204,0,0.0));
-        }
-        .gaming-modal.info::after {
-            background: radial-gradient(circle at 20% 20%, rgba(255,204,0,0.20), rgba(0,0,0,0) 55%);
-        }
-
-        .modal-body { padding: 26px 26px 18px; text-align: center; position: relative; z-index: 2; }
-        .modal-icon-container {
-            width: 74px;
-            height: 74px;
-            margin: 0 auto 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 34px;
-            border-radius: 18px;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid rgba(255,255,255,0.10);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.45);
-        }
-        .success .modal-icon-container { color: var(--neon-green); text-shadow: 0 0 20px rgba(0,255,136,0.75); }
-        .error .modal-icon-container { color: var(--neon-red); text-shadow: 0 0 20px rgba(255,51,102,0.75); }
-        .info .modal-icon-container { color: var(--neon-gold); text-shadow: 0 0 20px rgba(255,204,0,0.70); }
-
-        .modal-title { font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.8px; text-shadow: 0 10px 30px rgba(0,0,0,0.65); }
-        .modal-text { font-size: 15px; color: rgba(255,255,255,0.82); margin-bottom: 18px; line-height: 1.55; }
-        .modal-footer { padding: 16px 22px 22px; background: rgba(0,0,0,0.18); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: center; position: relative; z-index: 2; }
-        .btn-gaming { padding: 12px 34px; border-radius: 10px; font-weight: 900; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(255,255,255,0.10); font-family: 'Rajdhani', sans-serif; font-size: 16px; letter-spacing: 0.5px; background: rgba(255,255,255,0.06); color: #fff; transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease; }
-        .success .btn-gaming { background: linear-gradient(180deg, rgba(0,255,136,0.95), rgba(0,190,110,0.95)); color: #03110a; box-shadow: 0 10px 28px rgba(0,255,136,0.30); }
-        .error .btn-gaming { background: linear-gradient(180deg, rgba(255,51,102,0.95), rgba(190,25,70,0.95)); color: #fff; box-shadow: 0 10px 28px rgba(255,51,102,0.28); }
-        .info .btn-gaming { background: linear-gradient(180deg, rgba(255,204,0,0.95), rgba(210,160,0,0.95)); color: #171100; box-shadow: 0 10px 28px rgba(255,204,0,0.22); }
-
-        /* ── ADMIN ACTION FOOTER ── */
-        .admin-action-footer {
-            margin-top: 40px;
-            padding: 20px;
-            background: var(--white);
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-
-        body.dark-mode .admin-action-footer {
-            background: #1e1e1e;
-            border-color: #333;
-        }
-
-        .btn-action-bottom {
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            transition: var(--transition);
-            cursor: pointer;
-            font-size: 14px;
-            border: none;
-            white-space: nowrap;
-        }
-
-        .export-btn-bottom { background: #28a745; color: #fff; }
-        .print-btn-bottom { background: #007bff; color: #fff; }
-        .btn-action-bottom:hover { filter: brightness(1.1); transform: translateY(-2px); }
-
-        @media (max-width: 600px) {
-            .admin-action-footer {
-                padding: 14px;
-                gap: 10px;
-            }
-            .btn-action-bottom {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        body.dark-mode {
-            --primary: #4da3ff;
-            --secondary: #ffad33;
-            --dark: #f8f9fa;
-            --light: #121212;
-            --white: #1e1e1e;
-            --success: #34c759;
-            --danger: #ff453a;
-            --gray: #a0a0a0;
-            --border: #333333;
-            --shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        body.dark-mode .header,
-        body.dark-mode .admin-nav,
-        body.dark-mode .footer,
-        body.dark-mode .data-panel,
-        body.dark-mode .modal-content {
-            background-color: #1e1e1e;
-            color: #f8f9fa;
-        }
-
-        body.dark-mode .nav-link:not(.active) {
-            color: #a0a0a0 !important;
-        }
-
-        body.dark-mode .bet-input {
-            background-color: #2c2c2c;
-            border-color: #444;
-            color: #fff;
-        }
-
-        body.dark-mode .wallet-info {
-            background-color: #1a2a3a;
-            border-color: #2c3e50;
-        }
-
-        .theme-toggle {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--gray);
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .theme-toggle:hover {
-            background-color: var(--light);
-            color: var(--primary);
-        }
-
-        .wallet-info {
-            background-color: #e6f3ff;
-            color: var(--primary);
-            padding: 6px 12px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid rgba(0, 102, 204, 0.2);
-            text-decoration: none;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
-            color: var(--dark);
-            line-height: 1.6;
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        #sidebar-wrapper {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--sidebar-bg);
+            color: white;
+            z-index: 1000;
+            transition: transform var(--transition-speed) ease;
             display: flex;
             flex-direction: column;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
-        input, textarea, select {
-            -webkit-user-select: text;
-            user-select: text;
-        }
-
-        @media print {
-            .admin-nav, .header, .footer, .btn-gold, .utility-link, .export-link, .print-link {
-                display: none !important;
-            }
-            .main-content {
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            .data-panel {
-                box-shadow: none !important;
-                border: 1px solid #000 !important;
-            }
-        }
-
-        /* ── HEADER ── */
-        .header {
-            background-color: var(--white);
-            border-bottom: 1px solid var(--border);
-            padding: 10px 20px;
-            z-index: 1000;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-        }
-
-        .header-container {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .logo-section {
+        .sidebar-heading {
+            padding: 1.5rem 1.25rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: var(--primary-bg);
             display: flex;
             align-items: center;
             gap: 12px;
-            text-decoration: none;
-            min-width: fit-content;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        .logo-img {
-            height: 40px;
-            width: auto;
-            border-radius: 6px;
-        }
-
-        .site-name {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--primary);
-            white-space: nowrap;
-        }
-
-        .user-panel {
+        .nav-link {
+            padding: 0.8rem 1.25rem;
+            color: var(--text-muted);
+            font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
+            gap: 12px;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 2px 12px;
+            text-decoration: none;
         }
 
-        .admin-badge {
-            background: var(--secondary);
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
             color: white;
-            padding: 4px 10px;
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
         }
 
-        /* ── ADMIN NAV ── */
-        .admin-nav {
-            background-color: var(--primary);
-            padding: 10px 0;
+        .nav-link.active {
+            color: var(--accent-color);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Content Wrapper */
+        #page-content-wrapper {
+            margin-left: var(--sidebar-width);
+            min-width: 0;
+            width: 100%;
+            min-height: 100vh;
+            transition: margin var(--transition-speed) ease;
+        }
+
+        /* Top Navbar */
+        .admin-navbar {
+            height: var(--header-height);
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 999;
         }
-        
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            padding: 0 15px;
-        }
 
-        .nav-link {
-            padding: 10px 15px;
-            text-decoration: none;
-            color: #ffffff !important;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: var(--transition);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .nav-link:hover {
-            color: #ffc107 !important;
-        }
-
-        .nav-link.active {
-            color: #ffc107 !important;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-        }
-
-        .utility-link {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            margin: 5px 2px;
-            padding: 8px 12px !important;
-        }
-
-        .export-link {
-            color: #28a745 !important;
-            border-bottom: none !important;
-        }
-        
-        .print-link {
-            color: #ffc107 !important;
-            border-bottom: none !important;
-        }
-
-        /* Anti-screenshot / Anti-copy protection */
-        body {
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-            overflow-x: hidden; /* Prevent horizontal scroll on body */
-        }
-        
-        @media print {
-            body { display: block !important; visibility: visible !important; }
-            .header, .admin-nav, .btn-gold, .back-btn, .theme-toggle { display: none !important; }
-            .main-content { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
-            .data-panel { border: none !important; box-shadow: none !important; padding: 0 !important; }
-        }
-
-        /* ── MAIN CONTENT ── */
-        .main-content {
-            flex: 1;
-            padding: 20px 15px;
-            max-width: 100%;
-            margin: 0 auto;
-            width: 100%;
-            overflow-x: hidden;
-        }
-
-        .page-title {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 20px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .data-panel {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            max-width: 100%;
-            overflow-x: auto; /* Allow internal tables to scroll */
-        }
-
-        /* Responsive Table Wrapper */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* ── BUTTONS ── */
-        .btn-gold {
-            background: var(--primary);
-            color: white;
+        .sidebar-toggle {
+            background: #f1f5f9;
             border: none;
-            padding: 10px 18px;
+            padding: 8px 12px;
             border-radius: 6px;
-            font-weight: 700;
+            color: #475569;
             cursor: pointer;
-            transition: var(--transition);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 13px;
-            white-space: nowrap;
         }
 
-        .btn-gold:hover {
-            background: #003366;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        /* Responsive */
+        @media (max-width: 992px) {
+            #sidebar-wrapper {
+                transform: translateX(-100%);
+            }
+            #sidebar-wrapper.show {
+                transform: translateX(0);
+            }
+            #page-content-wrapper {
+                margin-left: 0 !important;
+            }
+            .sidebar-overlay {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 999;
+                display: none;
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
         }
 
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
+        /* Custom Scrollbar for Sidebar */
+        .sidebar-nav-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
         }
 
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--gray); font-size: 13px; }
-        .bet-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 15px;
-        }
-
-        /* Modal / Toast Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+        /* Security Styles */
+        #security-warning-banner {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: #ef4444; color: #fff; padding: 8px;
+            text-align: center; font-weight: 700; z-index: 10001;
             display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10001;
         }
-        .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
+        .security-privacy-shield {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px); z-index: 10000; display: none;
+            align-items: center; justify-content: center; text-align: center; color: white;
         }
-
-        @media (max-width: 768px) {
-            .header-container { flex-direction: column; gap: 10px; }
-            .nav-container { padding: 0; }
-            .nav-link { padding: 15px; font-size: 11px; }
-        }
+        body.security-shield-on .security-sensitive { filter: blur(20px); }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-    <div id="security-warning-banner">SUSPICIOUS SCREEN ACTIVITY DETECTED - ACCESS RESTRICTED</div>
+    <div id="security-warning-banner">SECURITY ALERT: SUSPICIOUS ACTIVITY DETECTED</div>
 
-    <div class="security-privacy-shield" id="security-privacy-shield" aria-hidden="true">
-        <div>
-            <h3>PRIVACY PROTECTION ENABLED</h3>
-            <p>This screen is blurred while the tab is not active. Return to this tab to continue.</p>
+    <div class="security-privacy-shield" id="security-privacy-shield">
+        <div class="p-4">
+            <h3 class="fw-bold mb-2">PRIVACY SHIELD ACTIVE</h3>
+            <p class="text-white-50">Content hidden for security while inactive.</p>
         </div>
     </div>
 
-<header class="header">
-    <div class="header-container">
-        <a href="{% url 'admin_home' %}" class="logo-section">
-            <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
-            <div class="site-name">Change Life With Numbers</div>
-        </a>
-        <div class="user-panel">
-            <button id="theme-toggle" class="theme-toggle" title="Toggle Dark/Light Mode">
-                <i class="fas fa-moon"></i>
-            </button>
-            <a href="{% url 'admin_chat_list' %}" class="wallet-info" style="background: #fff; border: 1px solid var(--border); padding: 8px 12px; position: relative;" title="Messages">
-                <i class="fas fa-bell" style="color: var(--gray);"></i>
-                {% if unread_msgs %}
-                    <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid white;">
-                        {{ unread_msgs }}
-                    </span>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading">
+                <img src="{% static 'logo.jpeg' %}" alt="Logo" style="height: 32px; width: 32px; border-radius: 6px;">
+                <span>Admin Panel</span>
+            </div>
+            <div class="sidebar-nav-container flex-grow-1 overflow-auto py-3">
+                <a href="{% url 'admin_home' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_home' %}active{% endif %}">
+                    <i class="fas fa-home"></i> Admin Home
+                </a>
+                <a href="{% url 'admin_summary' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </a>
+                <div class="px-4 py-2 mt-2 small text-uppercase fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Management</div>
+                <a href="{% url 'manage_markets' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_markets' %}active{% endif %}">
+                    <i class="fas fa-store"></i> Markets
+                </a>
+                <a href="{% url 'admin_user_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_management' %}active{% endif %}">
+                    <i class="fas fa-users"></i> User Manager
+                </a>
+                <a href="{% url 'admin_withdrawal_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_withdrawal_management' %}active{% endif %}">
+                    <i class="fas fa-wallet"></i> Withdrawals
+                </a>
+                <a href="{% url 'admin_payment_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_payment_management' %}active{% endif %}">
+                    <i class="fas fa-credit-card"></i> Payments
+                </a>
+                <div class="px-4 py-2 mt-2 small text-uppercase fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Data & Results</div>
+                <a href="{% url 'declare_result' %}" class="nav-link {% if request.resolver_match.url_name == 'declare_result' %}active{% endif %}">
+                    <i class="fas fa-bullhorn"></i> Declare Result
+                </a>
+                <a href="{% url 'winners_list' %}" class="nav-link {% if request.resolver_match.url_name == 'winners_list' %}active{% endif %}">
+                    <i class="fas fa-trophy"></i> Winners List
+                </a>
+                <a href="{% url 'admin_bet_history' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_bet_history' %}active{% endif %}">
+                    <i class="fas fa-dice"></i> User Bets
+                </a>
+                <a href="{% url 'market_history' %}" class="nav-link {% if request.resolver_match.url_name == 'market_history' %}active{% endif %}">
+                    <i class="fas fa-history"></i> Market History
+                </a>
+                <div class="px-4 py-2 mt-2 small text-uppercase fw-bold text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">System</div>
+                <a href="{% url 'admin_chat_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_chat_list' %}active{% endif %}">
+                    <i class="fas fa-comments"></i> Admin Chat
+                </a>
+                <a href="{% url 'admin_security_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_security_settings' %}active{% endif %}">
+                    <i class="fas fa-shield-alt"></i> Security Setup
+                </a>
+                <a href="{% url 'admin_user_activity' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_activity' %}active{% endif %}">
+                    <i class="fas fa-tasks"></i> Activity Log
+                </a>
+                <a href="{% url 'admin_report' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_report' %}active{% endif %}">
+                    <i class="fas fa-file-invoice"></i> Reports
+                </a>
+            </div>
+            <div class="p-3 border-top border-secondary">
+                <a href="/" class="btn btn-outline-light btn-sm w-100 py-2" target="_blank">
+                    <i class="fas fa-external-link-alt me-2"></i> View Live Site
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="d-flex flex-column">
+            <nav class="admin-navbar">
+                <div class="d-flex align-items-center">
+                    <button class="sidebar-toggle me-3" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h5 class="mb-0 d-none d-md-block fw-bold text-slate-700">{% if page_title %}{{ page_title }}{% else %}Control Center{% endif %}</h5>
+                </div>
+                
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-lg-flex align-items-center bg-light px-3 py-1 rounded-pill border">
+                        <i class="fas fa-wallet text-primary me-2"></i>
+                        <span class="fw-bold">₹{{ user.wallet.balance }}</span>
+                    </div>
+
+                    <a href="{% url 'admin_chat_list' %}" class="btn btn-light border position-relative rounded-circle p-2" style="width: 40px; height: 40px;">
+                        <i class="fas fa-bell text-muted"></i>
+                        {% if unread_msgs %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.6rem;">
+                                {{ unread_msgs }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                    <div class="dropdown">
+                        <button class="btn btn-light border dropdown-toggle d-flex align-items-center gap-2 py-1 pe-3 rounded-pill" type="button" data-bs-toggle="dropdown">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="text-start d-none d-sm-block">
+                                <div class="fw-bold small lh-1">{{ user.username|upper }}</div>
+                                <div class="text-muted" style="font-size: 0.65rem;">Super Admin</div>
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><a class="dropdown-item py-2" href="{% url 'admin_security_settings' %}"><i class="fas fa-cog me-2 text-muted"></i> Settings</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'admin_user_activity' %}"><i class="fas fa-list me-2 text-muted"></i> Activity</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Sign Out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
                 {% endif %}
-            </a>
-            <div class="wallet-info" title="Wallet Balance">
-                <i class="fas fa-wallet"></i>
-                ₹<span>{{ user.wallet.balance }}</span>
-            </div>
-            <span class="admin-badge">Super Admin</span>
-            <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                <span style="font-size: 14px; font-weight: 700;">{{ user.username|upper }}</span>
-                <a href="{% url 'logout' %}" style="font-size: 11px; color: var(--danger); text-decoration: none; font-weight: 700;">LOGOUT</a>
+
+                {% block content %}{% endblock %}
             </div>
         </div>
     </div>
-</header>
 
-<nav class="admin-nav">
-    <div class="nav-container">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-        <a href="{% url 'admin_home' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_home' %}active{% endif %}">
-            admin home
-        </a>
-        <a href="{% url 'admin_summary' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_summary' %}active{% endif %}">
-            Dashboard
-        </a>
-
-
-
-
-        <a href="{% url 'manage_markets' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_markets' %}active{% endif %}">
-            Markets
-        </a>
-        <a href="{% url 'admin_user_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_management' %}active{% endif %}">
-            Users
-        </a>
-        <a href="{% url 'admin_withdrawal_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_withdrawal_management' %}active{% endif %}">
-            Withdrawals
-        </a>
-        <a href="{% url 'admin_payment_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_payment_management' %}active{% endif %}">
-            Payments
-        </a>
-        <a href="{% url 'admin_security_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_security_settings' %}active{% endif %}">
-            Security
-        </a>
-        <a href="{% url 'market_history' %}" class="nav-link {% if request.resolver_match.url_name == 'market_history' %}active{% endif %}">
-            History
-        </a>
-        <a href="{% url 'admin_chat_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_chat_list' %}active{% endif %}">
-            Admin Chat
-        </a>
-        <a href="{% url 'admin_bet_history' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_bet_history' %}active{% endif %}">
-            User Bets
-        </a>
-        <a href="{% url 'admin_user_activity' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_activity' %}active{% endif %}">
-            Activity
-        </a>
-        <a href="{% url 'jodi_winners' %}" class="nav-link {% if request.resolver_match.url_name == 'jodi_winners' %}active{% endif %}">
-            Jodi Winners
-        </a>
-        <a href="{% url 'admin_report' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_report' %}active{% endif %}">
-            Report
-        </a>
-        <a href="{% url 'organize_data' %}" class="nav-link {% if request.resolver_match.url_name == 'organize_data' %}active{% endif %}">
-            Organize
-        </a>
-        <a href="{% url 'declare_result' %}" class="nav-link {% if request.resolver_match.url_name == 'declare_result' %}active{% endif %}">
-            Declare
-        </a>
-        <a href="{% url 'winners_list' %}" class="nav-link {% if request.resolver_match.url_name == 'winners_list' %}active{% endif %}">
-            Winners
-        </a>
-        <a href="{% url 'admin:index' %}" class="nav-link">
-            Django Admin
-        </a>
-        
-        <div style="flex: 1; min-width: 20px;"></div> <!-- Spacer -->
-        <a href="{% url 'admin_summary' %}" class="nav-link" target="_blank">
-            VIEW SITE
-        </a>
-    </div>
-</nav>
-
-
-<main class="main-content">
-    {% block content %}{% endblock %}
-    {% block admin_action_footer %}{% endblock %}
-</main>
-
-<!-- Modal Notification -->
-<div id="modal-notification" class="modal-overlay">
-    <div class="gaming-modal" id="modal-container">
-        <div class="modal-body">
-            <div class="modal-icon-container" id="modal-icon-wrapper">
-                <i id="modal-icon-i" class="fas"></i>
-            </div>
-            <h2 class="modal-title" id="modal-title">Notification</h2>
-            <p class="modal-text" id="modal-text"></p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-gaming" id="modal-btn-confirm">CONTINUE</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    let modalCallback = null;
-
-    function showModal(title, text, type = 'info', callback = null) {
-        const modal = document.getElementById('modal-notification');
-        const container = document.getElementById('modal-container');
-        const iconI = document.getElementById('modal-icon-i');
-        const titleEl = document.getElementById('modal-title');
-        const textEl = document.getElementById('modal-text');
-        const btnConfirm = document.getElementById('modal-btn-confirm');
-
-        modalCallback = callback;
-
-        container.className = 'gaming-modal ' + type;
-        titleEl.innerText = title;
-        textEl.innerText = text;
-        
-        btnConfirm.innerText = "CONTINUE";
-        btnConfirm.onclick = () => closeModal(true);
-
-        iconI.className = 'fas';
-        if (type === 'success') {
-            iconI.classList.add('fa-trophy');
-            if (!title) titleEl.innerText = 'SUCCESS';
-        } else if (type === 'error') {
-            iconI.classList.add('fa-exclamation-triangle');
-            if (!title) titleEl.innerText = 'FAILED';
-        } else {
-            iconI.classList.add('fa-info-circle');
-            if (!title) titleEl.innerText = 'NOTIFICATION';
-        }
-
-        modal.style.display = 'flex';
-    }
-
-    function closeModal(result) {
-        document.getElementById('modal-notification').style.display = 'none';
-        if (modalCallback) modalCallback(result);
-    }
-
-    // Dynamic Export Function
-    function exportCurrentPage() {
-        const table = document.querySelector('table');
-        if (!table) {
-            showModal('EXPORT ERROR', 'No data table found on this page to export.', 'error');
-            return;
-        }
-
-        let csv = [];
-        const rows = table.querySelectorAll('tr');
-        
-        for (let i = 0; i < rows.length; i++) {
-            const row = [], cols = rows[i].querySelectorAll('td, th');
-            for (let j = 0; j < cols.length; j++) {
-                // Clean data: remove extra spaces, newlines, and commas
-                let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").replace(/,/g, ";").trim();
-                row.push(data);
-            }
-            csv.push(row.join(","));
-        }
-
-        if (csv.length <= 1) {
-            showModal('EXPORT ERROR', 'No data rows found in the table.', 'error');
-            return;
-        }
-
-        const csvString = csv.join("\n");
-        const filename = 'Export_' + document.title.split('-')[0].trim().replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.csv';
-        const link = document.createElement("a");
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        
-        link.setAttribute("href", url);
-        link.setAttribute("download", filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showModal('EXPORT SUCCESS', 'Data exported successfully as ' + filename, 'success');
-    }
-
-    // Handle server messages (data provided via JSON script tag)
-    window.addEventListener('load', () => {
-        try {
-            const el = document.getElementById('dj-messages');
-            const arr = el ? JSON.parse(el.textContent || '[]') : [];
-            for (const m of arr) {
-                showModal(m.title, m.text, m.type);
-            }
-        } catch {
-            // ignore
-        }
-    });
-</script>
-
-{% if messages %}
-<script type="application/json" id="dj-messages">
-[
-{% for message in messages %}
-  {
-    "title": "{% if message.tags == 'success' %}SUCCESS{% elif message.tags == 'error' %}FAILED{% else %}NOTIFICATION{% endif %}",
-    "text": "{{ message|escapejs }}",
-    "type": "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}"
-  }{% if not forloop.last %},{% endif %}
-{% endfor %}
-]
-</script>
-{% else %}
-<script type="application/json" id="dj-messages">[]</script>
-{% endif %}
-
-    <!-- Dark Mode Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-        const currentTheme = localStorage.getItem('admin_theme');
+        // Sidebar Toggle Logic
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarWrapper = document.getElementById('sidebar-wrapper');
+        const overlay = document.getElementById('sidebar-overlay');
 
-        if (currentTheme) {
-            body.classList.add(currentTheme);
-            if (currentTheme === 'dark-mode') {
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            }
-        }
-
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            let theme = 'light';
-            if (body.classList.contains('dark-mode')) {
-                theme = 'dark-mode';
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            } else {
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            }
-            localStorage.setItem('admin_theme', theme);
-        });
-    </script>
-
-    <!-- Strict Security Restrictions Script -->
-    <style>
-        /* Visual block for screen recording/screenshots on supported platforms */
-        @media only screen and (max-width: 768px) {
-            .security-overlay {
-                position: fixed;
-                top: 0; left: 0; width: 100%; height: 100%;
-                background: #000;
-                z-index: 20000;
-                display: none;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                color: #fff;
-                text-align: center;
-                padding: 20px;
-            }
-        }
-    </style>
-    <div id="security-blocker" class="security-overlay">
-        <i class="fas fa-shield-alt" style="font-size: 50px; color: #ff4444; margin-bottom: 20px;"></i>
-        <h2>SECURITY ALERT</h2>
-        <p>Screen recording and screenshots are strictly prohibited on this platform for your security.</p>
-    </div>
-
-    <script>
-        // 1. Disable Right Click
-        document.addEventListener('contextmenu', event => event.preventDefault());
-
-        // 2. Strict Keyboard Protection
-        document.addEventListener('keydown', function(e) {
-            // Print Screen / Screenshots
-            if (e.key === 'PrintScreen' || e.keyCode === 44) {
-                triggerSecurityBlock();
-                navigator.clipboard.writeText('Screenshot Restricted');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', e => {
                 e.preventDefault();
-            }
-            
-            // Common shortcuts for DevTools and Source
-            if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'P' || e.key === 'S' || e.key === 'U')) {
-                e.preventDefault();
-            }
-            if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'c' || e.key === 'C')) {
-                e.preventDefault();
-            }
-            // F12
-            if (e.keyCode === 123) e.preventDefault();
-        });
-
-        // 3. Clear Clipboard on Copy attempt
-        document.addEventListener('copy', (e) => {
-            triggerSecurityBlock();
-            e.clipboardData.setData('text/plain', 'Copying content is restricted on this panel.');
-            e.preventDefault();
-        });
-
-        // 4. Prevent dragging
-        document.addEventListener('dragstart', (e) => e.preventDefault());
-
-        // 5. Privacy shield on Visibility/Blur (blur sensitive content + optional shield)
-        const PRIVACY_SHIELD_ID = 'security-privacy-shield';
-
-        function setPrivacyShield(on, reason) {
-            const shield = document.getElementById(PRIVACY_SHIELD_ID);
-            const hasExplicitSensitive = !!document.querySelector('.security-sensitive,[data-sensitive="true"]');
-            const shouldUseOverlay = !hasExplicitSensitive;
-
-            document.body.classList.toggle('security-shield-on', on);
-
-            if (shield) {
-                if (on && shouldUseOverlay) {
-                    shield.style.display = 'flex';
-                    shield.setAttribute('aria-hidden', 'false');
-                } else {
-                    shield.style.display = 'none';
-                    shield.setAttribute('aria-hidden', 'true');
-                }
-            }
-
-            if (on) {
-                document.title = reason ? `SECURITY: ${reason}` : "SECURITY PROTECTED";
-            } else {
-                syncPageTitleFromNav();
-            }
-        }
-
-        document.addEventListener('visibilitychange', function() {
-            setPrivacyShield(document.visibilityState === 'hidden', 'TAB HIDDEN');
-        });
-
-        function triggerSecurityBlock() {
-            const blocker = document.getElementById('security-blocker');
-            if (blocker) {
-                blocker.style.display = 'flex';
-                setTimeout(() => {
-                    blocker.style.display = 'none';
-                }, 3000);
-            }
-            // Temporarily black out the entire body
-            document.body.style.background = '#000';
-            document.body.style.opacity = '0';
-            setTimeout(() => {
-                document.body.style.background = '';
-                document.body.style.opacity = '1';
-            }, 1000);
-        }
-
-        // 6. Focus detection
-        window.addEventListener('blur', function() {
-            setPrivacyShield(true, 'WINDOW BLUR');
-        });
-        window.addEventListener('focus', function() {
-            setPrivacyShield(false);
-        });
-
-        // 6.1 Keep tab title synced to active navigation (address bar cannot be changed)
-        function syncPageTitleFromNav() {
-            const base = "Admin Panel - ChangeLifeWithNumbers";
-            const explicit = "{% if page_title %}{{ page_title|escapejs }}{% else %}{% endif %}".trim();
-            if (explicit) {
-                document.title = `${explicit} - ${base}`;
-                return;
-            }
-            const active = document.querySelector('.nav-container .nav-link.active');
-            const txt = active ? (active.textContent || '').trim().replace(/\s+/g, ' ') : '';
-            document.title = txt ? `${txt} - ${base}` : base;
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            syncPageTitleFromNav();
-            document.querySelectorAll('.nav-container .nav-link').forEach(a => {
-                a.addEventListener('click', () => {
-                    try { localStorage.setItem('last_admin_page_name', (a.textContent || '').trim()); } catch {}
-                    syncPageTitleFromNav();
-                });
+                sidebarWrapper.classList.toggle('show');
+                overlay.classList.toggle('show');
             });
-        });
-
-        // 7. Monitor for Screen Recording Extensions / DOM changes (heuristics)
-        const REC_KEYWORDS = [
-            'screen', 'record', 'recorder', 'capture', 'screencast', 'stream',
-            'loom', 'screencastify', 'nimbus', 'awesome-screenshot', 'lightshot',
-            'obs', 'bandicam'
-        ];
-        const EXT_PROTOCOLS = ['chrome-extension://', 'moz-extension://', 'safari-extension://', 'ms-browser-extension://'];
-
-        function isSuspiciousNode(node) {
-            if (!node || node.nodeType !== 1) return false;
-            const el = node;
-            const tag = (el.tagName || '').toLowerCase();
-            const id = (el.id || '').toLowerCase();
-            const cls = (el.className || '').toString().toLowerCase();
-
-            const attrSrc = (el.getAttribute && (el.getAttribute('src') || el.getAttribute('href') || '')) || '';
-            const src = String(attrSrc).toLowerCase();
-            const inline = (el.getAttribute && (el.getAttribute('style') || '')) || '';
-
-            if (EXT_PROTOCOLS.some(p => src.includes(p))) return true;
-            if ([id, cls, src].some(s => REC_KEYWORDS.some(k => s.includes(k)))) return true;
-
-            try {
-                const st = window.getComputedStyle(el);
-                const z = parseInt(st.zIndex || '0', 10);
-                if (st.position === 'fixed' && z >= 2147480000) return true;
-            } catch {}
-
-            if (tag === 'iframe' && (src || id || cls)) {
-                if (REC_KEYWORDS.some(k => (src + id + cls).includes(k))) return true;
-            }
-
-            if (inline && REC_KEYWORDS.some(k => String(inline).toLowerCase().includes(k))) return true;
-
-            return false;
         }
 
-        const observer = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                for (const node of mutation.addedNodes || []) {
-                    if (isSuspiciousNode(node)) {
-                        const banner = document.getElementById('security-warning-banner');
-                        if (banner) {
-                            banner.innerText = "SUSPICIOUS OVERLAY / EXTENSION DETECTED - ACTION LOGGED";
-                            banner.style.display = 'block';
-                            setTimeout(() => banner.style.display = 'none', 5000);
-                        }
-                        triggerSecurityBlock();
-                        setPrivacyShield(true, 'SUSPICIOUS ACTIVITY');
-                        return;
-                    }
-                    if (node && node.querySelectorAll) {
-                        const candidates = node.querySelectorAll('iframe, video, canvas, script, link, div, section');
-                        for (let i = 0; i < Math.min(candidates.length, 40); i++) {
-                            if (isSuspiciousNode(candidates[i])) {
-                                const banner = document.getElementById('security-warning-banner');
-                                if (banner) {
-                                    banner.innerText = "SUSPICIOUS OVERLAY / EXTENSION DETECTED - ACTION LOGGED";
-                                    banner.style.display = 'block';
-                                    setTimeout(() => banner.style.display = 'none', 5000);
-                                }
-                                triggerSecurityBlock();
-                                setPrivacyShield(true, 'SUSPICIOUS ACTIVITY');
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href', 'style', 'class', 'id'] });
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebarWrapper.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+        }
 
-        // 8. De-duplicate export/print footer if any page accidentally renders it twice
-        document.addEventListener('DOMContentLoaded', () => {
-            const footers = document.querySelectorAll('.admin-action-footer');
-            if (footers.length > 1) {
-                for (let i = 1; i < footers.length; i++) {
-                    footers[i].remove();
-                }
-            }
+        // Privacy Shield Logic
+        window.addEventListener('blur', () => {
+            document.body.classList.add('security-shield-on');
+            document.getElementById('security-privacy-shield').style.display = 'flex';
+        });
+        window.addEventListener('focus', () => {
+            document.body.classList.remove('security-shield-on');
+            document.getElementById('security-privacy-shield').style.display = 'none';
         });
     </script>
-    {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,316 +1,282 @@
-{% extends "admin_base.html" %} {% load static %} {% block content %} 
- <style> 
-   .hero-section { 
-     background: linear-gradient(135deg, var(--dark) 0%, #333 100%); 
-     color: var(--white); 
-     padding: 60px 20px; 
-     border-radius: 16px; 
-     text-align: center; 
-     margin-bottom: 40px; 
-     box-shadow: var(--shadow); 
-   } 
-  
-   .hero-section h1 { 
-     font-size: 36px; 
-     font-weight: 800; 
-     margin-bottom: 15px; 
-     letter-spacing: -1px; 
-   } 
-  
-   .hero-section p { 
-     font-size: 18px; 
-     color: #ccc; 
-     max-width: 700px; 
-     margin: 0 auto 30px; 
-   } 
-  
-   .cta-buttons { 
-     display: flex; 
-     justify-content: center; 
-     gap: 15px; 
-   } 
-  
-   .info-grid { 
-     display: grid; 
-     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-     gap: 25px; 
-     margin-bottom: 40px; 
-   } 
-  
-   .info-card { 
-     background: var(--white); 
-     border: 1px solid var(--border); 
-     border-radius: 12px; 
-     padding: 25px; 
-     transition: var(--transition); 
-   } 
-  
-   .info-card:hover { 
-     transform: translateY(-5px); 
-     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05); 
-   } 
-  
-   .info-card h2 { 
-     font-size: 18px; 
-     font-weight: 700; 
-     margin-bottom: 20px; 
-     display: flex; 
-     align-items: center; 
-     gap: 10px; 
-     color: var(--primary); 
-   } 
-  
-   .rate-list { 
-     list-style: none; 
-   } 
-  
-   .rate-item { 
-     display: flex; 
-     justify-content: space-between; 
-     padding: 12px 0; 
-     border-bottom: 1px solid var(--light); 
-     font-weight: 500; 
-   } 
-  
-   .rate-item:last-child { 
-     border-bottom: none; 
-   } 
-  
-   .rate-value { 
-     color: var(--success); 
-     font-weight: 700; 
-   } 
-  
-   .section-header { 
-     display: flex; 
-     justify-content: space-between; 
-     align-items: center; 
-     margin-bottom: 25px; 
-   } 
-  
-   .section-header h2 { 
-     font-size: 22px; 
-     font-weight: 700; 
-   } 
-  
-   .view-all { 
-     font-size: 14px; 
-     color: var(--primary); 
-     text-decoration: none; 
-     font-weight: 600; 
-   } 
-  
-   .faq-section { 
-     margin-top: 60px; 
-   } 
-  
-   .faq-item { 
-     margin-bottom: 20px; 
-     background: var(--white); 
-     border: 1px solid var(--border); 
-     border-radius: 8px; 
-     padding: 20px; 
-   } 
-  
-   .faq-item h3 { 
-     font-size: 16px; 
-     margin-bottom: 10px; 
-     color: var(--dark); 
-   } 
-  
-   .faq-item p { 
-     font-size: 14px; 
-     color: var(--gray); 
-   } 
-  
-   @media (max-width: 768px) { 
-     .hero-section h1 { 
-       font-size: 28px; 
-     } 
-     .hero-section p { 
-       font-size: 16px; 
-     } 
-     .cta-buttons { 
-       flex-direction: column; 
-     } 
-   } 
- </style> 
-  
- <section class="hero-section"> 
-   <h1>Predict. Win. <span>Prosper.</span></h1> 
-   <p> 
-     Welcome to <strong>ChangeLifeWithNumbers</strong>, the most secure and 
-     trusted platform for your number game predictions. Start your journey today! 
-   </p> 
-   <div class="cta-buttons"> 
-     {% if not user.is_authenticated %} 
-     <a href="{% url 'register' %}" class="btn-gold">Create Free Account</a> 
-     {% else %} 
-     <a href="#how-to-play" class="btn-gold">How to Play</a> 
-     {% endif %} 
-     <a 
-       href="https://wa.me/918217228765" 
-       target="_blank" 
-       class="btn-gold" 
-       style="background: var(--white); color: var(--dark) !important" 
-     > 
-       <i class="fab fa-whatsapp"></i> Contact Support 
-     </a> 
-   </div> 
- </section> 
-  
- <section 
-   id="how-to-play" 
-   class="faq-section" 
-   style=" 
-     margin-top: 40px; 
-     background: var(--white); 
-     padding: 40px; 
-     border-radius: 16px; 
-     border: 1px solid var(--border); 
-   " 
- > 
-   <div class="section-header"> 
-     <h2>How to Play</h2> 
-   </div> 
-   <div style="font-size: 15px; line-height: 1.8; color: var(--dark)"> 
-     <ol style="padding-left: 20px"> 
-       <li> 
-         <strong>Login to your account:</strong> Ensure you are logged in to 
-         access the betting markets. 
-       </li> 
-       <li> 
-         <strong>Add Balance:</strong> Go to the 
-         <a href="{% url 'payment' %}">Payment</a> page to add points to your 
-         wallet. 
-       </li> 
-       <li> 
-         <strong>Select a Game:</strong> Choose from Single, Jodi, or Patti games 
-         from the navigation menu. 
-       </li> 
-       <li> 
-         <strong>Choose Market & Session:</strong> Select your preferred market 
-         (e.g., Kalyan) and session (Open or Close). 
-       </li> 
-       <li> 
-         <strong>Enter Numbers & Amounts:</strong> Enter the amount you want to 
-         bet against your chosen numbers. 
-       </li> 
-       <li> 
-         <strong>Place Prediction:</strong> Click on "Place Predictions" to 
-         confirm your bet. 
-       </li> 
-       <li> 
-         <strong>Check History:</strong> Monitor your bets and winnings in the 
-         <a href="{% url 'bet_history' %}">History</a> section. 
-       </li> 
-     </ol> 
-   </div> 
- </section> 
-  
- <div class="info-grid"> 
-   <div class="info-card" style="grid-column: 1 / -1;"> 
-     <h2><i class="fas fa-bullhorn"></i> NOTICE BOARD</h2> 
-     <div style="font-size: 14px; color: var(--dark); line-height: 1.6;"> 
-       <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 16px;">🎯 Market Game Rates</h3> 
-       <ul style="list-style: none; padding-left: 0; margin-bottom: 20px;"> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Single: 10 × 90</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Jodi: 10 × 900</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Single Patti: 1400</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Double Patti: 2800</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Triple Patti: 3000</li> 
-       </ul> 
-  
-       <h3 style="color: var(--danger); margin-bottom: 10px; font-size: 16px;">⚠️ General Instructions</h3> 
-       <ul style="list-style: none; padding-left: 0;"> 
-         <li style="margin-bottom: 8px;">• Minimum Deposit: ₹100</li> 
-         <li style="margin-bottom: 8px;">• Minimum Withdrawal: ₹100</li> 
-         <li style="margin-bottom: 8px;">• Markets will close 10 minutes before the result announcement time (Open Time).</li> 
-         <li style="margin-bottom: 8px;">• Once a bet is placed, it can be modified up to 3 times only.</li> 
-         <li style="margin-bottom: 8px;">• For queries or suggestions, please contact the Admin via Chat or WhatsApp only.</li> 
-         <li style="margin-bottom: 8px; color: var(--danger); font-weight: 700;">• ❌ Do not call the Admin.</li> 
-         <li style="margin-bottom: 8px;">• After making payment via QR code, share the screenshot on WhatsApp or Chat.</li> 
-         <li style="margin-bottom: 8px;">• Points will be credited to your wallet after successful payment verification.</li> 
-         <li style="margin-bottom: 8px;">• 🎥 How to Play: <a href="#" target="_blank" style="color: var(--primary); font-weight: 600;">[Video Link]</a></li> 
-         <li style="margin-bottom: 8px;">• Please check your betting history after placing a bet for confirmation.</li> 
-         <li style="margin-bottom: 8px;">• Winning amount will be automatically credited to your wallet within 2 hours after market closure.</li> 
-         <li style="margin-bottom: 8px;">• Any holiday or timing changes will be updated here.</li> 
-         <li style="margin-bottom: 8px;">• You can check running markets in the Live Market Results section.</li> 
-       </ul> 
-     </div> 
-   </div> 
-  
-   <div class="info-card" style="grid-column: 1 / -1; background: #fffcf0; border-color: #ffe082;"> 
-     <h2><i class="fas fa-bullhorn"></i> सूचना बोर्ड </h2> 
-     <div style="font-size: 14px; color: var(--dark); line-height: 1.6;"> 
-       <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 16px;">🎯 मार्केट गेम रेट्स</h3> 
-       <ul style="list-style: none; padding-left: 0; margin-bottom: 20px;"> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• सिंगल: 10 × 90</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• जोड़ी: 10 × 900</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• सिंगल पत्ती: 1400</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• डबल पत्ती: 2800</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• ट्रिपल पत्ती: 3000</li> 
-       </ul> 
-  
-       <h3 style="color: var(--danger); margin-bottom: 10px; font-size: 16px;">⚠️ सामान्य निर्देश</h3> 
-       <ul style="list-style: none; padding-left: 0;"> 
-         <li style="margin-bottom: 8px;">• न्यूनतम जमा (Deposit): ₹100</li> 
-         <li style="margin-bottom: 8px;">• न्यूनतम निकासी (Withdrawal): ₹100</li> 
-         <li style="margin-bottom: 8px;">• मार्केट रिजल्ट घोषित होने से 10 मिनट पहले (ओपन टाइम) बंद हो जाएगा।</li> 
-         <li style="margin-bottom: 8px;">• एक बार बेट लगाने के बाद, इसे अधिकतम 3 बार ही बदला जा सकता है।</li> 
-         <li style="margin-bottom: 8px;">• किसी भी प्रश्न या सुझाव के लिए केवल चैट या व्हाट्सएप के माध्यम से एडमिन से संपर्क करें।</li> 
-         <li style="margin-bottom: 8px; color: var(--danger); font-weight: 700;">• ❌ एडमिन को कॉल न करें।</li> 
-         <li style="margin-bottom: 8px;">• QR कोड से भुगतान करने के बाद, स्क्रीनशॉट व्हाट्सएप या चैट में शेयर करें।</li> 
-         <li style="margin-bottom: 8px;">• सफल भुगतान के बाद पॉइंट्स आपके वॉलेट में जोड़ दिए जाएंगे।</li> 
-         <li style="margin-bottom: 8px;">• 🎥 कैसे खेलें: <a href="#" style="color: var(--primary); font-weight: 600;">[वीडियो लिंक]</a></li> 
-         <li style="margin-bottom: 8px;">• बेट लगाने के बाद कन्फर्मेशन के लिए हिस्ट्री जरूर चेक करें।</li> 
-         <li style="margin-bottom: 8px;">• जीत की राशि मार्केट बंद होने के 2 घंटे के भीतर अपने आप वॉलेट में जुड़ जाएगी।</li> 
-         <li style="margin-bottom: 8px;">• किसी भी छुट्टी या समय में बदलाव की जानकारी यहां अपडेट की जाएगी।</li> 
-         <li style="margin-bottom: 8px;">• चल रहे मार्केट की जानकारी Live Market Results सेक्शन में उपलब्ध होगी</li> 
-       </ul> 
-     </div> 
-   </div> 
- </div> 
-  
- <section> 
-   <div class="section-header"> 
-     <h2>Live Market Results</h2> 
-     <a href="{% url 'display' %}" class="view-all" 
-       >View All Markets <i class="fas fa-arrow-right"></i 
-     ></a> 
-   </div> 
-   {% include "display.html" %} 
- </section> 
-  
- <section class="faq-section"> 
-   <div class="section-header"> 
-     <h2>Frequently Asked Questions</h2> 
-   </div> 
-   <div class="info-grid"> 
-     <div class="faq-item"> 
-       <h3>Is ChangeLifeWithNumbers safe?</h3> 
-       <p> 
-         Absolutely. We use industry-standard encryption and professional-grade 
-         security protocols to ensure your data and transactions are always 
-         protected. 
-       </p> 
-     </div> 
-     <div class="faq-item"> 
-       <h3>How do I start playing?</h3> 
-       <p> 
-         Simply register for a free account, add points to your wallet via our 
-         secure payment gateway, and you can start predicting on any active 
-         market. 
-       </p> 
-     </div> 
-     <div class="faq-item"> 
-       <h3>What are the support hours?</h3> 
-       <p> 
-         Our dedicated professional support team is available 24/7 via the in-app 
-         chat or phone to assist you with any queries. 
-       </p> 
-     </div> 
-   </div> 
- </section> 
-  
- {% endblock %} 
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-bg) 0%, #1e293b 100%);
+        color: white;
+        padding: 80px 20px;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .hero-section h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        letter-spacing: -1px;
+    }
+
+    .hero-section h1 span {
+        color: var(--accent-color);
+    }
+
+    .hero-section p {
+        font-size: 1.25rem;
+        color: var(--text-muted);
+        max-width: 800px;
+        margin: 0 auto 40px;
+    }
+
+    .btn-gold {
+        background: var(--accent-color);
+        color: var(--primary-bg) !important;
+        font-weight: 700;
+        padding: 12px 30px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4);
+        opacity: 0.9;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important;
+    }
+
+    .notice-card {
+        background: #fff;
+        border-left: 5px solid var(--accent-color);
+    }
+
+    .hindi-notice {
+        background: #fffcf0;
+        border-left: 5px solid #fbbf24;
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        background: var(--accent-color);
+        color: var(--primary-bg);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 50px 20px;
+        }
+        .hero-section h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <h1>Predict. Win. <span>Prosper.</span></h1>
+    <p>
+        Welcome to <strong>ChangeLifeWithNumbers</strong>, the most secure and 
+        trusted platform for your number game predictions. Start your journey today!
+    </p>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn-gold">
+                <i class="fas fa-user-plus"></i> Create Free Account
+            </a>
+        {% else %}
+            <a href="#how-to-play" class="btn-gold">
+                <i class="fas fa-play"></i> How to Play
+            </a>
+        {% endif %}
+        <a href="https://wa.me/918217228765" target="_blank" class="btn btn-light btn-lg px-4 fw-bold rounded-3 d-inline-flex align-items-center gap-2">
+            <i class="fab fa-whatsapp text-success"></i> Contact Support
+        </a>
+    </div>
+</section>
+
+<!-- How to Play Section -->
+<section id="how-to-play" class="mb-5">
+    <div class="card shadow-sm p-4 p-md-5">
+        <h2 class="fw-bold mb-4 d-flex align-items-center gap-3">
+            <i class="fas fa-gamepad text-primary"></i> How to Play
+        </h2>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="d-flex gap-3 mb-4">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Login to your account</h5>
+                        <p class="text-muted mb-0">Ensure you are logged in to access the betting markets.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Add Balance</h5>
+                        <p class="text-muted mb-0">Go to the <a href="{% url 'payment' %}" class="text-primary text-decoration-none fw-bold">Payment</a> page to add points.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Select a Game</h5>
+                        <p class="text-muted mb-0">Choose from Single, Jodi, or Patti games from the navigation menu.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="step-number">4</div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Choose Market & Session</h5>
+                        <p class="text-muted mb-0">Select your preferred market and session (Open or Close).</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex gap-3 mb-4">
+                    <div class="step-number">5</div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Enter Numbers & Amounts</h5>
+                        <p class="text-muted mb-0">Enter the amount you want to bet against your chosen numbers.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="step-number">6</div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Place Prediction</h5>
+                        <p class="text-muted mb-0">Click on "Place Predictions" to confirm your bet.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3">
+                    <div class="step-number">7</div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Check History</h5>
+                        <p class="text-muted mb-0">Monitor your bets and winnings in the <a href="{% url 'bet_history' %}" class="text-primary text-decoration-none fw-bold">History</a> section.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Notice Boards -->
+<div class="row g-4 mb-5">
+    <!-- English Notice -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm notice-card h-100 p-4">
+            <h4 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <i class="fas fa-bullhorn text-primary"></i> NOTICE BOARD
+            </h4>
+            
+            <h6 class="text-primary fw-bold mb-3">🎯 Market Game Rates</h6>
+            <ul class="list-unstyled mb-4">
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• Single</span> <strong>10 × 90</strong></li>
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• Jodi</span> <strong>10 × 900</strong></li>
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• Single Patti</span> <strong>1400</strong></li>
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• Double Patti</span> <strong>2800</strong></li>
+                <li class="py-2 d-flex justify-content-between"><span>• Triple Patti</span> <strong>3000</strong></li>
+            </ul>
+
+            <h6 class="text-danger fw-bold mb-3">⚠️ General Instructions</h6>
+            <ul class="list-unstyled small text-muted mb-0">
+                <li class="mb-2">• Minimum Deposit/Withdrawal: <strong>₹100</strong></li>
+                <li class="mb-2">• Markets close 10 minutes before result time.</li>
+                <li class="mb-2">• Bets can be modified up to 3 times only.</li>
+                <li class="mb-2 text-danger fw-bold">• ❌ Do not call the Admin.</li>
+                <li class="mb-2">• Share payment screenshots on WhatsApp/Chat.</li>
+                <li class="mb-2">• Winning amount credited within 2 hours.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hindi Notice -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm hindi-notice h-100 p-4">
+            <h4 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <i class="fas fa-bullhorn text-warning"></i> सूचना बोर्ड
+            </h4>
+            
+            <h6 class="text-primary fw-bold mb-3">🎯 मार्केट गेम रेट्स</h6>
+            <ul class="list-unstyled mb-4">
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• सिंगल</span> <strong>10 × 90</strong></li>
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• जोड़ी</span> <strong>10 × 900</strong></li>
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• सिंगल पत्ती</span> <strong>1400</strong></li>
+                <li class="py-2 border-bottom d-flex justify-content-between"><span>• डबल पत्ती</span> <strong>2800</strong></li>
+                <li class="py-2 d-flex justify-content-between"><span>• ट्रिपल पत्ती</span> <strong>3000</strong></li>
+            </ul>
+
+            <h6 class="text-danger fw-bold mb-3">⚠️ सामान्य निर्देश</h6>
+            <ul class="list-unstyled small text-muted mb-0">
+                <li class="mb-2">• न्यूनतम जमा (Deposit/Withdrawal): <strong>₹100</strong></li>
+                <li class="mb-2">• मार्केट रिजल्ट से 10 मिनट पहले बंद हो जाएगा।</li>
+                <li class="mb-2">• बेट को अधिकतम 3 बार बदला जा सकता है।</li>
+                <li class="mb-2 text-danger fw-bold">• ❌ एडमिन को कॉल न करें।</li>
+                <li class="mb-2">• भुगतान के बाद स्क्रीनशॉट व्हाट्सएप पर भेजें।</li>
+                <li class="mb-2">• जीत की राशि 2 घंटे के भीतर क्रेडिट होगी।</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Live Results -->
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Live Market Results</h2>
+        <a href="{% url 'display' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            View All Markets <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card shadow-sm border-0 overflow-hidden">
+        {% include "display.html" %}
+    </div>
+</section>
+
+<!-- FAQs -->
+<section class="mb-5">
+    <h2 class="fw-bold mb-4">Frequently Asked Questions</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm p-4">
+                <h5 class="fw-bold mb-3">Is it safe?</h5>
+                <p class="text-muted mb-0">Absolutely. We use industry-standard encryption and professional-grade security protocols.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm p-4">
+                <h5 class="fw-bold mb-3">How to start?</h5>
+                <p class="text-muted mb-0">Register for free, add points via secure gateway, and start predicting on active markets.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm p-4">
+                <h5 class="fw-bold mb-3">Support hours?</h5>
+                <p class="text-muted mb-0">Our dedicated support team is available 24/7 via in-app chat or WhatsApp.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

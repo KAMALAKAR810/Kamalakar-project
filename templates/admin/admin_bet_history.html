@@ -1,90 +1,117 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<div class="page-shell">
-    <h2 class="page-title">User Bet History</h2>
-    <p class="page-sub">Comprehensive list of all user bets</p>
-
-    <!-- Task 7: Filters Section -->
-    <div class="data-panel" style="margin-bottom: 25px; padding: 20px;">
-        <form method="GET" class="row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">DATE</label>
-                <input type="date" name="date" class="bet-input" value="{{ selected_date }}" style="padding: 10px; font-size: 13px;">
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">MARKET</label>
-                <select name="market" class="bet-input" style="padding: 10px; font-size: 13px;">
-                    <option value="">All Markets</option>
-                    {% for m in markets %}
-                        <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">SECTION</label>
-                <select name="session" class="bet-input" style="padding: 10px; font-size: 13px;">
-                    <option value="">All Sections</option>
-                    <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>Open</option>
-                    <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>Close</option>
-                </select>
-            </div>
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">USER</label>
-                <select name="user" class="bet-input" style="padding: 10px; font-size: 13px;">
-                    <option value="">All Users</option>
-                    {% for u in all_users %}
-                        <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }} ({{ u.profile.user_code }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" class="btn-gold" style="padding: 10px 20px;">Filter</button>
-                <a href="{% url 'admin_bet_history' %}" class="btn-gold" style="padding: 10px 20px; background: var(--gray);">Reset</a>
-            </div>
-        </form>
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-1 fw-bold text-dark">User Bet History</h2>
+            <p class="text-muted small mb-0">Comprehensive list of all user bets across markets</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_bet_history' %}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="fas fa-sync-alt me-1"></i> Refresh
+            </a>
+        </div>
     </div>
 
-    <div class="data-panel">
+    <!-- Filters Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Date</label>
+                    <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Market</label>
+                    <select name="market" class="form-select form-select-sm">
+                        <option value="">All Markets</option>
+                        {% for m in markets %}
+                            <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Section</label>
+                    <select name="session" class="form-select form-select-sm">
+                        <option value="">All Sections</option>
+                        <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>Open</option>
+                        <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>Close</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label small fw-bold text-uppercase text-muted">User</label>
+                    <select name="user" class="form-select form-select-sm">
+                        <option value="">All Users</option>
+                        {% for u in all_users %}
+                            <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <a href="{% url 'admin_bet_history' %}" class="btn btn-light border btn-sm w-100 fw-bold">
+                        Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm overflow-hidden">
         <div class="table-responsive">
-            <table class="app-table">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>Username</th>
-                    <th>Market</th>
-                    <th>Date/Time</th>
-                    <th>Section</th>
-                    <th>Number</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for bet in bets %}
-                <tr>
-                    <td>{{ bet.user.profile.user_code }}</td>
-                    <td>{{ bet.user.username }}</td>
-                    <td>{{ bet.market.name }}</td>
-                    <td>{{ bet.created_at|date:"d M Y, H:i" }}</td>
-                    <td>
-                        <span class="game-type-pill">{{ bet.session }}</span>
-                    </td>
-                    <td><strong style="color: var(--primary);">{{ bet.number }}</strong></td>
-                    <td>₹{{ bet.amount }}</td>
-                    <td>
-                        <span class="bet-status bet-status--{{ bet.status|lower }}">
-                            {{ bet.status }}
-                        </span>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="8" style="text-align: center;">No bets found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">User ID</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Username</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Market</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Date/Time</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Section</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Number</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Amount</th>
+                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bet in bets %}
+                    <tr>
+                        <td class="px-4 fw-bold text-primary">{{ bet.user.profile.user_code }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-user text-muted small"></i>
+                                </div>
+                                {{ bet.user.username }}
+                            </div>
+                        </td>
+                        <td><span class="badge bg-info-subtle text-info px-2 py-1">{{ bet.market.name }}</span></td>
+                        <td class="small text-muted">{{ bet.created_at|date:"d M Y, H:i" }}</td>
+                        <td>
+                            <span class="badge {% if bet.session == 'OPEN' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} px-2 py-1">
+                                {{ bet.session }}
+                            </span>
+                        </td>
+                        <td><strong class="text-dark">{{ bet.number }}</strong></td>
+                        <td class="fw-bold text-dark">₹{{ bet.amount }}</td>
+                        <td class="px-4">
+                            <span class="badge {% if bet.status == 'WIN' %}bg-success{% elif bet.status == 'LOSS' %}bg-danger{% else %}bg-secondary{% endif %} rounded-pill px-3">
+                                {{ bet.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
+                            <p class="mb-0">No bet history found for the selected criteria.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 </div>
 {% endblock %}

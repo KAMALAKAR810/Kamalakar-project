@@ -1,79 +1,108 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<div class="page-shell">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+<div class="container-fluid px-0">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h2 class="page-title" style="margin: 0; border: none; text-align: left;">Admin Chat Support</h2>
-            <p class="page-sub" style="margin: 0; text-align: left;">Message users and provide support</p>
+            <h2 class="h3 mb-1 fw-bold text-dark">Admin Chat Support</h2>
+            <p class="text-muted small mb-0">Message users and provide real-time support</p>
         </div>
         
-        <form method="GET" style="display: flex; gap: 10px;">
-            <input type="text" name="search" value="{{ search_query }}" placeholder="Search Username or ID..." class="bet-input" style="width: 250px; padding: 10px;">
-            <button type="submit" class="btn-gold" style="padding: 10px 20px;">Search</button>
+        <form method="GET" class="d-flex gap-2">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <i class="fas fa-search small"></i>
+                </span>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search Username or ID..." class="form-control border-start-0" style="width: 200px;">
+            </div>
+            <button type="submit" class="btn btn-primary px-3 fw-bold">Search</button>
             {% if search_query %}
-                <a href="{% url 'admin_chat_list' %}" class="btn-gold" style="background: #333; text-decoration: none;">Clear</a>
+                <a href="{% url 'admin_chat_list' %}" class="btn btn-light border">Clear</a>
             {% endif %}
         </form>
     </div>
 
-    <div class="data-panel">
+    <div class="card border-0 shadow-sm overflow-hidden">
         <div class="table-responsive">
-        <table class="app-table">
-            <thead>
-                <tr>
-                    <th>User Profile</th>
-                    <th>Username</th>
-                    <th>User ID</th>
-                    <th>Phone Number</th>
-                    <th>Last Message</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>
-                        <img src="{{ user.profile.profile_pic.url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" alt="P">
-                        <span style="margin-left: 10px; font-weight: bold;">{{ user.first_name }}</span>
-                    </td>
-                    <td>{{ user.username }}</td>
-                    <td><span style="font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px;">{{ user.profile.user_code }}</span></td>
-                    <td>{{ user.profile.mobile }}</td>
-                    <td style="font-size: 12px; color: #666;">
-                        {{ user.last_message_at|date:"d M, H:i"|default:"No date" }}
-                    </td>
-                    <td>
-                        {% if user.unread_count > 0 %}
-                            <i class="fas fa-check-double" style="color: red; font-size: 18px;" title="{{ user.unread_count }} New Messages"></i>
-                        {% else %}
-                            <i class="fas fa-check-double" style="color: #28a745; font-size: 18px;" title="All Read"></i>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'admin_chat_user' user.id %}" class="btn-gold" style="padding: 8px 15px; font-size: 13px;">
-                            <i class="fa fa-comments"></i> Open Chat
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: #999;">No chat history found. Go to User Management to start a chat.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">User Profile</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Username</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted text-center">User ID</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Phone Number</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted">Last Message</th>
+                        <th class="border-0 py-3 small text-uppercase text-muted text-center">Status</th>
+                        <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="px-4">
+                            <div class="d-flex align-items-center">
+                                <div class="position-relative">
+                                    <img src="{{ user.profile.profile_pic.url }}" class="rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;" alt="P">
+                                    {% if user.unread_count > 0 %}
+                                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                            <span class="visually-hidden">New alerts</span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <span class="ms-3 fw-bold text-dark">{{ user.first_name }}</span>
+                            </div>
+                        </td>
+                        <td><span class="text-muted small">{{ user.username }}</span></td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border font-monospace px-2 py-1">{{ user.profile.user_code }}</span>
+                        </td>
+                        <td><span class="text-muted small">{{ user.profile.mobile }}</span></td>
+                        <td>
+                            <div class="small text-muted">
+                                {{ user.last_message_at|date:"d M, H:i"|default:"No messages" }}
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            {% if user.unread_count > 0 %}
+                                <span class="badge bg-danger-subtle text-danger px-3 rounded-pill">
+                                    <i class="fas fa-envelope me-1"></i> {{ user.unread_count }} NEW
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success px-3 rounded-pill">
+                                    <i class="fas fa-check-double me-1"></i> READ
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 text-end">
+                            <a href="{% url 'admin_chat_user' user.id %}" class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm">
+                                <i class="fas fa-comments me-1"></i> CHAT
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <div class="mb-3 opacity-25">
+                                <i class="fas fa-comments fa-4x"></i>
+                            </div>
+                            <h5 class="fw-bold">No Chat History</h5>
+                            <p class="small mb-0">Search for a user or go to User Management to start a conversation.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-{% block admin_action_footer %}
-<div class="admin-action-footer">
-  <button onclick="exportCurrentPage()" class="btn-action-bottom export-btn-bottom">
-    <i class="fas fa-file-export"></i> EXPORT TO CSV
-  </button>
-  <button onclick="window.print()" class="btn-action-bottom print-btn-bottom">
-    <i class="fas fa-print"></i> PRINT PAGE
-  </button>
+
+<!-- Bottom Actions -->
+<div class="d-flex justify-content-center gap-3 mt-4 mb-5">
+    <button onclick="exportCurrentPage()" class="btn btn-outline-secondary px-4 fw-bold">
+        <i class="fas fa-file-export me-2"></i> EXPORT TO CSV
+    </button>
+    <button onclick="window.print()" class="btn btn-outline-secondary px-4 fw-bold">
+        <i class="fas fa-print me-2"></i> PRINT PAGE
+    </button>
 </div>
 {% endblock %}
-{% endblock %}
+

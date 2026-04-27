@@ -9,8 +9,9 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'logo.jpeg')),
     path('secure-admin-5266/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path('', include('MATKAAPP.urls')),
-] 
+]
 
 handler404 = 'MATKAAPP.views.error_404'
 handler500 = 'MATKAAPP.views.error_500'

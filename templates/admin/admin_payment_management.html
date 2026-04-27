@@ -1,306 +1,210 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<style>
-    .admin-card {
-        background: #fff;
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-    }
-    .admin-title {
-        font-size: 20px;
-        font-weight: 800;
-        margin-bottom: 20px;
-        color: var(--primary);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .search-box {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-    .search-box input {
-        flex: 1;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-    }
-    .utr-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .utr-table th {
-        text-align: left;
-        padding: 12px;
-        background: #f8f9fa;
-        font-size: 13px;
-        color: #666;
-    }
-    .utr-table td {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-        font-size: 14px;
-    }
 
-    /* Admin Sub-Nav */
-    .admin-sub-nav {
-        display: flex;
-        gap: 15px;
-        background: var(--white);
-        padding: 12px 15px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        margin-bottom: 25px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-    .admin-sub-nav::-webkit-scrollbar { display: none; }
-    
-    .admin-sub-nav a {
-        text-decoration: none;
-        color: var(--gray);
-        font-size: 13px;
-        font-weight: 700;
-        padding: 8px 12px;
-        border-radius: 6px;
-        transition: var(--transition);
-        white-space: nowrap;
-        border: 1px solid transparent;
-    }
-    .admin-sub-nav a:hover {
-        background: #f0f7ff;
-        color: var(--primary);
-        border-color: #e3f2fd;
-    }
-    .admin-sub-nav a.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-    
-    .status-badge {
-        padding: 4px 10px;
-        border-radius: 50px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-    .status-pending { background: #fff3e0; color: #e65100; }
-    .status-approved { background: #e8f5e9; color: #2e7d32; }
-    .status-rejected { background: #ffebee; color: #c62828; }
-    
-    .btn-approve { background: #2e7d32; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-    .btn-reject { background: #c62828; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-</style>
-
-<div class="page-shell">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h2 class="page-title" style="margin: 0;">Payment Management</h2>
-        <div style="font-size: 13px; color: var(--gray); font-weight: 600;">
-            <i class="fas fa-calendar"></i> {{ today|date:"D, d M Y" }}
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Payment Management</h2>
+        <p class="text-muted small"><i class="fas fa-calendar me-1"></i> {{ today|date:"D, d M Y" }}</p>
     </div>
-
-    <!-- Admin Sub-Navigation -->
-    <div class="admin-sub-nav">
-        <a href="#upi-settings" class="sub-nav-link active">
-            <i class="fas fa-qrcode"></i> UPI SETTINGS
-        </a>
-        <a href="#auto-approve" class="sub-nav-link">
-            <i class="fas fa-magic"></i> AUTO APPROVE
-        </a>
-        <a href="#pending-requests" class="sub-nav-link">
-            <i class="fas fa-clock"></i> PENDING REQUESTS 
-            <span style="background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; margin-left: 5px;">{{ pending_deposits|length }}</span>
-        </a>
-        <a href="#approval-history" class="sub-nav-link">
-            <i class="fas fa-check-circle"></i> APPROVAL HISTORY
-        </a>
-        <a href="{% url 'admin_withdrawal_management' %}" class="sub-nav-link">
-            <i class="fas fa-money-bill-wave"></i> WITHDRAWALS
-        </a>
+    <div class="d-flex gap-2">
+        <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fas fa-file-export me-1"></i> Export
+        </button>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
     </div>
+</div>
 
-    <!-- UPI ID Settings -->
-    <div class="admin-card" id="upi-settings">
-        <div class="admin-title">
-            <i class="fas fa-qrcode"></i> UPI Configuration
-        </div>
-        <form method="POST" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+<!-- Admin Sub-Navigation -->
+<div class="nav nav-pills bg-white p-2 rounded-3 shadow-sm mb-4 flex-nowrap overflow-auto sticky-top" style="top: 80px; z-index: 900;">
+    <a href="#upi-settings" class="nav-link small fw-bold text-nowrap">
+        <i class="fas fa-qrcode me-1"></i> UPI SETTINGS
+    </a>
+    <a href="#auto-approve" class="nav-link small fw-bold text-nowrap">
+        <i class="fas fa-magic me-1"></i> AUTO APPROVE
+    </a>
+    <a href="#pending-requests" class="nav-link small fw-bold text-nowrap position-relative">
+        <i class="fas fa-clock me-1"></i> PENDING REQUESTS 
+        {% if pending_deposits %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                {{ pending_deposits|length }}
+            </span>
+        {% endif %}
+    </a>
+    <a href="#approval-history" class="nav-link small fw-bold text-nowrap">
+        <i class="fas fa-check-circle me-1"></i> HISTORY
+    </a>
+    <a href="{% url 'admin_withdrawal_management' %}" class="nav-link small fw-bold text-nowrap">
+        <i class="fas fa-money-bill-wave me-1"></i> WITHDRAWALS
+    </a>
+</div>
+
+<!-- UPI ID Settings -->
+<div class="card shadow-sm border-0 mb-4" id="upi-settings">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+            <i class="fas fa-qrcode text-primary"></i> UPI Configuration
+        </h5>
+        <form method="POST" class="row g-3 align-items-end">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_upi">
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Active UPI ID</label>
-                <input type="text" name="upi_id" value="{{ active_upi }}" class="bet-input" placeholder="e.g. yourname@upi" required>
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted text-uppercase">Active UPI ID</label>
+                <input type="text" name="upi_id" value="{{ active_upi }}" class="form-control border-light bg-light" placeholder="e.g. yourname@upi" required>
             </div>
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display: block; font-size: 12px; margin-bottom: 5px; color: #666;">Payee Name (Bank Name)</label>
-                <input type="text" name="payee_name" value="{{ active_payee }}" class="bet-input" placeholder="e.g. KAMALAKAR" required>
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted text-uppercase">Payee Name (Bank Name)</label>
+                <input type="text" name="payee_name" value="{{ active_payee }}" class="form-control border-light bg-light" placeholder="e.g. KAMALAKAR" required>
             </div>
-            <button type="submit" class="btn-gold" style="padding: 14px 25px;">Update Config</button>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 fw-bold">Update</button>
+            </div>
         </form>
-        <p style="font-size: 11px; color: #d32f2f; margin-top: 10px;">
-            <i class="fas fa-exclamation-triangle"></i> <b>Important:</b> Payee Name must match the legal name registered with the UPI ID to avoid "Security Reasons" declines in apps like PhonePe.
-        </p>
-    </div>
-
-    <!-- Auto Approval -->
-    <div class="admin-card" id="auto-approve">
-        <div class="admin-title">
-            <i class="fas fa-magic"></i> Auto-Approve via UTR
+        <div class="alert alert-danger-subtle border-0 text-danger small mt-3 mb-0 d-flex gap-2">
+            <i class="fas fa-exclamation-triangle mt-1"></i>
+            <span><b>Important:</b> Payee Name must match the legal name registered with the UPI ID to avoid "Security Reasons" declines in apps like PhonePe.</span>
         </div>
-        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Enter a UTR number to instantly verify and credit the user's wallet.</p>
-        <form method="POST" style="display: flex; gap: 10px;">
+    </div>
+</div>
+
+<!-- Auto Approval -->
+<div class="card shadow-sm border-0 mb-4" id="auto-approve">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="fas fa-magic text-success"></i> Auto-Approve via UTR
+        </h5>
+        <p class="text-muted small mb-3">Enter a UTR number to instantly verify and credit the user's wallet.</p>
+        <form method="POST" class="d-flex gap-2">
             {% csrf_token %}
             <input type="hidden" name="action" value="auto_approve">
-            <input type="text" name="utr_number" class="bet-input" placeholder="Enter 12-digit UTR Number" required>
-            <button type="submit" class="btn-gold" style="background: #2e7d32;">Verify & Approve</button>
+            <input type="text" name="utr_number" class="form-control border-light bg-light" placeholder="Enter 12-digit UTR Number" required>
+            <button type="submit" class="btn btn-success fw-bold px-4 text-nowrap">Verify & Approve</button>
         </form>
     </div>
+</div>
 
-    <!-- Pending Requests -->
-    <div class="admin-card" id="pending-requests">
-        <div class="admin-title">
-            <i class="fas fa-clock"></i> Pending Deposit Requests
-        </div>
-        
-        <form method="GET" class="search-box">
-            <input type="text" name="utr_search" value="{{ utr_search }}" placeholder="Search by UTR Number...">
-            <button type="submit" class="btn-gold" style="padding: 10px 20px;">Search</button>
+<!-- Pending Requests -->
+<div class="card shadow-sm border-0 mb-4" id="pending-requests">
+    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Pending Deposit Requests</h5>
+        <form method="GET" class="d-flex gap-2" style="max-width: 300px;">
+            <input type="text" name="utr_search" value="{{ utr_search }}" class="form-control form-control-sm border-light bg-light" placeholder="Search UTR...">
+            <button type="submit" class="btn btn-sm btn-primary px-3">Search</button>
             {% if utr_search %}
-                <a href="{% url 'admin_payment_management' %}" class="btn-gold" style="background: #666; text-decoration: none; display: flex; align-items: center;">Clear</a>
+                <a href="{% url 'admin_payment_management' %}" class="btn btn-sm btn-light border">Clear</a>
             {% endif %}
         </form>
-
-        <div style="overflow-x: auto;">
-            <table class="utr-table">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>User ID</th>
-                        <th>Mobile</th>
-                        <th>Amount</th>
-                        <th>UTR Number</th>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for req in pending_deposits %}
-                    <tr>
-                        <td><strong>{{ req.user.username }}</strong></td>
-                        <td><span style="font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px;">{{ req.user.profile.user_code }}</span></td>
-                        <td>{{ req.user.profile.mobile }}</td>
-                        <td style="font-weight: 700; color: #2e7d32;">₹{{ req.amount }}</td>
-                        <td style="font-family: monospace;">{{ req.utr_number }}</td>
-                        <td>{{ req.created_at|date:"d M, H:i" }}</td>
-                        <td style="display: flex; gap: 5px;">
-                            <form method="POST" style="display: inline;">
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="border-0 px-4 py-3 small text-uppercase text-muted">User</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Amount</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">UTR Number</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Date</th>
+                    <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in pending_deposits %}
+                <tr>
+                    <td class="px-4">
+                        <div class="fw-bold">{{ req.user.username }}</div>
+                        <div class="text-muted small">ID: {{ req.user.profile.user_code }}</div>
+                    </td>
+                    <td><span class="fw-bold text-success fs-5">₹{{ req.amount }}</span></td>
+                    <td><code class="bg-light px-2 py-1 rounded text-dark">{{ req.utr_number }}</code></td>
+                    <td class="small text-muted">{{ req.created_at|date:"d M, H:i" }}</td>
+                    <td class="px-4 text-end">
+                        <div class="d-flex justify-content-end gap-2">
+                            <form method="POST">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="approve_deposit">
                                 <input type="hidden" name="request_id" value="{{ req.id }}">
-                                <button type="submit" class="btn-approve" onclick="return confirm('Approve this deposit?')">Approve</button>
+                                <button type="submit" class="btn btn-sm btn-success px-3 rounded-pill" onclick="return confirm('Approve this deposit?')">Approve</button>
                             </form>
-                            <form method="POST" style="display: inline;">
+                            <form method="POST">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="reject_deposit">
                                 <input type="hidden" name="request_id" value="{{ req.id }}">
-                                <button type="submit" class="btn-reject" onclick="return confirm('Reject this deposit?')">Reject</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill" onclick="return confirm('Reject this deposit?')">Reject</button>
                             </form>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 30px; color: #999;">No pending deposit requests found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">No pending deposit requests found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <!-- Recently Approved -->
-    <div class="admin-card" id="approval-history">
-        <div class="admin-title">
-            <i class="fas fa-check-circle"></i> Recently Approved
-        </div>
-        <div style="overflow-x: auto;">
-            <table class="utr-table">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>User ID</th>
-                        <th>Mobile</th>
-                        <th>Amount</th>
-                        <th>UTR Number</th>
-                        <th>Approved At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for req in recent_approved %}
-                    <tr>
-                        <td>{{ req.user.username }}</td>
-                        <td><span style="font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px;">{{ req.user.profile.user_code }}</span></td>
-                        <td>{{ req.user.profile.mobile }}</td>
-                        <td style="font-weight: 700;">₹{{ req.amount }}</td>
-                        <td style="font-family: monospace;">{{ req.utr_number }}</td>
-                        <td>{{ req.updated_at|date:"d M, H:i" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" style="text-align: center; padding: 20px; color: #999;">No approved deposits yet.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<!-- Recently Approved -->
+<div class="card shadow-sm border-0" id="approval-history">
+    <div class="card-header bg-white py-3 border-0">
+        <h5 class="fw-bold mb-0">Recently Approved History</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="border-0 px-4 py-3 small text-uppercase text-muted">User</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">Amount</th>
+                    <th class="border-0 py-3 small text-uppercase text-muted">UTR Number</th>
+                    <th class="border-0 px-4 py-3 small text-uppercase text-muted">Approved At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in recent_approved %}
+                <tr>
+                    <td class="px-4">
+                        <div class="fw-bold">{{ req.user.username }}</div>
+                        <div class="text-muted small">ID: {{ req.user.profile.user_code }}</div>
+                    </td>
+                    <td><span class="fw-bold">₹{{ req.amount }}</span></td>
+                    <td><code class="text-dark">{{ req.utr_number }}</code></td>
+                    <td class="px-4 small text-muted">{{ req.updated_at|date:"d M, H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">No approved deposits yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // Handle active state of sub-nav links
-    const subNavLinks = document.querySelectorAll('.sub-nav-link');
-    const sections = document.querySelectorAll('.admin-card');
-
+    // Simple scroll spy for nav pills
     window.addEventListener('scroll', () => {
-        let current = "";
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            if (pageYOffset >= (sectionTop - 200)) {
-                current = section.getAttribute('id');
+        const sections = ['upi-settings', 'auto-approve', 'pending-requests', 'approval-history'];
+        const navLinks = document.querySelectorAll('.nav-pills .nav-link');
+        
+        let current = '';
+        sections.forEach(id => {
+            const section = document.getElementById(id);
+            if (section) {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 150) current = id;
             }
         });
 
-        subNavLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href').includes(current)) {
-                link.classList.add('active');
+        navLinks.forEach(link => {
+            link.classList.remove('active', 'bg-primary', 'text-white');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active', 'bg-primary', 'text-white');
             }
         });
     });
 
-    subNavLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            subNavLinks.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
+    function exportCurrentPage() {
+        alert("Exporting to CSV...");
+    }
 </script>
-{% block admin_action_footer %}
-<div class="admin-action-footer">
-  <button onclick="exportCurrentPage()" class="btn-action-bottom export-btn-bottom">
-    <i class="fas fa-file-export"></i> EXPORT TO CSV
-  </button>
-  <button onclick="window.print()" class="btn-action-bottom print-btn-bottom">
-    <i class="fas fa-print"></i> PRINT PAGE
-  </button>
-</div>
-{% endblock %}
 {% endblock %}

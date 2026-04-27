@@ -83,7 +83,8 @@ class Profile(models.Model):
 
 
 class EmailOTP(models.Model):
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="email_otp")
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="email_otp", null=True, blank=True)
+    email = models.EmailField(null=True, blank=True, help_text="Used for OTP before user creation")
     otp_hash = models.CharField(max_length=128)
     expires_at = models.DateTimeField()
     attempts = models.PositiveSmallIntegerField(default=0)
@@ -94,10 +95,13 @@ class EmailOTP(models.Model):
         indexes = [
             models.Index(fields=["expires_at"]),
             models.Index(fields=["last_sent_at"]),
+            models.Index(fields=["email"]),
         ]
 
     def __str__(self):
-        return f"EmailOTP({self.profile.user.username})"
+        if self.profile:
+            return f"EmailOTP({self.profile.user.username})"
+        return f"EmailOTP({self.email})"
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
