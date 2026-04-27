@@ -456,20 +456,19 @@ def _send_email_otp(profile: Profile):
     )
 
     # Use EmailJS REST API for sending OTP
-    emailjs_service_id = os.getenv("EMAILJS_SERVICE_ID", "service_veolegr")
-    emailjs_template_id = os.getenv("EMAILJS_TEMPLATE_ID", "template_6pjgpyr")
-    emailjs_public_key = os.getenv("EMAILJS_PUBLIC_KEY", "XbvEexF33TQ64MuiG")
-    emailjs_private_key = os.getenv("EMAILJS_PRIVATE_KEY", "PJcAipnlivT5jlOtNw3vw")
+    emailjs_service_id = os.getenv("EMAILJS_SERVICE_ID", "service_veolegr").strip('"').strip("'")
+    emailjs_template_id = os.getenv("EMAILJS_TEMPLATE_ID", "template_6pjgpyr").strip('"').strip("'")
+    emailjs_public_key = os.getenv("EMAILJS_PUBLIC_KEY", "XbvEexF33TQ64MuiG").strip('"').strip("'")
+    emailjs_private_key = os.getenv("EMAILJS_PRIVATE_KEY", "PJcAipnlivT5jlOtNw3vw").strip('"').strip("'")
 
     payload = {
         "service_id": emailjs_service_id,
         "template_id": emailjs_template_id,
         "user_id": emailjs_public_key,
         "template_params": {
-            "to_name": profile.user.first_name or profile.user.username,
-            "to_email": profile.email,
-            "otp_code": otp,  # Assuming template uses {{otp_code}}
-            "ttl_minutes": ttl // 60,
+            "email": profile.email or profile.user.email,
+            "passcode": otp,
+            "time": "2 minutes",
         },
         "accessToken": emailjs_private_key
     }
@@ -478,11 +477,38 @@ def _send_email_otp(profile: Profile):
         response = requests.post(
             "https://api.emailjs.com/api/v1.0/email/send",
             json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=10
+            headers={
+                "Content-Type": "application/json",
+                "Origin": "https://api.emailjs.com"  # Some APIs require an origin
+            },
+            timeout=15
         )
         if response.status_code != 200:
+            # Log the error from EmailJS
+            print(f"EmailJS Error: {response.status_code} - {response.text}")
             # Fallback to standard Django send_mail if EmailJS fails
+            try:
+                send_mail(
+                    subject="Your verification OTP",
+                    message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[profile.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"Fallback send_mail Error: {str(e)}")
+                raise ValidationError(
+                    f"EmailJS failed ({response.status_code}) and fallback mail failed. Please contact support."
+                )
+    except requests.exceptions.RequestException as e:
+        print(f"Request Error: {str(e)}")
+        # Check for PythonAnywhere restriction (ProxyError)
+        if "ProxyError" in str(e) or "403" in str(e):
+            raise ValidationError(
+                "Email service blocked by host. If using PythonAnywhere Free, this is a known restriction. Please contact support."
+            )
+        # If even the request fails (e.g. timeout), try fallback
+        try:
             send_mail(
                 subject="Your verification OTP",
                 message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
@@ -490,10 +516,16 @@ def _send_email_otp(profile: Profile):
                 recipient_list=[profile.email],
                 fail_silently=False,
             )
-    except Exception:
+        except Exception as e2:
+            print(f"Fallback after Request Error failed: {str(e2)}")
+            raise ValidationError(
+                f"Connection failed: {str(e)}. Fallback mail also failed. Please try again."
+            )
+    except Exception as e:
+        print(f"General Error in _send_email_otp: {str(e)}")
         # Surface a clean user-facing error and avoid a 500.
         raise ValidationError(
-            "We could not send the OTP email right now. Please try again in a minute or contact support."
+            f"Error: {str(e)}. Please try again in a minute."
         )
     return ttl
 
