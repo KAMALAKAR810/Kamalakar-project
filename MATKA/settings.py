@@ -165,10 +165,10 @@ ALLOWED_EXTENSIONS = ['jpg', 'png', 'pdf']
 PROFILE_PIC_MAX_BYTES = int(os.getenv("PROFILE_PIC_MAX_BYTES", str(2 * 1024 * 1024)))
 
 # Session Security
-SESSION_COOKIE_AGE = 7200  # 2 hours in seconds
+SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_TIMEOUT_SECONDS = 7200  # 2 hours
+SESSION_TIMEOUT_SECONDS = 1800  # 30 minutes
 
 # django-csp baseline policy
 CSP_DEFAULT_SRC = ("'self'",)

@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import hashlib
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -27,10 +28,11 @@ from django_ratelimit.decorators import ratelimit
 from django.contrib.auth.hashers import make_password, check_password
 import secrets
 
-from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity
+from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, UserDeviceSession
 
 logger = logging.getLogger(__name__)
 _telegram_application = None
+DEVICE_ID_COOKIE_NAME = "clwn_device_id"
 
 
 @login_required
@@ -352,6 +354,73 @@ def _parse_datetime_local(value):
     return timezone.localtime(dt)
 
 
+def _client_ip(request):
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return (request.META.get("REMOTE_ADDR") or "").strip() or None
+
+
+def _get_device_id(request):
+    header_value = (request.headers.get("X-Device-ID") or "").strip()
+    cookie_value = (request.COOKIES.get(DEVICE_ID_COOKIE_NAME) or "").strip()
+    posted_value = (request.POST.get("device_id") or "").strip()
+    device_id = header_value or cookie_value or posted_value
+    if device_id:
+        return device_id[:128]
+
+    user_agent = request.META.get("HTTP_USER_AGENT", "")
+    fallback = f"{_client_ip(request) or 'unknown'}::{user_agent[:160]}"
+    return hashlib.sha256(fallback.encode("utf-8")).hexdigest()
+
+
+def _set_device_cookie(response, device_id):
+    response.set_cookie(
+        DEVICE_ID_COOKIE_NAME,
+        device_id,
+        max_age=60 * 60 * 24 * 365,
+        secure=not settings.DEBUG,
+        httponly=False,
+        samesite="Lax",
+    )
+    return response
+
+
+def _bind_user_device_session(request, user):
+    device_id = _get_device_id(request)
+    current_session_key = request.session.session_key
+    if not current_session_key:
+        request.session.save()
+        current_session_key = request.session.session_key
+
+    with db_transaction.atomic():
+        existing = (
+            UserDeviceSession.objects.select_for_update()
+            .filter(user=user, device_id=device_id, is_active=True)
+            .exclude(session_key=current_session_key)
+            .first()
+        )
+        if existing:
+            from django.contrib.sessions.models import Session
+
+            Session.objects.filter(session_key=existing.session_key).delete()
+            existing.is_active = False
+            existing.save(update_fields=["is_active", "last_seen_at"])
+
+        UserDeviceSession.objects.update_or_create(
+            session_key=current_session_key,
+            defaults={
+                "user": user,
+                "device_id": device_id,
+                "ip_address": _client_ip(request),
+                "user_agent": request.META.get("HTTP_USER_AGENT", "")[:1000],
+                "is_active": True,
+            },
+        )
+
+    return device_id
+
+
 def _market_timer_payload(market):
     now = timezone.localtime()
 
@@ -445,6 +514,7 @@ def login_view(request):
         if getattr(request, "limited", False) and not is_admin_username:
             return ratelimit_exceeded(request)
 
+        device_id = _get_device_id(request)
         user = authenticate(request, username=user_n, password=psw)
         
         if user is not None:
@@ -459,38 +529,30 @@ def login_view(request):
                 except Profile.DoesNotExist:
                     pass
 
-            # Task 2: Enforce one session per user
-            from django.contrib.sessions.models import Session
-            try:
-                profile = user.profile
-                # Skip deleting old sessions for superusers to allow multiple logins
-                if profile.session_key and not user.is_superuser:
-                    Session.objects.filter(session_key=profile.session_key).delete()
-            except Profile.DoesNotExist:
-                pass
-
             login(request, user)
             
-            # Save the new session key to the profile (skip for superusers to allow multiple sessions)
-            if not user.is_superuser:
-                try:
-                    profile = user.profile
-                    profile.session_key = request.session.session_key
-                    profile.save()
-                except Profile.DoesNotExist:
-                    pass
+            _bind_user_device_session(request, user)
+
+            try:
+                profile = user.profile
+                profile.session_key = request.session.session_key
+                profile.save(update_fields=["session_key"])
+            except Profile.DoesNotExist:
+                pass
 
             messages.success(request, f"Welcome back, {user.username}!")
             
             if is_ajax:
-                return JsonResponse({'status': 'success'})
+                response = JsonResponse({'status': 'success'})
+                return _set_device_cookie(response, device_id)
             
             # Admins land on the site Home page (admin_home) as well
             if user.is_superuser:
                 next_url = request.GET.get('next') or 'admin_home'
             else:
                 next_url = request.GET.get('next') or 'user_home'
-            return redirect(next_url)
+            response = redirect(next_url)
+            return _set_device_cookie(response, device_id)
         else:
             if is_ajax:
                 return JsonResponse({'status': 'error', 'message': 'Invalid username or password.'})
@@ -502,9 +564,22 @@ def login_view(request):
 
 
 def logout_view(request):
+    if request.user.is_authenticated and request.session.session_key:
+        UserDeviceSession.objects.filter(session_key=request.session.session_key).update(is_active=False)
     logout(request)
     messages.success(request, "LOGOUT SUCCESSFUL! You have been safely logged out.")
     return redirect('login')
+
+
+@login_required
+def session_idle_logout_api(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Method not allowed."}, status=405)
+
+    if request.session.session_key:
+        UserDeviceSession.objects.filter(session_key=request.session.session_key).update(is_active=False)
+    logout(request)
+    return JsonResponse({"status": "success"})
 
 
 def _normalize_indian_mobile(raw):

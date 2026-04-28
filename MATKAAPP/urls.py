@@ -22,6 +22,7 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("register/", views.register_view, name="register"),
     path("logout/", views.logout_view, name="logout"),
+    path("api/session/idle-logout/", views.session_idle_logout_api, name="session_idle_logout_api"),
     path("admin-2fa/", views.admin_2fa_view, name="admin_2fa"),
     path("admin-security-settings/", views.update_admin_security_view, name="admin_security_settings"),
     path("verify-email/", views.verify_email_otp_view, name="verify_email_otp"),

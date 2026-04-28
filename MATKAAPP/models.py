@@ -87,6 +87,25 @@ class Profile(models.Model):
         return self.user.username
 
 
+class UserDeviceSession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="device_sessions")
+    device_id = models.CharField(max_length=128, db_index=True)
+    session_key = models.CharField(max_length=40, unique=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, default="")
+    last_seen_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "device_id"], condition=models.Q(is_active=True), name="unique_active_device_session_per_user"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} @ {self.device_id[:12]}"
+
+
 class EmailOTP(models.Model):
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name="email_otp", null=True, blank=True)
     email = models.EmailField(null=True, blank=True, help_text="Used for OTP before user creation")

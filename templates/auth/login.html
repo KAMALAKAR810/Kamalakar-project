@@ -316,6 +316,7 @@
                 <form method="post" class="auth-form" id="login-form">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+                    <input type="hidden" name="device_id" value="">
 
                     <div class="field">
                         <label for="login-username">Username or email</label>

@@ -1368,7 +1368,8 @@
       data-username="{% if user.is_authenticated %}{{ user.username|escapejs }}{% endif %}"
       data-userid="{% if user.is_authenticated %}{{ user.id }}{% endif %}"
       data-session="{{ request.session.session_key|default:'' }}"
-      data-page-title="{% if page_title %}{{ page_title|escapejs }}{% endif %}">
+      data-page-title="{% if page_title %}{{ page_title|escapejs }}{% endif %}"
+      data-idle-timeout-ms="1800000">
 
 {% if user.is_superuser %}
 <div id="admin-alerts-container"></div>
@@ -1799,6 +1800,78 @@
                 }
             }
         });
+    })();
+
+    (function () {
+        const deviceCookieName = 'clwn_device_id';
+
+        function readCookie(name) {
+            const escaped = name.replace(/[.$?*|{}()\\[\\]\\\\/+^]/g, '\\$&');
+            const match = document.cookie.match(new RegExp('(?:^|; )' + escaped + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        function makeDeviceId() {
+            if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                return window.crypto.randomUUID();
+            }
+            return 'dev-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        }
+
+        let deviceId = readCookie(deviceCookieName);
+        if (!deviceId) {
+            deviceId = makeDeviceId();
+            document.cookie = `${deviceCookieName}=${encodeURIComponent(deviceId)}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+        }
+
+        window.__deviceId = deviceId;
+
+        document.querySelectorAll('input[name="device_id"]').forEach((input) => {
+            input.value = deviceId;
+        });
+
+        if (document.body?.dataset.authenticated !== '1') {
+            return;
+        }
+
+        const logoutUrl = "{% url 'session_idle_logout_api' %}";
+        const loginUrl = "{% url 'login' %}";
+        const idleTimeoutMs = parseInt(document.body.dataset.idleTimeoutMs || '1800000', 10);
+        let idleTimer = null;
+        let loggingOut = false;
+
+        function getCsrfToken() {
+            return readCookie('csrftoken');
+        }
+
+        function resetIdleTimer() {
+            window.clearTimeout(idleTimer);
+            idleTimer = window.setTimeout(async function () {
+                if (loggingOut) return;
+                loggingOut = true;
+                try {
+                    await fetch(logoutUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-Device-ID': window.__deviceId || ''
+                        },
+                        credentials: 'same-origin'
+                    });
+                } catch (error) {
+                    console.error('Idle logout failed:', error);
+                } finally {
+                    window.location.href = loginUrl;
+                }
+            }, idleTimeoutMs);
+        }
+
+        ['click', 'keydown', 'scroll', 'mousemove', 'touchstart'].forEach((eventName) => {
+            window.addEventListener(eventName, resetIdleTimer, { passive: true });
+        });
+
+        resetIdleTimer();
     })();
 
     let modalCallback = null;

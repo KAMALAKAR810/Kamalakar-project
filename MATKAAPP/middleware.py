@@ -11,6 +11,7 @@ from decimal import Decimal
 from django.db import transaction as db_transaction
 import logging
 import time
+from .models import UserDeviceSession
 
 logger = logging.getLogger(__name__)
 
@@ -200,30 +201,19 @@ class OneSessionPerUserMiddleware:
     def __call__(self, request):
         if request.user.is_authenticated:
             session_key = request.session.session_key
-            # If session_key is None, it hasn't been saved yet. Skip check for this request.
             if session_key:
                 try:
-                    profile = request.user.profile
-                    # Task 2: If the session key in profile doesn't match current session, logout
-                    if profile.session_key and profile.session_key != session_key:
-                        # EXEMPT superusers from being logged out by conflicts
-                        if not request.user.is_superuser:
-                            from django.contrib.sessions.models import Session
-                            logger.warning(f"Session conflict for user {request.user.username}: deleting old session {profile.session_key}")
-                            Session.objects.filter(session_key=profile.session_key).delete()
-                            logout(request)
-                            messages.error(request, "You have been logged out because your account was logged in from another device.")
-                            return redirect('login')
-                        else:
-                            # For superusers, we just log the mismatch but don't force logout or update profile.session_key
-                            # This allows multiple active sessions for superusers.
-                            if not hasattr(request, '_superuser_session_logged'):
-                                logger.info(f"Superuser {request.user.username} has multiple active sessions. Current: {session_key}, Profile: {profile.session_key}")
-                                request._superuser_session_logged = True
-                    elif not profile.session_key:
-                        logger.info(f"Setting session key for user {request.user.username}: {session_key}")
-                        profile.session_key = session_key
-                        profile.save()
+                    active_device_session = UserDeviceSession.objects.filter(
+                        user=request.user,
+                        session_key=session_key,
+                        is_active=True,
+                    ).first()
+                    if not active_device_session:
+                        logout(request)
+                        messages.error(request, "You have been logged out because a newer session replaced this device login.")
+                        return redirect('login')
+
+                    active_device_session.save(update_fields=["last_seen_at"])
                 except Exception as e:
                     logger.error(f"Error in OneSessionPerUserMiddleware for user {request.user.username}: {e}")
         
@@ -267,6 +257,8 @@ class SessionTimeoutMiddleware:
             if last_activity:
                 elapsed_time = current_time - last_activity
                 if elapsed_time > settings.SESSION_TIMEOUT_SECONDS:
+                    if request.session.session_key:
+                        UserDeviceSession.objects.filter(session_key=request.session.session_key).update(is_active=False)
                     logout(request)
                     messages.warning(request, "Session expired due to inactivity.")
                     return redirect('login')
