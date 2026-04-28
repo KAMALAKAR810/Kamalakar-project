@@ -5,6 +5,7 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
+from urllib.parse import quote
 from datetime import timedelta
 from decimal import Decimal
 from django.db import transaction as db_transaction
@@ -59,24 +60,26 @@ class GatekeeperMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Paths that don't require captcha verification
-        # 1. The landing page itself
-        # 2. Static and Media files
-        # 3. Security.txt
-        exempt_paths = [
+        exact_exempt_paths = {
             reverse('landing'),
+            reverse('telegram_webhook'),
+            '/favicon.ico',
+        }
+        prefix_exempt_paths = (
             '/static/',
             '/media/',
             '/.well-known/',
-        ]
-        
-        # Check if the current path is exempt
-        is_exempt = any(request.path == p or request.path.startswith(p) for p in exempt_paths)
-        
+        )
+
+        is_exempt = (
+            request.path in exact_exempt_paths
+            or any(request.path.startswith(prefix) for prefix in prefix_exempt_paths)
+        )
+
         if not is_exempt and not request.session.get('captcha_verified'):
-            # Allow admin-related paths to be exempt if needed, but following "before entering website" strictly.
-            # However, we must ensure users can reach the landing page.
-            return redirect('landing')
+            next_path = request.get_full_path()
+            landing_url = reverse('landing')
+            return redirect(f"{landing_url}?next={quote(next_path, safe='/')}")
             
         response = self.get_response(request)
         return response

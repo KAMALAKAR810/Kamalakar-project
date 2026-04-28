@@ -421,9 +421,9 @@
             
             <!-- Logo Section -->
             <div class="px-6 py-5 border-b border-dark-700 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-700 to-blue-600 
                             flex items-center justify-center shadow-lg">
-                    <i class="fas fa-crown text-white"></i>
+                    <i class="fas fa-shield-halved text-white"></i>
                 </div>
                 <div>
                     <h1 class="font-bold text-lg tracking-tight">Admin Panel</h1>
@@ -560,7 +560,7 @@
 
             <!-- Footer -->
             <div class="p-4 border-t border-dark-700 space-y-2">
-                <a href="/" target="_blank" class="flex items-center gap-3 px-3 py-2.5 rounded-lg 
+                <a href="{% url 'landing' %}" target="_blank" class="flex items-center gap-3 px-3 py-2.5 rounded-lg 
                     text-dark-300 hover:bg-dark-800 hover:text-white transition-all border border-dark-700">
                     <i class="fas fa-external-link-alt w-5 text-center"></i>
                     <span class="font-medium">View Live Site</span>
@@ -628,7 +628,7 @@
 
                     <!-- Logout Button -->
                     <a href="{% url 'logout' %}" class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Logout">
-                        <i class="fas fa-power-off"></i>
+                        <i class="fas fa-right-from-bracket"></i>
                     </a>
 
                     <!-- Mobile User Menu Toggle -->
@@ -676,6 +676,58 @@
 
     <!-- JavaScript -->
     <script>
+        (function () {
+            const allowSelectionTarget = (target) =>
+                target instanceof HTMLElement &&
+                target.closest('input, textarea, select, [contenteditable="true"]') !== null;
+
+            document.addEventListener('contextmenu', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Right-click is disabled on this page.', 'warning', 'Restricted');
+                    }
+                }
+            });
+
+            document.addEventListener('copy', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Copying content is disabled on this page.', 'warning', 'Restricted');
+                    }
+                }
+            });
+
+            document.addEventListener('cut', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener('selectstart', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                const key = event.key.toLowerCase();
+                const ctrlOrCmd = event.ctrlKey || event.metaKey;
+                const blockedShortcut =
+                    key === 'f12' ||
+                    (ctrlOrCmd && event.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
+                    (ctrlOrCmd && key === 'u');
+
+                if (blockedShortcut) {
+                    event.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Developer shortcuts are disabled on this page.', 'warning', 'Restricted');
+                    }
+                }
+            });
+        })();
+
         // Sidebar Toggle
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');

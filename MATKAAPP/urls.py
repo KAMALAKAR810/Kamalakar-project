@@ -4,6 +4,7 @@ from .security_txt import security_txt
 
 urlpatterns = [
     path(".well-known/security.txt", security_txt, name="security_txt"),
+    path("messenger/webhook/", views.telegram_webhook, name="telegram_webhook"),
     
     # --- Social Authentication ---
     path("accounts/google/login/", views.google_login, name="google_login"),

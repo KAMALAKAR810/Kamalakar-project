@@ -4,183 +4,219 @@
 {% block content %}
 <style>
     .auth-shell {
-        min-height: calc(100vh - 250px);
-        padding: 24px 16px;
+        min-height: calc(100vh - 160px);
+        padding: 24px 16px 48px;
         display: grid;
         place-items: center;
     }
 
     .auth-layout {
         width: 100%;
-        max-width: 980px;
+        max-width: 1120px;
         display: grid;
         grid-template-columns: 1fr;
-        gap: 18px;
+        gap: 22px;
         align-items: stretch;
     }
 
+    .auth-panel,
+    .auth-card {
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+    }
+
     .auth-panel {
-        display: none;
-        border-radius: 18px;
-        padding: 28px;
+        padding: 32px 28px;
         color: #fff;
         background:
-            radial-gradient(900px 350px at 10% 10%, rgba(255,255,255,0.20), rgba(255,255,255,0) 55%),
-            radial-gradient(700px 380px at 90% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%),
-            linear-gradient(135deg, #0b5ed7, #14b8a6);
-        box-shadow: var(--shadow);
-        border: 1px solid rgba(255,255,255,0.18);
-        overflow: hidden;
-        position: relative;
+            radial-gradient(640px 280px at 8% 8%, rgba(255,255,255,0.16), rgba(255,255,255,0) 60%),
+            radial-gradient(520px 260px at 95% 24%, rgba(255,255,255,0.11), rgba(255,255,255,0) 58%),
+            linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+    }
+
+    .auth-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        margin-bottom: 24px;
+    }
+
+    .auth-mark img {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        object-fit: cover;
     }
 
     .auth-panel h1 {
-        font-size: 26px;
+        margin: 0 0 14px;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
         font-weight: 900;
-        letter-spacing: -0.02em;
-        margin: 0 0 10px;
-        line-height: 1.1;
+        letter-spacing: -0.03em;
     }
 
     .auth-panel p {
-        margin: 0 0 18px;
-        opacity: 0.92;
-        font-size: 14px;
-        line-height: 1.5;
+        margin: 0 0 28px;
+        max-width: 42ch;
+        color: rgba(255,255,255,0.84);
+        line-height: 1.7;
+        font-size: 15px;
     }
 
-    .auth-panel ul {
-        padding-left: 18px;
+    .auth-points {
+        list-style: none;
+        padding: 0;
         margin: 0;
-        opacity: 0.95;
-        font-size: 14px;
-        line-height: 1.6;
+        display: grid;
+        gap: 12px;
+    }
+
+    .auth-points li {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .auth-points i {
+        color: #93c5fd;
+        margin-top: 2px;
     }
 
     .auth-card {
-        background: var(--white);
-        border-radius: 18px;
-        width: 100%;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
-        overflow: hidden;
+        background: #fff;
     }
 
     .auth-card-inner {
-        padding: 26px;
+        padding: 28px;
+    }
+
+    .auth-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 16px;
     }
 
     .auth-header h2 {
-        font-size: 24px;
+        margin: 0 0 8px;
+        font-size: 1.8rem;
         font-weight: 900;
-        letter-spacing: -0.02em;
-        margin: 0 0 6px;
-        color: var(--dark);
+        letter-spacing: -0.03em;
+        color: #0f172a;
     }
 
     .auth-subtitle {
-        margin: 0 0 18px;
+        margin: 0 0 22px;
+        color: #475569;
         font-size: 14px;
-        color: var(--gray);
-        line-height: 1.5;
+        line-height: 1.7;
     }
 
     .auth-form {
         display: grid;
-        gap: 14px;
+        gap: 16px;
     }
 
     .form-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 14px;
     }
 
     .field {
         display: grid;
-        gap: 6px;
+        gap: 8px;
     }
 
     .field label {
         font-size: 13px;
         font-weight: 700;
-        color: var(--dark);
+        color: #0f172a;
     }
 
     .control {
         width: 100%;
-        padding: 14px 14px;
+        min-height: 52px;
+        padding: 0 14px;
+        border-radius: 14px;
         border: 1px solid var(--border);
-        border-radius: 10px;
-        font-family: inherit;
-        font-size: 14px;
-        transition: var(--transition);
         background: #fff;
+        color: #0f172a;
+        font-size: 14px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .control:focus {
         outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+        border-color: #1d4ed8;
+        box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.12);
     }
 
-    .hint {
+    .file-control {
+        padding: 12px 14px;
+    }
+
+    .hint,
+    .auth-note {
+        color: #64748b;
         font-size: 12px;
-        color: var(--gray);
-        line-height: 1.4;
+        line-height: 1.6;
+    }
+
+    .auth-note {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        font-size: 13px;
     }
 
     .password-wrapper {
         position: relative;
-        width: 100%;
     }
 
     .toggle-password {
         position: absolute;
-        right: 12px;
+        right: 14px;
         top: 50%;
         transform: translateY(-50%);
+        color: #64748b;
         cursor: pointer;
-        color: var(--gray);
-        z-index: 10;
         padding: 8px;
         border-radius: 10px;
     }
 
     .toggle-password:hover {
-        background: rgba(0,0,0,0.04);
-        color: var(--dark);
-    }
-
-    .pwd-rules {
-        font-size: 12px;
-        color: var(--gray);
-        background: #f8f9fb;
-        padding: 12px 12px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        display: flex;
-        gap: 8px;
-        align-items: flex-start;
-        line-height: 1.4;
-    }
-
-    .pwd-rules i {
-        margin-top: 2px;
-        color: var(--secondary);
-    }
-
-    .file-control {
-        padding: 10px 12px;
+        background: #f8fafc;
+        color: #0f172a;
     }
 
     .check-row {
         display: flex;
         align-items: flex-start;
         gap: 10px;
-        padding: 10px 12px;
+        padding: 14px 16px;
+        border-radius: 16px;
         border: 1px solid var(--border);
-        border-radius: 12px;
         background: #fcfcfd;
     }
 
@@ -188,54 +224,18 @@
         width: 18px;
         height: 18px;
         margin-top: 2px;
-        accent-color: var(--primary);
+        accent-color: #1d4ed8;
     }
 
     .check-row label {
+        color: #475569;
         font-size: 13px;
-        color: var(--gray);
+        line-height: 1.6;
         cursor: pointer;
-        line-height: 1.4;
     }
 
     .check-row a {
-        color: var(--primary);
-        text-decoration: none;
-        font-weight: 700;
-    }
-
-    .auth-btn {
-        width: 100%;
-        background: var(--primary);
-        color: var(--white);
-        border: none;
-        padding: 14px 14px;
-        border-radius: 12px;
-        font-weight: 800;
-        font-size: 15px;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-    .auth-btn:hover {
-        background: #0056b3;
-        transform: translateY(-1px);
-    }
-
-    .auth-btn:active {
-        transform: translateY(0);
-    }
-
-    .auth-footer {
-        text-align: center;
-        padding: 16px 26px 22px;
-        border-top: 1px solid var(--border);
-        font-size: 14px;
-        color: var(--gray);
-    }
-
-    .auth-footer a {
-        color: var(--primary);
+        color: #1d4ed8;
         text-decoration: none;
         font-weight: 700;
     }
@@ -244,22 +244,53 @@
         display: none;
     }
 
-    @media (min-width: 900px) {
+    .auth-btn {
+        min-height: 52px;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 16px 32px rgba(29, 78, 216, 0.18);
+    }
+
+    .auth-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 20px 36px rgba(29, 78, 216, 0.22);
+    }
+
+    .auth-footer {
+        padding: 18px 28px 26px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .auth-footer a {
+        color: #1d4ed8;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    @media (min-width: 920px) {
         .auth-shell {
-            padding: 40px 16px;
+            padding: 32px 20px 56px;
         }
 
         .auth-layout {
-            grid-template-columns: 0.95fr 1.05fr;
-            gap: 20px;
+            grid-template-columns: 1fr 1.05fr;
         }
 
         .auth-panel {
-            display: block;
+            padding: 40px 36px;
         }
 
         .auth-card-inner {
-            padding: 34px;
+            padding: 36px;
         }
 
         .form-grid {
@@ -272,67 +303,77 @@
     }
 </style>
 
-<div class="auth-shell">
+<section class="auth-shell">
     <div class="auth-layout">
         <aside class="auth-panel" aria-hidden="true">
-            <h1>ChangeLifeWithNumbers</h1>
-            <p>Create your account and get access to predictions, insights, and your personal profile.</p>
-            <ul>
-                <li>Fast signup, clean dashboard</li>
-                <li>Secure login protection</li>
-                <li>Mobile-friendly experience</li>
+            <div class="auth-mark">
+                <img src="{% static 'logo.jpeg' %}" alt="Change Life With Numbers">
+                <strong>Change Life With Numbers</strong>
+            </div>
+            <h1>Create a professional account experience.</h1>
+            <p>
+                Register once, verify your email OTP, and access a cleaner, more responsive
+                website experience across mobile and desktop.
+            </p>
+            <ul class="auth-points">
+                <li>
+                    <i class="fas fa-envelope"></i>
+                    <div>Email OTP verification helps keep account creation controlled and secure.</div>
+                </li>
+                <li>
+                    <i class="fas fa-id-card"></i>
+                    <div>Profile, wallet, history, and notifications stay connected to one account.</div>
+                </li>
+                <li>
+                    <i class="fas fa-mobile-screen-button"></i>
+                    <div>The signup form is optimized to feel clean and usable on smaller screens.</div>
+                </li>
             </ul>
         </aside>
 
         <div class="auth-card">
             <div class="auth-card-inner">
+                <div class="auth-eyebrow">
+                    <i class="fas fa-user-plus"></i>
+                    Sign Up
+                </div>
                 <div class="auth-header">
                     <h2>Create your account</h2>
-                    <p class="auth-subtitle">Join ChangeLifeWithNumbers to start your prediction journey.</p>
+                    <p class="auth-subtitle">Enter your details below to register and continue with email OTP verification.</p>
                 </div>
 
-                <form method="POST" enctype="multipart/form-data" class="auth-form" id="register-form">
+                <form method="post" enctype="multipart/form-data" class="auth-form" id="register-form">
                     {% csrf_token %}
 
-                    <!-- Honeypot -->
                     <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
 
                     <div class="form-grid">
                         <div class="field">
                             <label for="reg-name">Full name</label>
-                            <input class="control" type="text" name="name" id="reg-name" placeholder="e.g. Kamalakar" value="{{ name|default:'' }}" required autocomplete="name">
+                            <input class="control" type="text" name="name" id="reg-name" placeholder="Enter full name" value="{{ name|default:'' }}" required autocomplete="name">
                         </div>
 
                         <div class="field">
                             <label for="reg-username">Username</label>
-                            <input class="control" type="text" name="username" id="reg-username" placeholder="Choose a unique username" value="{{ username|default:'' }}" required autocomplete="username">
+                            <input class="control" type="text" name="username" id="reg-username" placeholder="Choose a username" value="{{ username|default:'' }}" required autocomplete="username">
                         </div>
 
                         <div class="field">
                             <label for="reg-email">Email</label>
-                            <input class="control" type="email" name="email" id="reg-email" placeholder="you@gmail.com" value="{{ email|default:'' }}" required autocomplete="email">
-                            <div class="hint">Use a valid Gmail/Yahoo email address.</div>
+                            <input class="control" type="email" name="email" id="reg-email" placeholder="you@example.com" value="{{ email|default:'' }}" required autocomplete="email">
+                            <div class="hint">Use a real email address because OTP verification is required.</div>
                         </div>
 
                         <div class="field">
                             <label for="reg-mobile">Mobile number</label>
                             <input class="control" type="tel" name="mobile" id="reg-mobile" placeholder="10-digit mobile number" value="{{ mobile|default:'' }}" required autocomplete="tel">
                         </div>
-                    </div>
 
-                    <div class="pwd-rules">
-                        <i class="fas fa-info-circle"></i>
-                        <div>
-                            Password should be at least 8 characters and not too common.
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
                         <div class="field">
                             <label for="reg-password">Password</label>
                             <div class="password-wrapper">
                                 <input class="control" type="password" name="password" id="reg-password" placeholder="Create a password" required autocomplete="new-password">
-                                <i class="fas fa-eye toggle-password" id="togglePassword" role="button" aria-label="Show password" tabindex="0"></i>
+                                <i class="fas fa-eye toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Show password"></i>
                             </div>
                         </div>
 
@@ -340,29 +381,29 @@
                             <label for="reg-password-confirm">Confirm password</label>
                             <div class="password-wrapper">
                                 <input class="control" type="password" name="password2" id="reg-password-confirm" placeholder="Re-enter password" required autocomplete="new-password">
-                                <i class="fas fa-eye toggle-password" id="togglePasswordConfirm" role="button" aria-label="Show confirm password" tabindex="0"></i>
+                                <i class="fas fa-eye toggle-password" id="togglePasswordConfirm" role="button" tabindex="0" aria-label="Show confirm password"></i>
                             </div>
                         </div>
 
                         <div class="field span-2">
-                            <label for="reg-profile-pic">Profile picture (optional)</label>
-                            <input class="control file-control" id="reg-profile-pic" type="file" name="profile_pic" accept="image/*">
-                            <div class="hint">PNG/JPG recommended. You can add it later too.</div>
+                            <label for="reg-profile-pic">Profile picture</label>
+                            <input class="control file-control" type="file" name="profile_pic" id="reg-profile-pic" accept="image/*">
+                            <div class="hint">Optional. You can add or change this later.</div>
                         </div>
+                    </div>
+
+                    <div class="auth-note">
+                        After signup, an OTP is sent to your email and must be verified before the account is completed.
                     </div>
 
                     <div class="check-row">
                         <input type="checkbox" id="terms_agree" name="terms_agree" required>
                         <label for="terms_agree">
-                            I agree to the <a href="javascript:void(0)" onclick="openTerms()">Terms and Conditions</a> and privacy policy.
+                            I agree to the <a href="javascript:void(0)" onclick="openTerms()">Terms and Conditions</a>.
                         </label>
                     </div>
 
-                    <div class="field span-2">
-
-                    </div>
-
-                    <button type="submit" class="auth-btn">Create account</button>
+                    <button type="submit" class="auth-btn">Create Account</button>
                 </form>
             </div>
 
@@ -371,42 +412,32 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <script>
-    const togglePassword = document.querySelector('#togglePassword');
-    const password = document.querySelector('#reg-password');
-    const togglePasswordConfirm = document.querySelector('#togglePasswordConfirm');
-    const passwordConfirm = document.querySelector('#reg-password-confirm');
+    function bindToggle(triggerId, inputId) {
+        const trigger = document.getElementById(triggerId);
+        const input = document.getElementById(inputId);
+        if (!trigger || !input) {
+            return;
+        }
 
-    if(togglePassword) {
         const toggle = function () {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
+            const nextType = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', nextType);
             this.classList.toggle('fa-eye-slash');
         };
-        togglePassword.addEventListener('click', toggle);
-        togglePassword.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
+
+        trigger.addEventListener('click', toggle);
+        trigger.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
                 toggle.call(this);
             }
         });
     }
 
-    if(togglePasswordConfirm) {
-        const toggle = function () {
-            const type = passwordConfirm.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordConfirm.setAttribute('type', type);
-            this.classList.toggle('fa-eye-slash');
-        };
-        togglePasswordConfirm.addEventListener('click', toggle);
-        togglePasswordConfirm.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggle.call(this);
-            }
-        });
-    }
+    bindToggle('togglePassword', 'reg-password');
+    bindToggle('togglePasswordConfirm', 'reg-password-confirm');
 </script>
 {% endblock %}

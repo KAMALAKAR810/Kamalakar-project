@@ -17,13 +17,13 @@
             --header-height: 70px;
             --primary-bg: #0f172a;
             --sidebar-bg: #1e293b;
-            --accent-color: #38bdf8;
+            --accent-color: #60a5fa;
             --text-muted: #94a3b8;
             --transition-speed: 0.3s;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+            --success-gradient: linear-gradient(135deg, #047857 0%, #059669 100%);
+            --danger-gradient: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+            --warning-gradient: linear-gradient(135deg, #b45309 0%, #d97706 100%);
             --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
             --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.1);
             --shadow-heavy: 0 10px 40px rgba(0, 0, 0, 0.15);
@@ -752,7 +752,7 @@
                 </a>
             </div>
             <div class="p-3 border-top border-secondary d-flex flex-column gap-2">
-                <a href="/" class="btn btn-outline-light btn-sm w-100 py-2" target="_blank">
+                <a href="{% url 'landing' %}" class="btn btn-outline-light btn-sm w-100 py-2" target="_blank">
                     <i class="fas fa-external-link-alt me-2"></i> View Live Site
                 </a>
                 <a href="{% url 'logout' %}" class="btn btn-danger btn-sm w-100 py-2">
@@ -765,7 +765,9 @@
         <div id="page-content-wrapper" class="d-flex flex-column">
             <nav class="admin-navbar">
                 <div class="d-flex align-items-center">
-                    
+                    <button id="menu-toggle" class="sidebar-toggle d-lg-none me-3" type="button" aria-label="Toggle sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     <h5 class="mb-0 d-none d-md-block fw-bold" style="color: var(--dark);">
                         {% if page_title %}{{ page_title }}{% else %}Control Center{% endif %}
                     </h5>
@@ -806,7 +808,7 @@
                     </div>
 
                     <a href="{% url 'logout' %}" class="logout-pill d-none d-md-flex" title="Logout">
-                        <i class="fas fa-power-off"></i>
+                        <i class="fas fa-right-from-bracket"></i>
                     </a>
                 </div>
             </nav>
@@ -843,6 +845,58 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        (function () {
+            const allowSelectionTarget = (target) =>
+                target instanceof HTMLElement &&
+                target.closest('input, textarea, select, [contenteditable="true"]') !== null;
+
+            document.addEventListener('contextmenu', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Right-click is disabled on this page.', 'warning', 'Restricted');
+                    }
+                }
+            });
+
+            document.addEventListener('copy', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Copying content is disabled on this page.', 'warning', 'Restricted');
+                    }
+                }
+            });
+
+            document.addEventListener('cut', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener('selectstart', (event) => {
+                if (!allowSelectionTarget(event.target)) {
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                const key = event.key.toLowerCase();
+                const ctrlOrCmd = event.ctrlKey || event.metaKey;
+                const blockedShortcut =
+                    key === 'f12' ||
+                    (ctrlOrCmd && event.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
+                    (ctrlOrCmd && key === 'u');
+
+                if (blockedShortcut) {
+                    event.preventDefault();
+                    if (typeof showToast === 'function') {
+                        showToast('Developer shortcuts are disabled on this page.', 'warning', 'Restricted');
+                    }
+                }
+            });
+        })();
+
         let modalCallback = null;
 
         function showToast(message, type = 'info', title = null) {

@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 import json
+import logging
+import os
 import re
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,12 +12,15 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.http import JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 # FIX: Renamed import to 'db_transaction' to avoid name collision with the
 # local variable 'transaction' used inside place_bet and the Transaction model.
 from django.db import transaction as db_transaction
 from django.db.models import Sum, Q, Count, Max
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.csrf import csrf_exempt
 import requests
 from django.conf import settings
 from django_ratelimit.decorators import ratelimit
@@ -23,6 +28,8 @@ from django.contrib.auth.hashers import make_password, check_password
 import secrets
 
 from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -303,6 +310,74 @@ TRIPPLE_PATTI_GROUPS = {
 
 # --- AUTH VIEWS ---
 
+def _get_safe_next_url(request, fallback="user_home"):
+    candidate = request.POST.get("next") or request.GET.get("next")
+    if candidate and url_has_allowed_host_and_scheme(
+        candidate,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return candidate
+    return fallback if str(fallback).startswith("/") else reverse(fallback)
+
+
+def _verify_recaptcha_response(request, recaptcha_response):
+    if not recaptcha_response:
+        return False
+
+    secret_key = getattr(settings, "RECAPTCHA_SECRET_KEY", "")
+    if not secret_key:
+        logger.warning("reCAPTCHA verification skipped because RECAPTCHA_SECRET_KEY is not configured.")
+        return False
+
+    try:
+        verify_response = requests.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={
+                "secret": secret_key,
+                "response": recaptcha_response,
+                "remoteip": request.META.get("REMOTE_ADDR", ""),
+            },
+            timeout=10,
+        )
+        verify_response.raise_for_status()
+        payload = verify_response.json()
+        return bool(payload.get("success"))
+    except requests.RequestException:
+        logger.exception("reCAPTCHA verification request failed.")
+        return False
+
+
+def landing(request):
+    safe_next = _get_safe_next_url(request)
+
+    if request.session.get("captcha_verified"):
+        if request.user.is_authenticated:
+            if request.user.is_superuser:
+                return redirect("admin_summary")
+            return redirect(safe_next)
+        return redirect(safe_next)
+
+    if request.method == "POST":
+        recaptcha_response = (request.POST.get("g-recaptcha-response") or "").strip()
+        if _verify_recaptcha_response(request, recaptcha_response):
+            request.session["captcha_verified"] = True
+            request.session["captcha_verified_at"] = timezone.now().isoformat()
+            return redirect(_get_safe_next_url(request))
+
+        messages.error(request, "Please complete the security verification before entering the website.")
+
+    return render(
+        request,
+        "landing.html",
+        {
+            "page_title": "Security Check",
+            "recaptcha_site_key": getattr(settings, "RECAPTCHA_SITE_KEY", ""),
+            "next": safe_next,
+        },
+    )
+
+
 @ratelimit(key='ip', rate='10/m', method='POST', block=False)
 @ratelimit(key='post:username', rate='6/d', method='POST', block=False)
 def login_view(request):
@@ -514,11 +589,6 @@ def _send_email_otp(profile: Profile = None, email: str = None):
             f"Unable to send verification email. Please try again in a moment."
         )
 
-
-import requests
-
-
-
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
     if request.user.is_authenticated:
@@ -543,6 +613,13 @@ def register_view(request):
         psw = request.POST.get('password') or ''
         psw2 = request.POST.get('password2') or ''
         mob = request.POST.get('mobile') or ''
+        terms_agree = request.POST.get('terms_agree')
+
+        if not terms_agree:
+            messages.error(request, "You must accept the terms and conditions to create an account.")
+            return render(request, 'auth/register.html', _register_context({
+                'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
+            }))
         
         if not name or not user_n:
             messages.error(request, "Full name and username are required.")
@@ -869,18 +946,7 @@ def csrf_failure(request, reason=""):
     context = {"reason": reason} if settings.DEBUG else {}
     return render(request, "errors/csrf_403.html", context, status=403)
 
-def landing(request):
-    """Simple landing page to enter the site."""
-    if request.session.get('captcha_verified'):
-        return redirect('user_home')
-    
-    if request.method == 'POST':
-        request.session['captcha_verified'] = True
-        return redirect('user_home')
-            
-    return render(request, 'landing.html', {
-        'page_title': 'Welcome'
-    })
+
 
 def display(request):
     return render(request, 'user/display_page.html', {'markets': Market.objects.all()})
@@ -2231,9 +2297,6 @@ def manage_markets(request):
 def market_bets(request):
     return render(request, "admin/market_bets.html", {"bets": Bet.objects.all()})
 
-
-
-from django.shortcuts import render
 from .forms import MyContactForm
 
 def contact_view(request):
@@ -2245,6 +2308,52 @@ def contact_view(request):
         form = MyContactForm()
     
     return render(request, 'contact.html', {'form': form})
+
+
+def _get_telegram_bot_token():
+    return (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
+
+
+@csrf_exempt
+async def telegram_webhook(request):
+    if request.method != "POST":
+        return HttpResponse("Invalid Method", status=405)
+
+    token = _get_telegram_bot_token()
+    if not token:
+        logger.error("Telegram webhook called without TELEGRAM_BOT_TOKEN configured.")
+        return HttpResponse("Telegram bot is not configured.", status=503)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return HttpResponseBadRequest("Invalid JSON payload.")
+
+    try:
+        from telegram import Update
+        from telegram.ext import Application
+
+        application = Application.builder().token(token).build()
+        await application.initialize()
+        await application.start()
+        update = Update.de_json(payload, application.bot)
+        if update is None:
+            return HttpResponseBadRequest("Invalid Telegram update.")
+        await application.process_update(update)
+        return HttpResponse("OK", status=200)
+    except Exception:
+        logger.exception("Telegram webhook processing failed.")
+        return HttpResponse("Webhook processing failed.", status=500)
+    finally:
+        if "application" in locals():
+            try:
+                await application.stop()
+            except Exception:
+                logger.exception("Telegram application stop failed.")
+            try:
+                await application.shutdown()
+            except Exception:
+                logger.exception("Telegram application shutdown failed.")
 
 
 # --- Social Authentication Views ---

@@ -1,29 +1,287 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_head %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endblock %}
+
 {% block content %}
-<div class="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border-2 border-primary">
-        <div class="mb-6">
-            <img src="{% static 'logo.jpeg' %}" alt="Logo" class="w-24 h-24 mx-auto rounded-full shadow-lg border-4 border-gold mb-4">
-            <h1 class="text-3xl font-extrabold text-dark-900 mb-2">Welcome to MATKA</h1>
-            <p class="text-gray-600">Enter the site to start playing.</p>
-        </div>
-
-        <form method="POST" class="space-y-6">
-            {% csrf_token %}
-            
-            <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-                <i class="fas fa-door-open"></i>
-                Enter Site
-            </button>
-        </form>
-    </div>
-</div>
-
 <style>
-    .bg-primary { background-color: #d4af37; } /* Gold color */
-    .hover-bg-primary-dark:hover { background-color: #b8960c; }
-    .border-gold { border-color: #d4af37; }
+    .entry-shell {
+        min-height: calc(100vh - 160px);
+        display: grid;
+        place-items: center;
+        padding: 24px 16px 48px;
+    }
+
+    .entry-layout {
+        width: 100%;
+        max-width: 1120px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .entry-panel,
+    .entry-card {
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+    }
+
+    .entry-panel {
+        color: #fff;
+        padding: 32px 28px;
+        background:
+            radial-gradient(500px 240px at 10% 10%, rgba(255,255,255,0.16), rgba(255,255,255,0) 60%),
+            radial-gradient(420px 220px at 90% 20%, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%),
+            linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+    }
+
+    .entry-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        margin-bottom: 24px;
+    }
+
+    .entry-brand img {
+        width: 42px;
+        height: 42px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .entry-brand strong {
+        font-size: 14px;
+        letter-spacing: 0.02em;
+    }
+
+    .entry-panel h1 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1.05;
+        margin: 0 0 14px;
+        font-weight: 900;
+    }
+
+    .entry-panel p {
+        font-size: 15px;
+        line-height: 1.7;
+        color: rgba(255,255,255,0.82);
+        max-width: 44ch;
+        margin: 0 0 28px;
+    }
+
+    .entry-points {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .entry-points li {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .entry-points i {
+        color: #93c5fd;
+        margin-top: 2px;
+    }
+
+    .entry-card {
+        background: #fff;
+    }
+
+    .entry-card-inner {
+        padding: 28px;
+        display: grid;
+        gap: 18px;
+    }
+
+    .entry-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #1d4ed8;
+        background: #eff6ff;
+        text-transform: uppercase;
+    }
+
+    .entry-card h2 {
+        margin: 0;
+        font-size: 1.7rem;
+        color: #0f172a;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+    }
+
+    .entry-card p {
+        margin: 0;
+        color: #475569;
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+    .entry-form {
+        display: grid;
+        gap: 16px;
+    }
+
+    .entry-note {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .entry-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .entry-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 50px;
+        padding: 0 22px;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 15px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 16px 32px rgba(29, 78, 216, 0.18);
+    }
+
+    .entry-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 20px 36px rgba(29, 78, 216, 0.22);
+    }
+
+    .entry-help {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .recaptcha-wrap {
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    @media (min-width: 920px) {
+        .entry-shell {
+            padding: 32px 20px 56px;
+        }
+
+        .entry-layout {
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+        }
+
+        .entry-panel {
+            padding: 40px 36px;
+        }
+
+        .entry-card-inner {
+            padding: 36px;
+        }
+    }
 </style>
+
+<section class="entry-shell">
+    <div class="entry-layout">
+        <aside class="entry-panel">
+            <div class="entry-brand">
+                <img src="{% static 'logo.jpeg' %}" alt="Change Life With Numbers">
+                <div>
+                    <strong>Change Life With Numbers</strong>
+                </div>
+            </div>
+
+            <h1>Secure access before entering the website.</h1>
+            <p>
+                Please complete the security verification to continue into the website.
+                This helps block automated traffic and keeps the platform cleaner for real users.
+            </p>
+
+            <ul class="entry-points">
+                <li>
+                    <i class="fas fa-shield-halved"></i>
+                    <div>Human verification is required before opening login, signup, games, wallet, or admin pages.</div>
+                </li>
+                <li>
+                    <i class="fas fa-mobile-screen-button"></i>
+                    <div>The verification page is fully responsive and works on mobile, tablet, and desktop.</div>
+                </li>
+                <li>
+                    <i class="fas fa-lock"></i>
+                    <div>Once verified, your session can continue normally without forcing the check on every click.</div>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="entry-card">
+            <div class="entry-card-inner">
+                <span class="entry-eyebrow">
+                    <i class="fas fa-circle-check"></i>
+                    Access Check
+                </span>
+                <h2>I am not a robot</h2>
+                <p>Complete the reCAPTCHA below, then continue into the website.</p>
+
+                <form method="post" class="entry-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ next }}">
+
+                    <div class="entry-note">
+                        The security check must be completed before the website can be opened.
+                    </div>
+
+                    <div class="recaptcha-wrap">
+                        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+                    </div>
+
+                    <div class="entry-actions">
+                        <button type="submit" class="entry-btn">
+                            <i class="fas fa-arrow-right"></i>
+                            Enter Website
+                        </button>
+                    </div>
+
+                    <div class="entry-help">
+                        If the verification box does not load, confirm that your reCAPTCHA site key is configured correctly.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

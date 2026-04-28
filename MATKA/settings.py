@@ -251,12 +251,17 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Storage backends
+USE_MANIFEST_STATIC_FILES = os.getenv("USE_MANIFEST_STATIC_FILES", "False") == "True"
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            if USE_MANIFEST_STATIC_FILES
+            else "whitenoise.storage.CompressedStaticFilesStorage"
+        ),
     },
 }
 
@@ -324,6 +329,27 @@ EMAIL_OTP_RESEND_COOLDOWN_SECONDS = int(
 )
 
 # Logging configuration
+ENABLE_FILE_LOGGING = os.getenv("ENABLE_FILE_LOGGING", "False") == "True"
+
+log_handlers = {
+    'console': {
+        'level': 'INFO',
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose',
+    },
+}
+
+middleware_logger_handlers = ['console']
+
+if ENABLE_FILE_LOGGING:
+    log_handlers['file'] = {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join(BASE_DIR, 'debug.log'),
+        'formatter': 'verbose',
+    }
+    middleware_logger_handlers.append('file')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -333,22 +359,10 @@ LOGGING = {
             'style': '{',
         },
     },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),
-            'formatter': 'verbose',
-        },
-    },
+    'handlers': log_handlers,
     'loggers': {
         'MATKAAPP.middleware': {
-            'handlers': ['console', 'file'],
+            'handlers': middleware_logger_handlers,
             'level': 'INFO',
             'propagate': True,
         },

@@ -2,253 +2,339 @@
 {% load static %}
 
 {% block content %}
-<div data-page-type="auth" id="auth-page-flag"></div>
 <style>
-    .auth-container {
-        display: flex;
-        justify-content: center;
+    .auth-shell {
+        min-height: calc(100vh - 160px);
+        padding: 24px 16px 48px;
+        display: grid;
+        place-items: center;
+    }
+
+    .auth-layout {
+        width: 100%;
+        max-width: 1080px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 22px;
+        align-items: stretch;
+    }
+
+    .auth-panel,
+    .auth-card {
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+    }
+
+    .auth-panel {
+        padding: 32px 28px;
+        color: #fff;
+        background:
+            radial-gradient(640px 280px at 8% 8%, rgba(255,255,255,0.16), rgba(255,255,255,0) 60%),
+            radial-gradient(520px 260px at 95% 24%, rgba(255,255,255,0.11), rgba(255,255,255,0) 58%),
+            linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+    }
+
+    .auth-mark {
+        display: inline-flex;
         align-items: center;
-        min-height: calc(100vh - 250px);
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        margin-bottom: 24px;
+    }
+
+    .auth-mark img {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        object-fit: cover;
+    }
+
+    .auth-panel h1 {
+        margin: 0 0 14px;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+    }
+
+    .auth-panel p {
+        margin: 0 0 28px;
+        max-width: 42ch;
+        color: rgba(255,255,255,0.84);
+        line-height: 1.7;
+        font-size: 15px;
+    }
+
+    .auth-points {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+    }
+
+    .auth-points li {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .auth-points i {
+        color: #93c5fd;
+        margin-top: 2px;
     }
 
     .auth-card {
-        background: white;
-        padding: 50px 45px;
-        border-radius: 16px;
-        width: 100%;
-        max-width: 420px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        animation: slideUp 0.5s ease;
+        background: #fff;
     }
 
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .auth-card-inner {
+        padding: 28px;
     }
 
-    .auth-card h2 {
-        font-size: 28px;
+    .auth-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 12px;
         font-weight: 800;
-        text-align: center;
-        margin-bottom: 12px;
-        color: #1e293b;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 16px;
+    }
+
+    .auth-header h2 {
+        margin: 0 0 8px;
+        font-size: 1.8rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        color: #0f172a;
     }
 
     .auth-subtitle {
-        text-align: center;
-        color: #64748b;
+        margin: 0 0 22px;
+        color: #475569;
         font-size: 14px;
-        margin-bottom: 35px;
-        font-weight: 500;
+        line-height: 1.7;
     }
 
-    .auth-form input {
+    .auth-form {
+        display: grid;
+        gap: 16px;
+    }
+
+    .field {
+        display: grid;
+        gap: 8px;
+    }
+
+    .field label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .control {
         width: 100%;
-        padding: 14px 16px;
-        margin-bottom: 15px;
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        font-family: inherit;
+        min-height: 52px;
+        padding: 0 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #0f172a;
         font-size: 14px;
-        transition: all 0.3s ease;
-        background: #f8fafc;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .control:focus {
+        outline: none;
+        border-color: #1d4ed8;
+        box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.12);
     }
 
     .password-wrapper {
         position: relative;
-        width: 100%;
     }
 
     .toggle-password {
         position: absolute;
-        right: 16px;
-        top: 18px;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
         cursor: pointer;
-        color: #94a3b8;
-        z-index: 10;
-        transition: color 0.2s ease;
+        padding: 8px;
+        border-radius: 10px;
     }
 
     .toggle-password:hover {
-        color: #667eea;
+        background: #f8fafc;
+        color: #0f172a;
     }
 
-    .auth-form input:focus {
-        outline: none;
-        border-color: #667eea;
-        background: white;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    .auth-note {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.6;
     }
 
     .auth-btn {
-        width: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        min-height: 52px;
         border: none;
-        padding: 14px;
-        border-radius: 10px;
-        font-weight: 700;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+        color: #fff;
         font-size: 15px;
+        font-weight: 800;
         cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: 15px;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 16px 32px rgba(29, 78, 216, 0.18);
     }
 
     .auth-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-
-    .auth-btn:active {
-        transform: translateY(0);
+        transform: translateY(-1px);
+        box-shadow: 0 20px 36px rgba(29, 78, 216, 0.22);
     }
 
     .auth-footer {
+        padding: 18px 28px 26px;
+        border-top: 1px solid var(--border);
         text-align: center;
-        margin-top: 30px;
         font-size: 14px;
-        color: #64748b;
+        color: #475569;
     }
 
     .auth-footer a {
-        color: #667eea;
+        color: #1d4ed8;
         text-decoration: none;
         font-weight: 700;
-        transition: color 0.2s ease;
     }
 
-    .auth-footer a:hover {
-        color: #764ba2;
-    }
+    @media (min-width: 920px) {
+        .auth-shell {
+            padding: 32px 20px 56px;
+        }
 
-    .social-divider {
-        text-align: center;
-        margin: 30px 0;
-        position: relative;
-    }
+        .auth-layout {
+            grid-template-columns: 1fr 0.95fr;
+        }
 
-    .social-divider::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        width: 100%;
-        height: 1px;
-        background: #e2e8f0;
-    }
+        .auth-panel {
+            padding: 40px 36px;
+        }
 
-    .social-divider span {
-        background: white;
-        padding: 0 15px;
-        color: #94a3b8;
-        font-size: 13px;
-        position: relative;
-        font-weight: 600;
-    }
-
-    .social-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 12px;
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        text-decoration: none;
-        color: #1e293b;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        background: white;
-    }
-
-    .social-btn:hover {
-        border-color: #cbd5e1;
-        background: #f8fafc;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .auth-card-inner {
+            padding: 36px;
+        }
     }
 </style>
 
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Welcome Back</h2>
-        <p class="auth-subtitle">Sign in to your  account</p>
-        
-        <form method="POST" class="auth-form" id="login-form">
-            {% csrf_token %}
-            <input type="text" name="username" placeholder="Username or Email" required autofocus>
-            <div class="password-wrapper">
-                <input type="password" name="password" id="password" placeholder="Password" required>
-                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+<section class="auth-shell">
+    <div class="auth-layout">
+        <aside class="auth-panel" aria-hidden="true">
+            <div class="auth-mark">
+                <img src="{% static 'logo.jpeg' %}" alt="Change Life With Numbers">
+                <strong>Change Life With Numbers</strong>
+            </div>
+            <h1>Welcome back.</h1>
+            <p>
+                Sign in to continue with your account, wallet, activity, and predictions
+                in one clean and secure place.
+            </p>
+            <ul class="auth-points">
+                <li>
+                    <i class="fas fa-shield-halved"></i>
+                    <div>Protected login flow with session controls and email verification support.</div>
+                </li>
+                <li>
+                    <i class="fas fa-wallet"></i>
+                    <div>Quick access to wallet balance, betting history, and notifications after sign in.</div>
+                </li>
+                <li>
+                    <i class="fas fa-mobile-screen-button"></i>
+                    <div>Responsive layout that stays clear and usable on mobile and desktop.</div>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="auth-card">
+            <div class="auth-card-inner">
+                <div class="auth-eyebrow">
+                    <i class="fas fa-lock"></i>
+                    Sign In
+                </div>
+                <div class="auth-header">
+                    <h2>Access your account</h2>
+                    <p class="auth-subtitle">Enter your username or email and your password to continue.</p>
+                </div>
+
+                <form method="post" class="auth-form" id="login-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+
+                    <div class="field">
+                        <label for="login-username">Username or email</label>
+                        <input class="control" type="text" name="username" id="login-username" placeholder="Enter username or email" required autofocus autocomplete="username">
+                    </div>
+
+                    <div class="field">
+                        <label for="login-password">Password</label>
+                        <div class="password-wrapper">
+                            <input class="control" type="password" name="password" id="login-password" placeholder="Enter password" required autocomplete="current-password">
+                            <i class="fas fa-eye toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Show password"></i>
+                        </div>
+                    </div>
+
+                    <div class="auth-note">
+                        Sign in is available only after the website access check has been completed.
+                    </div>
+
+                    <button type="submit" class="auth-btn">Sign In</button>
+                </form>
             </div>
 
-            <button type="submit" class="auth-btn">
-                <i class="fas fa-sign-in-alt me-2"></i> Sign In
-            </button>
-        </form>
-        
-        <!-- Social Login Divider -->
-        <div class="social-divider">
-            <span>Or continue with</span>
-        </div>
-        
-        <!-- Social Login Buttons -->
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            <a href="{% url 'google_login' %}" class="social-btn">
-                <i class="fab fa-google" style="font-size: 18px; color: #DB4437;"></i>
-                Continue with Google
-            </a>
-            <a href="{% url 'facebook_login' %}" class="social-btn">
-                <i class="fab fa-facebook" style="font-size: 18px; color: #4267B2;"></i>
-                Continue with Facebook
-            </a>
-            <a href="{% url 'telegram_login' %}" class="social-btn">
-                <i class="fab fa-telegram" style="font-size: 18px; color: #0088cc;"></i>
-                Continue with Telegram
-            </a>
-        </div>
-        
-        <div class="auth-footer">
-            Don't have an account? <a href="{% url 'register' %}">Create one now</a>
+            <div class="auth-footer">
+                New here? <a href="{% url 'register' %}">Create your account</a>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
 <script>
-    const togglePassword = document.querySelector('#togglePassword');
-    const password = document.querySelector('#password');
+    const loginPasswordToggle = document.getElementById('togglePassword');
+    const loginPasswordInput = document.getElementById('login-password');
 
-    togglePassword.addEventListener('click', function (e) {
-        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-        password.setAttribute('type', type);
-        this.classList.toggle('fa-eye-slash');
-    });
+    if (loginPasswordToggle && loginPasswordInput) {
+        const toggleLoginPassword = function () {
+            const nextType = loginPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            loginPasswordInput.setAttribute('type', nextType);
+            this.classList.toggle('fa-eye-slash');
+        };
 
-    // Add smooth transitions on form interactions
-    const inputs = document.querySelectorAll('.auth-form input');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.style.borderColor = '#667eea';
-        });
-        input.addEventListener('blur', function() {
-            if(!this.value) {
-                this.style.borderColor = '#e2e8f0';
+        loginPasswordToggle.addEventListener('click', toggleLoginPassword);
+        loginPasswordToggle.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleLoginPassword.call(this);
             }
         });
-    });
+    }
 </script>
 {% endblock %}

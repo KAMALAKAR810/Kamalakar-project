@@ -6,20 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>{% if page_title %}{{ page_title }} - {% endif %}ChangeLifeWithNumbers</title>
     <link rel="icon" type="image/png" href="{% static 'logo.jpeg' %}">
+    {% block extra_head %}{% endblock %}
     {# Avoid external Google Fonts to reduce supply-chain risk and scanner noise (missing SRI). #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
-    
-    <!-- EmailJS SDK -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script type="text/javascript">
-      (function(){
-        emailjs.init({
-          publicKey: "XbvEexF33TQ64MuiG",
-        });
-      })();
-    </script>
 
     <style>
         :root {
@@ -1372,7 +1363,6 @@
             display: none;
         }
     </style>
-    {% block extra_head %}{% endblock %}
 </head>
 <body data-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
       data-username="{% if user.is_authenticated %}{{ user.username|escapejs }}{% endif %}"
@@ -1419,7 +1409,7 @@
 <header class="header">
     <div class="header-container">
         <div class="logo-group">
-            <a href="{% url 'user_home' %}" class="logo-section">
+            <a href="{% url 'landing' %}" class="logo-section">
                 <img src="{% static 'logo.jpeg' %}" alt="Logo" class="logo-img">
                 <div class="site-name">
                     Change Life With Numbers
@@ -1459,16 +1449,25 @@
                     </div>
 
                     <a href="{% url 'logout' %}" class="logout-pill" title="Sign Out">
-                        <i class="fas fa-power-off"></i>
+                        <i class="fas fa-right-from-bracket"></i>
                     </a>
                 </div>
             {% else %}
-                <a href="{% url 'login' %}" class="btn-signin">Sign In</a>
+                {% if request.resolver_match.url_name == 'register' %}
+                    <a href="{% url 'login' %}" class="btn-signin">Sign In</a>
+                {% elif request.resolver_match.url_name == 'login' %}
+                    <a href="{% url 'register' %}" class="btn-signin">Create Account</a>
+                {% elif request.resolver_match.url_name == 'verify_email_otp' or request.resolver_match.url_name == 'otp_result' %}
+                    <a href="{% url 'login' %}" class="btn-signin">Back To Sign In</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-signin">Sign In</a>
+                {% endif %}
             {% endif %}
         </div>
     </div>
 </header>
 
+{% if request.resolver_match.url_name != 'landing' and request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'verify_email_otp' and request.resolver_match.url_name != 'otp_result' %}
 <nav class="nav-bar">
     <div class="nav-container">
         <a href="{% url 'user_home' %}" class="nav-link {% if request.resolver_match.url_name == 'user_home' %}active{% endif %}">User home</a>
@@ -1495,6 +1494,7 @@
         <a href="{% url 'bet_history' %}" class="nav-link {% if request.resolver_match.url_name == 'bet_history' %}active{% endif %}">HISTORY</a>
     </div>
 </nav>
+{% endif %}
 
 <main class="main-content">
 
@@ -1514,6 +1514,7 @@
 
 </main>
 
+{% if request.resolver_match.url_name != 'landing' and request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'verify_email_otp' and request.resolver_match.url_name != 'otp_result' %}
 <footer class="footer">
     <div class="footer-container">
         <div class="footer-brand">
@@ -1540,6 +1541,7 @@
         &copy; 2026 ChangeLifeWithNumbers. All Rights Reserved.
     </div>
 </footer>
+{% endif %}
 
 <!-- Terms and Conditions Modal -->
 <div id="terms-modal" class="terms-modal">
@@ -1736,6 +1738,64 @@
 </div>
 
 <script>
+    (function () {
+        const allowSelectionTarget = (target) =>
+            target instanceof HTMLElement &&
+            target.closest('input, textarea, select, [contenteditable="true"]') !== null;
+
+        document.addEventListener('contextmenu', (event) => {
+            if (!allowSelectionTarget(event.target)) {
+                event.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Right-click is disabled on this website.', 'warning', 'Restricted');
+                }
+            }
+        });
+
+        document.addEventListener('copy', (event) => {
+            if (!allowSelectionTarget(event.target)) {
+                event.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Copying text is disabled on this website.', 'warning', 'Restricted');
+                }
+            }
+        });
+
+        document.addEventListener('cut', (event) => {
+            if (!allowSelectionTarget(event.target)) {
+                event.preventDefault();
+            }
+        });
+
+        document.addEventListener('selectstart', (event) => {
+            if (!allowSelectionTarget(event.target)) {
+                event.preventDefault();
+            }
+        });
+
+        document.addEventListener('dragstart', (event) => {
+            if (!allowSelectionTarget(event.target)) {
+                event.preventDefault();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            const key = event.key.toLowerCase();
+            const ctrlOrCmd = event.ctrlKey || event.metaKey;
+            const blockedShortcut =
+                key === 'f12' ||
+                (ctrlOrCmd && event.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
+                (ctrlOrCmd && key === 'u');
+
+            if (blockedShortcut) {
+                event.preventDefault();
+                if (typeof showToast === 'function') {
+                    showToast('Developer shortcuts are disabled on this website.', 'warning', 'Restricted');
+                }
+            }
+        });
+    })();
+
     let modalCallback = null;
 
     function showToast(message, type = 'info', title = null) {
