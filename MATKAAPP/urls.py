@@ -11,7 +11,8 @@ urlpatterns = [
     path("accounts/telegram/login/", views.telegram_login, name="telegram_login"),
     
     # --- Public Pages ---
-    path("", views.user_home, name="user_home"),
+    path("", views.landing, name="landing"),
+    path("home/", views.user_home, name="user_home"),
     path("admin-home/", views.admin_home, name="admin_home"),
     path("display/", views.display, name="display"),
     path("error/", views.error, name="error"),

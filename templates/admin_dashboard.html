@@ -139,12 +139,7 @@
 
         /* Mobile Overlay */
         .mobile-overlay {
-            display: none;
-        }
-        @media (max-width: 1024px) {
-            .sidebar-open .mobile-overlay {
-                display: block;
-            }
+            transition: opacity 0.3s ease-in-out;
         }
 
         /* Security Shield */
@@ -186,7 +181,7 @@
     <div class="flex h-full" id="app-container">
 
         <!-- Mobile Overlay -->
-        <div class="mobile-overlay fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
+        <div class="mobile-overlay fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" 
              id="mobile-overlay" onclick="toggleSidebar()"></div>
 
         <!-- Sidebar -->

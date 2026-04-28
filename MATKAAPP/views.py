@@ -348,20 +348,22 @@ def login_view(request):
             from django.contrib.sessions.models import Session
             try:
                 profile = user.profile
-                if profile.session_key:
+                # Skip deleting old sessions for superusers to allow multiple logins
+                if profile.session_key and not user.is_superuser:
                     Session.objects.filter(session_key=profile.session_key).delete()
             except Profile.DoesNotExist:
                 pass
 
             login(request, user)
             
-            # Save the new session key to the profile
-            try:
-                profile = user.profile
-                profile.session_key = request.session.session_key
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            # Save the new session key to the profile (skip for superusers to allow multiple sessions)
+            if not user.is_superuser:
+                try:
+                    profile = user.profile
+                    profile.session_key = request.session.session_key
+                    profile.save()
+                except Profile.DoesNotExist:
+                    pass
 
             messages.success(request, f"Welcome back, {user.username}!")
             
@@ -822,9 +824,12 @@ def market_timing_api(request):
     data = []
     for m in markets:
         data.append({
+            "id": m.id,
             "market_name": m.name,
             "open_time": m.open_end_time.strftime("%I:%M %p") if m.open_end_time else "N/A",
             "close_time": m.close_end_time.strftime("%I:%M %p") if m.close_end_time else "N/A",
+            "open_declared": bool(m.open_single),
+            "close_declared": bool(m.close_single),
             "timezone": settings.TIME_ZONE
         })
     return JsonResponse(data, safe=False)
@@ -863,6 +868,34 @@ def csrf_failure(request, reason=""):
     # Keep response generic (avoid leaking details), but helpful for users.
     context = {"reason": reason} if settings.DEBUG else {}
     return render(request, "errors/csrf_403.html", context, status=403)
+
+def landing(request):
+    """Gatekeeper landing page with reCAPTCHA verification."""
+    if request.session.get('captcha_verified'):
+        return redirect('user_home')
+    
+    if request.method == 'POST':
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        data = {
+            'secret': settings.RECAPTCHA_SECRET_KEY,
+            'response': recaptcha_response
+        }
+        try:
+            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data, timeout=5)
+            result = r.json()
+            
+            if result.get('success'):
+                request.session['captcha_verified'] = True
+                return redirect('user_home')
+            else:
+                messages.error(request, "Invalid reCAPTCHA verification. Please check the 'I am not a robot' box.")
+        except Exception:
+            messages.error(request, "Connection error during reCAPTCHA verification. Please try again.")
+            
+    return render(request, 'landing.html', {
+        'site_key': settings.RECAPTCHA_SITE_KEY,
+        'page_title': 'Verification Required'
+    })
 
 def display(request):
     return render(request, 'user/display_page.html', {'markets': Market.objects.all()})

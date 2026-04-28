@@ -49,6 +49,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "MATKAAPP.middleware.GatekeeperMiddleware",
     "MATKAAPP.middleware.SecurityHeadersMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -154,6 +155,10 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     },
 }
+
+# reCAPTCHA Keys
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT")
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6LdBk8ssAAAAAN60vJ9zIlqIKI-IgJ7Pt6RLnHZe")
 
 # File Upload Restrictions
 ALLOWED_EXTENSIONS = ['jpg', 'png', 'pdf']
@@ -317,3 +322,35 @@ EMAIL_OTP_MAX_ATTEMPTS = int(os.getenv("EMAIL_OTP_MAX_ATTEMPTS", os.getenv("OTP_
 EMAIL_OTP_RESEND_COOLDOWN_SECONDS = int(
     os.getenv("EMAIL_OTP_RESEND_COOLDOWN_SECONDS", os.getenv("OTP_RESEND_COOLDOWN_SECONDS", "60"))
 )
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'MATKAAPP.middleware': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

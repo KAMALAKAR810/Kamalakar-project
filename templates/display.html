@@ -235,12 +235,12 @@ const marketTimings = [
     {
         id: {{ market.id }},
         name: "{{ market.name }}",
-        openEndTime: "{{ market.open_end_time|date:'c' }}",
-        closeEndTime: "{{ market.close_end_time|date:'c' }}",
+        openEndTime: "{% if market.open_end_time %}{{ market.open_end_time|date:'c' }}{% endif %}",
+        closeEndTime: "{% if market.close_end_time %}{{ market.close_end_time|date:'c' }}{% endif %}",
         openDeclared: {% if market.open_single %}true{% else %}false{% endif %},
         closeDeclared: {% if market.close_single %}true{% else %}false{% endif %}
     }{% if not forloop.last %},{% endif %}
-    {% endfor %}
+    {% endfor %}                                                                                                                                                                                                                                                                            
 ];
 
 // Function to calculate time difference
@@ -249,11 +249,15 @@ function getTimeDiff(endTimeStr, declared) {
         return { status: 'ended', text: 'Result Declared', class: 'ended' };
     }
     
-    if (!endTimeStr) {
+    if (!endTimeStr || endTimeStr === "") {
         return { status: 'no-time', text: 'No timing set', class: 'ended' };
     }
     
     const endTime = new Date(endTimeStr);
+    if (isNaN(endTime.getTime())) {
+        return { status: 'invalid', text: 'Invalid Time', class: 'ended' };
+    }
+    
     const now = new Date();
     const diff = endTime - now;
     
@@ -346,15 +350,20 @@ setInterval(function() {
         .then(data => {
             // Update market timings with fresh data
             data.forEach(apiMarket => {
-                const market = marketTimings.find(m => m.name === apiMarket.market_name);
+                const market = marketTimings.find(m => m.id === apiMarket.id);
                 if (market) {
+                    // Update declaration status
+                    market.openDeclared = apiMarket.open_declared;
+                    market.closeDeclared = apiMarket.close_declared;
+                    
                     // Parse times from API format (HH:MM AM/PM)
                     const today = new Date().toISOString().split('T')[0];
+                    const offset = "+05:30"; // Asia/Kolkata offset
                     if (apiMarket.open_time && apiMarket.open_time !== 'N/A') {
-                        market.openEndTime = `${today}T${convertTo24Hour(apiMarket.open_time)}`;
+                        market.openEndTime = `${today}T${convertTo24Hour(apiMarket.open_time)}${offset}`;
                     }
                     if (apiMarket.close_time && apiMarket.close_time !== 'N/A') {
-                        market.closeEndTime = `${today}T${convertTo24Hour(apiMarket.close_time)}`;
+                        market.closeEndTime = `${today}T${convertTo24Hour(apiMarket.close_time)}${offset}`;
                     }
                 }
             });
@@ -366,15 +375,14 @@ setInterval(function() {
 function convertTo24Hour(time12h) {
     const [time, modifier] = time12h.split(' ');
     let [hours, minutes] = time.split(':');
+    let h = parseInt(hours, 10);
     
-    if (hours === '12') {
-        hours = '00';
+    if (modifier.toUpperCase() === 'PM' && h < 12) {
+        h += 12;
+    } else if (modifier.toUpperCase() === 'AM' && h === 12) {
+        h = 0;
     }
     
-    if (modifier.toUpperCase() === 'PM') {
-        hours = parseInt(hours, 10) + 12;
-    }
-    
-    return `${hours}:${minutes}`;
+    return `${h.toString().padStart(2, '0')}:${minutes}`;
 }
 </script>
