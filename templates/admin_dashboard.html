@@ -141,41 +141,9 @@
         .mobile-overlay {
             transition: opacity 0.3s ease-in-out;
         }
-
-        /* Security Shield */
-        .security-shield {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(12px);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        body.shield-active .security-shield {
-            display: flex;
-        }
-        body.shield-active #main-content {
-            filter: blur(20px);
-        }
     </style>
 </head>
 <body class="h-full bg-dark-50 text-dark-800 font-sans antialiased">
-
-    <!-- Security Warning Banner -->
-    <div id="security-warning" class="fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-2 font-bold z-[10000] hidden">
-        <i class="fas fa-exclamation-triangle me-2"></i> SECURITY ALERT: SUSPICIOUS ACTIVITY DETECTED
-    </div>
-
-    <!-- Security Privacy Shield -->
-    <div class="security-shield" id="security-shield">
-        <div class="text-center text-white p-8">
-            <i class="fas fa-shield-alt text-6xl mb-4 text-blue-400"></i>
-            <h2 class="text-2xl font-bold mb-2">PRIVACY SHIELD ACTIVE</h2>
-            <p class="text-dark-300">Content hidden for security while inactive.</p>
-        </div>
-    </div>
 
     <!-- Main Container -->
     <div class="flex h-full" id="app-container">
@@ -463,23 +431,6 @@
                 dropdown.classList.add('hidden');
             }
         });
-
-        // Privacy Shield - Blur content when window loses focus
-        window.addEventListener('blur', () => {
-            document.body.classList.add('shield-active');
-        });
-        window.addEventListener('focus', () => {
-            document.body.classList.remove('shield-active');
-        });
-
-        // Security Warning (can be triggered from backend)
-        function showSecurityWarning() {
-            const warning = document.getElementById('security-warning');
-            warning.classList.remove('hidden');
-            setTimeout(() => {
-                warning.classList.add('hidden');
-            }, 5000);
-        }
 
         // Animate elements on scroll
         const observerOptions = {

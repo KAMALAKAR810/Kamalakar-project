@@ -870,31 +870,16 @@ def csrf_failure(request, reason=""):
     return render(request, "errors/csrf_403.html", context, status=403)
 
 def landing(request):
-    """Gatekeeper landing page with reCAPTCHA verification."""
+    """Simple landing page to enter the site."""
     if request.session.get('captcha_verified'):
         return redirect('user_home')
     
     if request.method == 'POST':
-        recaptcha_response = request.POST.get('g-recaptcha-response')
-        data = {
-            'secret': settings.RECAPTCHA_SECRET_KEY,
-            'response': recaptcha_response
-        }
-        try:
-            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data, timeout=5)
-            result = r.json()
-            
-            if result.get('success'):
-                request.session['captcha_verified'] = True
-                return redirect('user_home')
-            else:
-                messages.error(request, "Invalid reCAPTCHA verification. Please check the 'I am not a robot' box.")
-        except Exception:
-            messages.error(request, "Connection error during reCAPTCHA verification. Please try again.")
+        request.session['captcha_verified'] = True
+        return redirect('user_home')
             
     return render(request, 'landing.html', {
-        'site_key': settings.RECAPTCHA_SITE_KEY,
-        'page_title': 'Verification Required'
+        'page_title': 'Welcome'
     })
 
 def display(request):
@@ -1739,6 +1724,7 @@ def admin_dashboard_enhanced(request):
     ).order_by('-total_amount')
     
     recent_txns = Transaction.objects.select_related('wallet__user').order_by('-created_at')[:10]
+    markets = Market.objects.all()
 
     return render(request, "admin/dashboard_content.html", {
         "page_title": "Admin Dashboard",
@@ -1750,6 +1736,7 @@ def admin_dashboard_enhanced(request):
         "pending_deposits": pending_deposits,
         "market_summary": market_summary,
         "recent_txns": recent_txns,
+        "markets": markets,
     })
 
 

@@ -7,7 +7,7 @@
         <div class="mb-6">
             <img src="{% static 'logo.jpeg' %}" alt="Logo" class="w-24 h-24 mx-auto rounded-full shadow-lg border-4 border-gold mb-4">
             <h1 class="text-3xl font-extrabold text-dark-900 mb-2">Welcome to MATKA</h1>
-            <p class="text-gray-600">Please verify you are human to enter the site.</p>
+            <p class="text-gray-600">Enter the site to start playing.</p>
         </div>
 
         <form method="POST" class="space-y-6">
@@ -23,37 +23,15 @@
             </div>
             {% endif %}
 
-            <div class="flex justify-center mb-6">
-                <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
-            </div>
-
             <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
                 <i class="fas fa-door-open"></i>
-                Verify & Enter
+                Enter Site
             </button>
         </form>
-
-        <p class="mt-8 text-xs text-gray-400">
-            Protected by Google reCAPTCHA. 
-            <a href="https://www.google.com/intl/en/policies/privacy/" class="underline">Privacy</a> & 
-            <a href="https://www.google.com/intl/en/policies/terms/" class="underline">Terms</a> apply.
-        </p>
     </div>
 </div>
 
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
 <style>
-    /* Ensure the reCAPTCHA fits on mobile */
-    @media screen and (max-width: 400px) {
-        .g-recaptcha {
-            transform: scale(0.85);
-            transform-origin: center;
-            -webkit-transform: scale(0.85);
-            -webkit-transform-origin: center;
-        }
-    }
-    
     .bg-primary { background-color: #d4af37; } /* Gold color */
     .hover-bg-primary-dark:hover { background-color: #b8960c; }
     .border-gold { border-color: #d4af37; }

@@ -67,11 +67,11 @@
         background: linear-gradient(to bottom, #fff, #f8f9fa);
     }
 
-    .result-patti { 
-        font-size: 16px; 
-        font-weight: 600; 
-        color: var(--gray); 
-        letter-spacing: 2px; 
+    .result-patti {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray);
+        letter-spacing: 2px;
     }
 
     .result-jodi {
@@ -163,7 +163,7 @@
 
 <div class="page-shell">
     <h2 class="page-title">Live Market Results</h2>
-    
+
     <div class="market-results-grid">
         {% for market in markets %}
         <div class="market-card" data-market-id="{{ market.id }}">
@@ -174,7 +174,7 @@
                     <span class="status-text">Loading...</span>
                 </span>
             </div>
-            
+
             <div class="market-card-body">
                 <div class="result-patti">{{ market.open_patti|default:"***" }}</div>
                 <div class="result-jodi">
@@ -196,7 +196,7 @@
                         <span class="timer-text">--:--:--</span>
                     </div>
                 </div>
-                
+
                 <!-- Close Session Countdown -->
                 <div class="countdown-row">
                     <span class="session-label">
@@ -219,6 +219,7 @@
                 </span>
                 <span>
                     {% if market.close_end_time %}
+                    <i class="far fa-calendar-alt mr-1"></i>
                     Close: {{ market.close_end_time|date:"H:i" }}
                     {% endif %}
                 </span>
@@ -229,8 +230,12 @@
 </div>
 
 <script>
-// Market timing data from Django
-const marketTimings = [
+/**
+ * Market Countdown and Real-time Results Logic
+ */
+
+// Initial market timing data from Django
+let marketTimings = [
     {% for market in markets %}
     {
         id: {{ market.id }},
@@ -240,80 +245,88 @@ const marketTimings = [
         openDeclared: {% if market.open_single %}true{% else %}false{% endif %},
         closeDeclared: {% if market.close_single %}true{% else %}false{% endif %}
     }{% if not forloop.last %},{% endif %}
-    {% endfor %}                                                                                                                                                                                                                                                                            
+    {% endfor %}
 ];
 
-// Function to calculate time difference
-function getTimeDiff(endTimeStr, declared) {
-    if (declared) {
-        return { status: 'ended', text: 'Result Declared', class: 'ended' };
-    }
-    
-    if (!endTimeStr || endTimeStr === "") {
-        return { status: 'no-time', text: 'No timing set', class: 'ended' };
-    }
-    
+/**
+ * Helper function to convert 12-hour (HH:MM AM/PM) to 24-hour format
+ */
+const convertTo24Hour = (time12h) => {
+    if (!time12h || time12h === 'N/A') return "00:00";
+
+    const match = time12h.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return "00:00";
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const modifier = match[3].toUpperCase();
+
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    else if (modifier === 'AM' && hours === 12) hours = 0;
+
+    return `${hours.toString().padStart(2, '0')}:${minutes}`;
+};
+
+/**
+ * Calculates time difference between now and endTime
+ */
+const getTimeDiff = (endTimeStr, declared) => {
+    if (declared) return { status: 'ended', text: 'Result Declared', class: 'ended' };
+    if (!endTimeStr) return { status: 'no-time', text: 'No timing set', class: 'ended' };
+
     const endTime = new Date(endTimeStr);
-    if (isNaN(endTime.getTime())) {
-        return { status: 'invalid', text: 'Invalid Time', class: 'ended' };
-    }
-    
+    if (isNaN(endTime.getTime())) return { status: 'invalid', text: 'Invalid Time', class: 'ended' };
+
     const now = new Date();
     const diff = endTime - now;
-    
-    if (diff <= 0) {
-        return { status: 'ended', text: 'Market Closed', class: 'ended' };
-    }
-    
+
+    if (diff <= 0) return { status: 'ended', text: 'Market Closed', class: 'ended' };
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
+
     const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
-    // Check if expiring soon (within 10 minutes)
-    const expiringSoon = diff <= 10 * 60 * 1000;
-    
+    const expiringSoon = diff <= 10 * 60 * 1000; // 10 minutes
+
     return {
         status: expiringSoon ? 'expiring' : 'active',
         text: timeStr,
         class: expiringSoon ? 'expiring-soon' : ''
     };
-}
+};
 
-// Function to update countdown timers
-function updateCountdowns() {
+/**
+ * Updates the UI for all countdown timers and status badges
+ */
+const updateCountdowns = () => {
+    const now = new Date();
+
     marketTimings.forEach(market => {
         // Update Open Timer
         const openTimerEl = document.getElementById(`open-timer-${market.id}`);
         if (openTimerEl) {
             const openDiff = getTimeDiff(market.openEndTime, market.openDeclared);
-            const timerTextEl = openTimerEl.querySelector('.timer-text');
-            timerTextEl.textContent = openDiff.text;
+            openTimerEl.querySelector('.timer-text').textContent = openDiff.text;
             openTimerEl.className = `countdown-timer open-session ${openDiff.class}`;
         }
-        
+
         // Update Close Timer
         const closeTimerEl = document.getElementById(`close-timer-${market.id}`);
         if (closeTimerEl) {
             const closeDiff = getTimeDiff(market.closeEndTime, market.closeDeclared);
-            const timerTextEl = closeTimerEl.querySelector('.timer-text');
-            timerTextEl.textContent = closeDiff.text;
+            closeTimerEl.querySelector('.timer-text').textContent = closeDiff.text;
             closeTimerEl.className = `countdown-timer close-session ${closeDiff.class}`;
         }
-        
+
         // Update Status Badge
         const statusEl = document.getElementById(`status-${market.id}`);
         if (statusEl) {
-            const statusTextEl = statusEl.querySelector('.status-text');
-            
-            // Determine overall market status
-            const now = new Date();
             const openEnd = market.openEndTime ? new Date(market.openEndTime) : null;
             const closeEnd = market.closeEndTime ? new Date(market.closeEndTime) : null;
-            
+
             let status, statusClass;
-            
+
             if (market.closeDeclared) {
                 status = 'Closed';
                 statusClass = 'closed';
@@ -330,35 +343,29 @@ function updateCountdowns() {
                 status = 'Active';
                 statusClass = 'open';
             }
-            
+
             statusEl.className = `market-status ${statusClass}`;
-            statusTextEl.textContent = status;
+            statusEl.querySelector('.status-text').textContent = status;
         }
     });
-}
+};
 
-// Initial update
-updateCountdowns();
-
-// Update every second
-setInterval(updateCountdowns, 1000);
-
-// Also fetch fresh data from API periodically (every 30 seconds)
-setInterval(function() {
+/**
+ * Fetches fresh market timing data from API
+ */
+const refreshMarketData = () => {
     fetch("{% url 'market_timing_api' %}")
         .then(response => response.json())
         .then(data => {
-            // Update market timings with fresh data
             data.forEach(apiMarket => {
                 const market = marketTimings.find(m => m.id === apiMarket.id);
                 if (market) {
-                    // Update declaration status
                     market.openDeclared = apiMarket.open_declared;
                     market.closeDeclared = apiMarket.close_declared;
-                    
-                    // Parse times from API format (HH:MM AM/PM)
+
                     const today = new Date().toISOString().split('T')[0];
-                    const offset = "+05:30"; // Asia/Kolkata offset
+                    const offset = "+05:30"; // Asia/Kolkata
+
                     if (apiMarket.open_time && apiMarket.open_time !== 'N/A') {
                         market.openEndTime = `${today}T${convertTo24Hour(apiMarket.open_time)}${offset}`;
                     }
@@ -368,21 +375,11 @@ setInterval(function() {
                 }
             });
         })
-        .catch(err => console.log('Error fetching market timings:', err));
-}, 30000);
+        .catch(err => console.error('Error fetching market timings:', err));
+};
 
-// Helper function to convert 12-hour to 24-hour format
-function convertTo24Hour(time12h) {
-    const [time, modifier] = time12h.split(' ');
-    let [hours, minutes] = time.split(':');
-    let h = parseInt(hours, 10);
-    
-    if (modifier.toUpperCase() === 'PM' && h < 12) {
-        h += 12;
-    } else if (modifier.toUpperCase() === 'AM' && h === 12) {
-        h = 0;
-    }
-    
-    return `${h.toString().padStart(2, '0')}:${minutes}`;
-}
+// Initial run and intervals
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+setInterval(refreshMarketData, 30000);
 </script>
