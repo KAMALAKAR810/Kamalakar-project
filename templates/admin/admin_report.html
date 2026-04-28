@@ -9,7 +9,6 @@
         </div>
     </div>
 
-    <!-- Filters Section -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
             <form method="GET" class="row g-3 align-items-end">
@@ -52,7 +51,7 @@
             <h5 class="mb-0 fw-bold text-primary">Filtered Individual User Data</h5>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table professional-table responsive-admin-table align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
                         <th class="border-0 px-4 py-3 small text-uppercase text-muted">User ID</th>
@@ -67,19 +66,19 @@
                     {% if report_data %}
                         {% for data in report_data %}
                         <tr>
-                            <td class="px-4 fw-bold text-primary">{{ data.user_code }}</td>
-                            <td>{{ data.user.username }}</td>
-                            <td class="fw-bold">₹{{ data.total_betted }}</td>
-                            <td class="fw-bold text-success">₹{{ data.total_won }}</td>
-                            <td class="fw-bold">₹{{ data.balance }}</td>
-                            <td class="px-4 text-end fw-bold">
+                            <td class="px-4 fw-bold text-primary" data-label="User ID">{{ data.user_code }}</td>
+                            <td data-label="User Name">{{ data.user.username }}</td>
+                            <td class="fw-bold" data-label="Total Betted">Rs {{ data.total_betted }}</td>
+                            <td class="fw-bold text-success" data-label="Total Won">Rs {{ data.total_won }}</td>
+                            <td class="fw-bold" data-label="Current Balance">Rs {{ data.balance }}</td>
+                            <td class="px-4 text-end fw-bold" data-label="Net P/L">
                                 {% if data.total_won == data.total_betted %}
                                     <span class="text-muted small">----</span>
                                 {% else %}
                                     <span class="{% if data.net_pl > 0 %}text-success{% elif data.net_pl < 0 %}text-danger{% else %}text-dark{% endif %}">
-                                        ₹{{ data.net_pl }}
+                                        Rs {{ data.net_pl }}
                                         <small class="d-block text-uppercase" style="font-size: 0.65rem;">
-                                            {% if data.net_pl > 0 %}PROFIT{% elif data.net_pl < 0 %}LOSS{% else %}BREAK-EVEN{% endif %}
+                                            {% if data.net_pl > 0 %}Profit{% elif data.net_pl < 0 %}Loss{% else %}Break-even{% endif %}
                                         </small>
                                     </span>
                                 {% endif %}
@@ -103,14 +102,12 @@
     </div>
 </div>
 
-<!-- Bottom Actions -->
 <div class="d-flex justify-content-center gap-3 mt-4 mb-5">
     <button onclick="exportCurrentPage()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-file-export me-2"></i> EXPORT TO CSV
+        <i class="fas fa-file-export me-2"></i> Export to CSV
     </button>
     <button onclick="window.print()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-print me-2"></i> PRINT PAGE
+        <i class="fas fa-print me-2"></i> Print Page
     </button>
 </div>
 {% endblock %}
-

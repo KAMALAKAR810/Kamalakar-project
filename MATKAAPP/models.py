@@ -76,6 +76,12 @@ class Profile(models.Model):
         blank=True, 
         null=True
     )
+    support_whatsapp_number = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Support WhatsApp number in international format, e.g. 918217228765",
+    )
 
     def __str__(self):
         return self.user.username

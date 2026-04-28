@@ -30,6 +30,7 @@ import secrets
 from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity
 
 logger = logging.getLogger(__name__)
+_telegram_application = None
 
 
 @login_required
@@ -76,6 +77,7 @@ def update_admin_security_view(request):
         new_pin = request.POST.get('admin_pin')
         new_question = request.POST.get('admin_security_question')
         new_answer = request.POST.get('admin_security_answer')
+        support_whatsapp_number = re.sub(r"\D", "", request.POST.get('support_whatsapp_number', ''))
         
         if new_pin and len(new_pin) == 6 and new_pin.isdigit():
             profile.admin_pin = new_pin
@@ -85,6 +87,8 @@ def update_admin_security_view(request):
             
         if new_answer:
             profile.admin_security_answer = new_answer
+
+        profile.support_whatsapp_number = support_whatsapp_number
             
         profile.save()
         messages.success(request, "Security settings updated successfully!")
@@ -253,26 +257,6 @@ def _markets_betting_payload():
         }
         for m in Market.objects.all()
     ]
-
-
-def _get_admin_notifications(request):
-    """Context processor for admin notification dots. Must accept 'request'."""
-    context = {}
-    
-    # Safety check: ensure 'user' attribute exists before accessing it
-    if hasattr(request, 'user') and request.user.is_authenticated:
-        unread_count = Message.objects.filter(receiver=request.user, is_read=False).count()
-        if request.user.is_superuser:
-            context.update({
-                'new_users': Profile.objects.filter(is_new=True).exists(),
-                'unread_msgs': unread_count
-            })
-        else:
-            context.update({
-                'unread_notifs': Notification.objects.filter(user=request.user, is_read=False).count(),
-                'unread_msgs': unread_count
-            })
-    return context
 
 
 # --- PATTI NUMBER GROUPS ---
@@ -2314,6 +2298,22 @@ def _get_telegram_bot_token():
     return (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
 
 
+async def _get_telegram_application():
+    global _telegram_application
+
+    if _telegram_application is not None:
+        return _telegram_application
+
+    from telegram.ext import Application
+
+    token = _get_telegram_bot_token()
+    application = Application.builder().token(token).build()
+    await application.initialize()
+    await application.start()
+    _telegram_application = application
+    return _telegram_application
+
+
 @csrf_exempt
 async def telegram_webhook(request):
     if request.method != "POST":
@@ -2331,11 +2331,8 @@ async def telegram_webhook(request):
 
     try:
         from telegram import Update
-        from telegram.ext import Application
 
-        application = Application.builder().token(token).build()
-        await application.initialize()
-        await application.start()
+        application = await _get_telegram_application()
         update = Update.de_json(payload, application.bot)
         if update is None:
             return HttpResponseBadRequest("Invalid Telegram update.")
@@ -2344,16 +2341,6 @@ async def telegram_webhook(request):
     except Exception:
         logger.exception("Telegram webhook processing failed.")
         return HttpResponse("Webhook processing failed.", status=500)
-    finally:
-        if "application" in locals():
-            try:
-                await application.stop()
-            except Exception:
-                logger.exception("Telegram application stop failed.")
-            try:
-                await application.shutdown()
-            except Exception:
-                logger.exception("Telegram application shutdown failed.")
 
 
 # --- Social Authentication Views ---

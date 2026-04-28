@@ -201,7 +201,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.media",  # Add this for media files in templates
-                "MATKAAPP.views._get_admin_notifications",  # Added for admin dots
+                "MATKAAPP.context_processors.admin_ui_context",
             ],
         },
     },
