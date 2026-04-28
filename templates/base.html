@@ -1448,13 +1448,11 @@
                     </a>
 
                     <div class="user-profile-group">
-                        {% if user.profile.profile_pic %}
-                            <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="user-avatar">
-                        {% else %}
-                            <div class="user-avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        {% endif %}
+                        <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="user-avatar" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="user-avatar-placeholder" style="display: none;">
+                            <i class="fas fa-user"></i>
+                        </div>
                         <div class="user-details">
                             <span class="username">{{ user.username|upper }}</span>
                         </div>

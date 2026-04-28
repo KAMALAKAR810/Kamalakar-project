@@ -374,6 +374,7 @@
             justify-content: center;
             font-size: 16px;
             box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+            object-fit: cover;
         }
 
         .admin-info {
@@ -764,9 +765,7 @@
         <div id="page-content-wrapper" class="d-flex flex-column">
             <nav class="admin-navbar">
                 <div class="d-flex align-items-center">
-                    <button class="sidebar-toggle me-3" id="menu-toggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
+                    
                     <h5 class="mb-0 d-none d-md-block fw-bold" style="color: var(--dark);">
                         {% if page_title %}{{ page_title }}{% else %}Control Center{% endif %}
                     </h5>
@@ -787,7 +786,9 @@
 
                     <div class="dropdown">
                         <a href="#" class="admin-profile-pill dropdown-toggle" data-bs-toggle="dropdown">
-                            <div class="admin-avatar">
+                            <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="admin-avatar" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="admin-avatar" style="display: none;">
                                 <i class="fas fa-user-tie"></i>
                             </div>
                             <div class="admin-info d-none d-sm-flex">
