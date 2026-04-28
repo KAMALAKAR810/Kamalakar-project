@@ -75,6 +75,248 @@
     </script>
 
     <style>
+        :root {
+            /* Professional Colors */
+            --white: #ffffff;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --primary: #3b82f6;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --secondary: #f59e0b;
+            --border: #e2e8f0;
+        }
+
+        /* ── PROFESSIONAL TOAST NOTIFICATIONS ── */
+        #msg-overlay {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 320px;
+            width: calc(100% - 40px);
+            pointer-events: none;
+        }
+
+        .alert-toast {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 10px 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            border: 1px solid var(--border);
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            min-width: 280px;
+        }
+
+        @keyframes toastSlideIn {
+            from { transform: translateX(30px) scale(0.9); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+        .alert-toast.hiding {
+            animation: toastSlideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        @keyframes toastSlideOut {
+            from { transform: translateX(0) scale(1); opacity: 1; }
+            to { transform: translateX(20px) scale(0.9); opacity: 0; }
+        }
+
+        .alert-toast::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: rgba(0,0,0,0.05);
+            animation: toastProgress 5s linear forwards;
+        }
+
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .alert-toast.success::after { background: var(--success); }
+        .alert-toast.error::after { background: var(--danger); }
+        .alert-toast.warning::after { background: var(--secondary); }
+        .alert-toast.info::after { background: var(--primary); }
+
+        .alert-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+
+        .success .alert-icon { background: rgba(40, 167, 69, 0.1); color: var(--success); }
+        .error .alert-icon { background: rgba(220, 53, 69, 0.1); color: var(--danger); }
+        .warning .alert-icon { background: rgba(255, 153, 0, 0.1); color: var(--secondary); }
+        .info .alert-icon { background: rgba(0, 102, 204, 0.1); color: var(--primary); }
+
+        .alert-content {
+            flex: 1;
+            padding: 2px 0;
+        }
+
+        .alert-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--gray);
+            margin-bottom: 1px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .alert-msg {
+            font-size: 13px;
+            color: var(--dark);
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .close-toast {
+            background: rgba(0,0,0,0.03);
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 10px;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-toast:hover { 
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        /* ── PROFESSIONAL MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            padding: 20px;
+        }
+
+        .modal-content-clean {
+            background: var(--white);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border);
+        }
+
+        @keyframes modalPop {
+            from { transform: translateY(20px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .modal-header-clean {
+            padding: 32px 32px 16px;
+            text-align: center;
+        }
+
+        .modal-icon-clean {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .modal-body-clean {
+            padding: 0 32px 32px;
+            text-align: center;
+        }
+
+        .modal-title-clean {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+        }
+
+        .modal-text-clean {
+            font-size: 1rem;
+            color: var(--gray);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .modal-footer-clean {
+            padding: 0 32px 32px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-modal-primary { 
+            background: var(--primary); 
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.25);
+        }
+        .btn-modal-secondary { 
+            background: #f1f5f9; 
+            color: var(--gray); 
+            border: 1px solid var(--border);
+        }
+        .btn-modal:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+        .btn-modal:active {
+            transform: translateY(-1px);
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -147,6 +389,26 @@
 
     <!-- Main Container -->
     <div class="flex h-full" id="app-container">
+
+        <!-- Notification Overlay -->
+        <div id="msg-overlay"></div>
+
+        <!-- Professional Modal -->
+        <div id="clean-modal" class="modal-overlay" onclick="if(event.target==this) closeCleanModal()">
+            <div class="modal-content-clean">
+                <div class="modal-header-clean">
+                    <div id="modal-icon-container" class="modal-icon-clean"></div>
+                </div>
+                <div class="modal-body-clean">
+                    <h3 id="modal-title" class="modal-title-clean"></h3>
+                    <p id="modal-text" class="modal-text-clean"></p>
+                </div>
+                <div class="modal-footer-clean">
+                    <button id="modal-secondary-btn" class="btn-modal btn-modal-secondary" onclick="closeCleanModal()">Cancel</button>
+                    <button id="modal-primary-btn" class="btn-modal btn-modal-primary">Confirm</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Mobile Overlay -->
         <div class="mobile-overlay fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" 
@@ -338,62 +600,52 @@
                 <!-- Right Side Actions -->
                 <div class="flex items-center gap-3">
                     <!-- Wallet Balance -->
-                    <div class="hidden md:flex items-center gap-2 bg-gradient-to-r from-blue-50 to-blue-100 
-                                px-4 py-2 rounded-full border border-blue-200">
-                        <i class="fas fa-wallet text-blue-600"></i>
+                    <div class="hidden md:flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                        <i class="fas fa-wallet text-blue-500"></i>
                         <span class="font-bold text-blue-700">₹{{ user.wallet.balance }}</span>
                     </div>
 
                     <!-- Notifications -->
-                    <div class="relative">
-                        <button class="p-2 rounded-full hover:bg-dark-100 text-dark-500 hover:text-dark-700 
-                                    transition-colors relative">
-                            <i class="fas fa-bell text-lg"></i>
-                            {% if unread_msgs %}
-                            <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full 
-                                        border-2 border-white"></span>
-                            {% endif %}
-                        </button>
+                    <a href="{% url 'admin_chat_list' %}" class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 hover:text-blue-500 hover:border-blue-200 transition-all relative">
+                        <i class="fas fa-bell"></i>
+                        {% if unread_msgs %}
+                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full border-2 border-white flex items-center justify-center font-bold">
+                            {{ unread_msgs }}
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- User Profile Pill -->
+                    <div class="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                            {{ user.username|slice:":1"|upper }}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-gray-800 leading-none">{{ user.username }}</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Admin</span>
+                        </div>
                     </div>
 
-                    <!-- User Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button onclick="toggleUserMenu()" class="flex items-center gap-2 p-1.5 rounded-full 
-                                        hover:bg-dark-100 transition-colors border border-dark-200">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
-                                        flex items-center justify-center text-white text-sm font-bold">
-                                {{ user.username|slice:":1"|upper }}
-                            </div>
-                            <i class="fas fa-chevron-down text-xs text-dark-500 hidden sm:block"></i>
+                    <!-- Logout Button -->
+                    <a href="{% url 'logout' %}" class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Logout">
+                        <i class="fas fa-power-off"></i>
+                    </a>
+
+                    <!-- Mobile User Menu Toggle -->
+                    <div class="relative sm:hidden" x-data="{ open: false }">
+                        <button onclick="toggleUserMenu()" class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500">
+                            <i class="fas fa-user text-sm"></i>
                         </button>
                         
                         <!-- Dropdown Menu -->
-                        <div id="user-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-xl 
-                                    shadow-lg border border-dark-200 py-2 hidden z-50">
-                            <div class="px-4 py-2 border-b border-dark-100">
-                                <p class="font-semibold text-dark-800">{{ user.username }}</p>
-                                <p class="text-xs text-dark-500">Super Admin</p>
+                        <div id="user-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 hidden z-50">
+                            <div class="px-4 py-2 border-b border-gray-100">
+                                <p class="font-semibold text-gray-800">{{ user.username }}</p>
+                                <p class="text-xs text-gray-500">Super Admin</p>
                             </div>
-                            <a href="{% url 'admin_security_settings' %}" class="flex items-center gap-3 
-                                px-4 py-2.5 text-dark-600 hover:bg-dark-50 transition-colors">
+                            <a href="{% url 'admin_security_settings' %}" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition-colors">
                                 <i class="fas fa-cog w-5 text-center"></i>
                                 <span class="font-medium">Settings</span>
-                            </a>
-                            <a href="{% url 'admin_user_activity' %}" class="flex items-center gap-3 
-                                px-4 py-2.5 text-dark-600 hover:bg-dark-50 transition-colors">
-                                <i class="fas fa-list w-5 text-center"></i>
-                                <span class="font-medium">Activity</span>
-                            </a>
-                            <a href="/secure-admin-5266/" target="_blank" class="flex items-center gap-3 
-                                px-4 py-2.5 text-dark-600 hover:bg-dark-50 transition-colors">
-                                <i class="fas fa-user-shield w-5 text-center"></i>
-                                <span class="font-medium">Django Admin</span>
-                            </a>
-                            <hr class="my-2 border-dark-100">
-                            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-2.5 
-                                text-red-600 hover:bg-red-50 transition-colors">
-                                <i class="fas fa-sign-out-alt w-5 text-center"></i>
-                                <span class="font-medium">Sign Out</span>
                             </a>
                         </div>
                     </div>
@@ -402,16 +654,19 @@
 
             <!-- Main Content Scrollable Area -->
             <main id="main-content" class="flex-1 overflow-y-auto p-6 bg-dark-50">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="mb-4 p-4 rounded-lg border-l-4 animate-fade-in {% if message.tags == 'success' %}bg-green-50 border-green-500 text-green-700{% elif message.tags == 'error' %}bg-red-50 border-red-500 text-red-700{% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-500 text-yellow-700{% else %}bg-blue-50 border-blue-500 text-blue-700{% endif %}">
-                            <div class="flex items-center gap-2">
-                                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
-                                <span class="font-medium">{{ message }}</span>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+                <!-- Django Messages as JSON -->
+                <script id="django-messages" type="application/json">
+                    [
+                        {% if messages %}
+                            {% for message in messages %}
+                                {
+                                    "message": "{{ message|escapejs }}",
+                                    "tags": "{{ message.tags|default:'info' }}"
+                                }{% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    ]
+                </script>
 
                 <!-- Dashboard Content Block -->
                 {% block dashboard_content %}{% endblock %}
@@ -464,6 +719,90 @@
 
         document.querySelectorAll('.animate-on-scroll').forEach(el => {
             observer.observe(el);
+        });
+
+        // ── TOAST SYSTEM ──
+        function showToast(message, type = 'info', title = null) {
+            const overlay = document.getElementById('msg-overlay');
+            if (!overlay) return;
+
+            const toast = document.createElement('div');
+            toast.className = `alert-toast ${type}`;
+            
+            const iconMap = {
+                'success': 'fa-check-circle',
+                'error': 'fa-times-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+
+            const displayTitle = title || type.toUpperCase();
+            
+            toast.innerHTML = `
+                <div class="alert-icon">
+                    <i class="fas ${iconMap[type] || iconMap.info}"></i>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title">${displayTitle}</div>
+                    <div class="alert-msg">${message}</div>
+                </div>
+                <button class="close-toast" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            overlay.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // ── MODAL SYSTEM ──
+        function showModal(title, text, type = 'info', callback = null) {
+            const modal = document.getElementById('clean-modal');
+            const titleEl = document.getElementById('modal-title');
+            const textEl = document.getElementById('modal-text');
+            const iconContainer = document.getElementById('modal-icon-container');
+            const primaryBtn = document.getElementById('modal-primary-btn');
+            
+            titleEl.innerText = title;
+            textEl.innerText = text;
+            
+            const config = {
+                success: { icon: 'fa-check', bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' },
+                error: { icon: 'fa-times', bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' },
+                warning: { icon: 'fa-exclamation', bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
+                info: { icon: 'fa-info', bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }
+            };
+
+            const theme = config[type] || config.info;
+            iconContainer.innerHTML = `<i class="fas ${theme.icon}"></i>`;
+            iconContainer.style.backgroundColor = theme.bg;
+            iconContainer.style.color = theme.color;
+            
+            primaryBtn.onclick = () => {
+                if (callback) callback();
+                closeCleanModal();
+            };
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeCleanModal() {
+            document.getElementById('clean-modal').style.display = 'none';
+        }
+
+        // Parse and show Django messages
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesEl = document.getElementById('django-messages');
+            if (messagesEl) {
+                const messages = JSON.parse(messagesEl.textContent);
+                messages.forEach(m => {
+                    showToast(m.message, m.tags);
+                });
+            }
         });
     </script>
 

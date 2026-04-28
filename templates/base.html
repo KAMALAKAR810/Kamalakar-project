@@ -40,175 +40,235 @@
             --neon-gold: #ffcc00;
         }
 
-        /* ── NEW GAMING STYLE NOTIFICATIONS ── */
+        /* ── PROFESSIONAL TOAST NOTIFICATIONS ── */
+        #msg-overlay {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 320px;
+            width: calc(100% - 40px);
+            pointer-events: none;
+        }
+
+        .alert-toast {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 10px 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            border: 1px solid var(--border);
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            min-width: 280px;
+        }
+
+        @keyframes toastSlideIn {
+            from { transform: translateX(30px) scale(0.9); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+        .alert-toast.hiding {
+            animation: toastSlideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        @keyframes toastSlideOut {
+            from { transform: translateX(0) scale(1); opacity: 1; }
+            to { transform: translateX(20px) scale(0.9); opacity: 0; }
+        }
+
+        .alert-toast::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: rgba(0,0,0,0.05);
+            animation: toastProgress 5s linear forwards;
+        }
+
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .alert-toast.success::after { background: var(--success); }
+        .alert-toast.error::after { background: var(--danger); }
+        .alert-toast.warning::after { background: var(--secondary); }
+        .alert-toast.info::after { background: var(--primary); }
+
+        .alert-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+
+        .success .alert-icon { background: rgba(40, 167, 69, 0.1); color: var(--success); }
+        .error .alert-icon { background: rgba(220, 53, 69, 0.1); color: var(--danger); }
+        .warning .alert-icon { background: rgba(255, 153, 0, 0.1); color: var(--secondary); }
+        .info .alert-icon { background: rgba(0, 102, 204, 0.1); color: var(--primary); }
+
+        .alert-content {
+            flex: 1;
+            padding: 2px 0;
+        }
+
+        .alert-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--gray);
+            margin-bottom: 1px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .alert-msg {
+            font-size: 13px;
+            color: var(--dark);
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .close-toast {
+            background: rgba(0,0,0,0.03);
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 10px;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-toast:hover { 
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        /* ── PROFESSIONAL MODAL ── */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
+            z-index: 10001;
+            padding: 20px;
         }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .gaming-modal {
-            width: 92%;
-            max-width: 520px;
-            position: relative;
+        .modal-content-clean {
+            background: var(--white);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
             overflow: hidden;
-            border-radius: 14px;
-            color: #fff;
-            background:
-                radial-gradient(120% 120% at 20% 10%, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 45%, rgba(0,0,0,0.0) 100%),
-                linear-gradient(180deg, rgba(18,18,18,0.92), rgba(10,10,10,0.92));
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow:
-                0 18px 55px rgba(0,0,0,0.65),
-                0 0 0 1px rgba(0,0,0,0.35) inset;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border);
         }
 
-        /* Glowing frame like the reference image */
-        .gaming-modal::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 14px;
-            padding: 2px;
-            background: linear-gradient(90deg, rgba(0,210,255,0.0), rgba(0,210,255,0.9), rgba(0,210,255,0.0));
-            -webkit-mask:
-                linear-gradient(#000 0 0) content-box,
-                linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.9;
-            pointer-events: none;
+        @keyframes modalPop {
+            from { transform: translateY(20px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
         }
 
-        .gaming-modal::after {
-            content: '';
-            position: absolute;
-            inset: -40px;
-            background: radial-gradient(circle at 20% 20%, rgba(0,210,255,0.22), rgba(0,0,0,0) 55%);
-            filter: blur(12px);
-            opacity: 0.9;
-            pointer-events: none;
-        }
-
-        .gaming-modal.success::before {
-            background: linear-gradient(90deg, rgba(0,255,136,0.0), rgba(0,255,136,0.95), rgba(0,255,136,0.0));
-        }
-        .gaming-modal.success::after {
-            background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.22), rgba(0,0,0,0) 55%);
-        }
-
-        .gaming-modal.error::before {
-            background: linear-gradient(90deg, rgba(255,51,102,0.0), rgba(255,51,102,0.95), rgba(255,51,102,0.0));
-        }
-        .gaming-modal.error::after {
-            background: radial-gradient(circle at 20% 20%, rgba(255,51,102,0.22), rgba(0,0,0,0) 55%);
-        }
-
-        .gaming-modal.info::before {
-            background: linear-gradient(90deg, rgba(255,204,0,0.0), rgba(255,204,0,0.95), rgba(255,204,0,0.0));
-        }
-        .gaming-modal.info::after {
-            background: radial-gradient(circle at 20% 20%, rgba(255,204,0,0.20), rgba(0,0,0,0) 55%);
-        }
-
-        .modal-body {
-            padding: 26px 26px 18px;
+        .modal-header-clean {
+            padding: 32px 32px 16px;
             text-align: center;
-            color: #fff;
-            position: relative;
-            z-index: 2;
         }
 
-        .modal-icon-container {
-            width: 74px;
-            height: 74px;
-            margin: 0 auto 14px;
+        .modal-icon-clean {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            margin: 0 auto 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 34px;
-            border-radius: 18px;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid rgba(255,255,255,0.10);
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.45);
-        }
-
-        .success .modal-icon-container { color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); }
-        .error .modal-icon-container { color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
-        .info .modal-icon-container { color: var(--neon-gold); text-shadow: 0 0 20px var(--neon-gold); }
-
-        .modal-title {
-            font-family: 'Rajdhani', sans-serif;
             font-size: 28px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .modal-body-clean {
+            padding: 0 32px 32px;
+            text-align: center;
+        }
+
+        .modal-title-clean {
+            font-size: 1.5rem;
             font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            letter-spacing: 0.8px;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.65);
+            color: var(--dark);
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
         }
 
-        .modal-text {
-            font-size: 15px;
-            color: rgba(255,255,255,0.82);
-            line-height: 1.55;
-            margin-bottom: 18px;
+        .modal-text-clean {
+            font-size: 1rem;
+            color: var(--gray);
+            line-height: 1.6;
+            font-weight: 500;
         }
 
-        .modal-footer {
-            padding: 16px 22px 22px;
-            background: rgba(0,0,0,0.18);
-            border-top: 1px solid rgba(255,255,255,0.06);
+        .modal-footer-clean {
+            padding: 0 32px 32px;
             display: flex;
-            justify-content: center;
-            position: relative;
-            z-index: 2;
+            gap: 16px;
         }
 
-        .btn-gaming {
-            padding: 12px 34px;
-            border-radius: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
+        .btn-modal {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 15px;
             cursor: pointer;
-            transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
-            border: 1px solid rgba(255,255,255,0.10);
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-            background: rgba(255,255,255,0.06);
-            color: #fff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .success .btn-gaming {
-            background: linear-gradient(180deg, rgba(0,255,136,0.95), rgba(0,190,110,0.95));
-            color: #03110a;
-            box-shadow: 0 10px 28px rgba(0,255,136,0.30);
+        .btn-modal-primary { 
+            background: var(--primary); 
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.25);
         }
-        .error .btn-gaming {
-            background: linear-gradient(180deg, rgba(255,51,102,0.95), rgba(190,25,70,0.95));
-            color: #fff;
-            box-shadow: 0 10px 28px rgba(255,51,102,0.28);
+        .btn-modal-secondary { 
+            background: var(--light); 
+            color: var(--gray); 
+            border: 1px solid var(--border);
         }
-        .info .btn-gaming {
-            background: linear-gradient(180deg, rgba(255,204,0,0.95), rgba(210,160,0,0.95));
-            color: #171100;
-            box-shadow: 0 10px 28px rgba(255,204,0,0.22);
+        .btn-modal:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
         }
-
-        .btn-gaming:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-gaming:active { transform: translateY(0); }
+        .btn-modal:active {
+            transform: translateY(-1px);
+        }
 
         body.dark-mode {
             --primary: #4da3ff;
@@ -513,6 +573,182 @@
             font-weight: 500;
         }
 
+        /* ── HEADER ENHANCEMENTS ── */
+        .header-icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            background: white;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .header-icon-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15);
+        }
+
+        .header-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 4px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+        }
+
+        .header-wallet-btn {
+            padding: 10px 18px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .header-wallet-btn:hover {
+            border-color: var(--primary);
+            background: #f0f7ff;
+            color: var(--primary);
+        }
+
+        .user-profile-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 16px 6px 6px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .user-profile-group:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-avatar-placeholder {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .logout-pill {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--danger);
+            background: white;
+            border: 1px solid rgba(220, 53, 69, 0.1);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .logout-pill:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
+        }
+
+        .logout-link:hover { opacity: 0.8; }
+
+        .btn-signin {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .btn-signin:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0, 102, 204, 0.2); }
+
+        body.dark-mode .header-icon-btn,
+        body.dark-mode .user-profile-group {
+            background: #2c2c2c;
+            border-color: #444;
+        }
+
+        body.dark-mode .header-wallet-btn {
+            background: rgba(0, 102, 204, 0.1);
+            border-color: rgba(0, 102, 204, 0.2);
+        }
+
+        body.dark-mode .user-avatar-placeholder { background: #333; }
+        body.dark-mode .username { color: #f8f9fa; }
+
+        @media (max-width: 768px) {
+            .header-container { flex-direction: row; justify-content: space-between; align-items: center; }
+            .user-panel { gap: 8px; }
+            .user-details { display: none; }
+            .header-wallet-btn span { display: none; }
+            .header-wallet-btn { padding: 8px; }
+            .user-profile-group { padding: 2px; }
+        }
+
         /* ── MODAL POPUP ── */
         .modal-overlay {
             position: fixed;
@@ -806,60 +1042,6 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 13px;
             color: #888;
-        }
-
-        /* ── ALERTS ── */
-        #msg-overlay {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 350px;
-            width: 90%;
-        }
-
-        .alert-toast {
-            background-color: var(--white);
-            border-radius: 8px;
-            padding: 16px 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            animation: slideIn 0.3s ease-out;
-            border-left: 4px solid var(--primary);
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .alert-toast.success { border-left-color: var(--success); }
-        .alert-toast.error { border-left-color: var(--danger); }
-        .alert-toast.warning { border-left-color: var(--secondary); }
-
-        .alert-icon {
-            font-size: 20px;
-        }
-        .success .alert-icon { color: var(--success); }
-        .error .alert-icon { color: var(--danger); }
-        .warning .alert-icon { color: var(--secondary); }
-
-        .alert-msg {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--dark);
-        }
-
-        .close-alert {
-            margin-left: auto;
-            cursor: pointer;
-            color: var(--gray);
-            font-size: 18px;
         }
 
         /* ── RESPONSIVE ── */
@@ -1250,34 +1432,40 @@
             <button id="theme-toggle" class="theme-toggle" title="Toggle Dark/Light Mode">
                 <i class="fas fa-moon"></i>
             </button>
+            
             {% if user.is_authenticated %}
-                <a href="{% url 'chat' %}" class="wallet-info" style="background: #fff; border: 1px solid var(--border); padding: 8px 12px; text-decoration: none; position: relative;" title="Messages">
-                    <i class="fas fa-bell" style="color: var(--gray);"></i>
-                    {% if unread_msgs %}
-                        <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid white;">
-                            {{ unread_msgs }}
-                        </span>
-                    {% endif %}
-                </a>
-                <a href="{% url 'wallet_history' %}" class="wallet-info" id="wallet-display" title="Wallet Balance (Click for History)" style="text-decoration: none;">
-                    <i class="fas fa-wallet"></i>
-                    ₹<span id="user-balance">0.00</span>
-                </a>
-                <div class="user-meta">
-                    {% if user.profile.profile_pic %}
-                        <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="user-avatar">
-                    {% else %}
-                        <div class="user-avatar" style="background: #eee; display: flex; align-items: center; justify-content: center; color: #999;">
-                            <i class="fas fa-user"></i>
+                <div class="user-meta" style="border-left: 1px solid var(--border); padding-left: 15px;">
+                    <a href="{% url 'chat' %}" class="header-icon-btn" title="Messages">
+                        <i class="fas fa-bell"></i>
+                        {% if unread_msgs %}
+                            <span class="header-badge">{{ unread_msgs }}</span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{% url 'wallet_history' %}" class="header-wallet-btn" id="wallet-display">
+                        <i class="fas fa-wallet"></i>
+                        ₹<span id="user-balance">0.00</span>
+                    </a>
+
+                    <div class="user-profile-group">
+                        {% if user.profile.profile_pic %}
+                            <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="user-avatar">
+                        {% else %}
+                            <div class="user-avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                        <div class="user-details">
+                            <span class="username">{{ user.username|upper }}</span>
                         </div>
-                    {% endif %}
-                    <div class="user-info">
-                        <span class="username">{{ user.username|upper }}</span>
-                        <a href="{% url 'logout' %}" class="logout-btn">Sign Out</a>
                     </div>
+
+                    <a href="{% url 'logout' %}" class="logout-pill" title="Sign Out">
+                        <i class="fas fa-power-off"></i>
+                    </a>
                 </div>
             {% else %}
-                <a href="{% url 'login' %}" class="btn-gold" style="padding: 8px 20px;">Sign In</a>
+                <a href="{% url 'login' %}" class="btn-signin">Sign In</a>
             {% endif %}
         </div>
     </div>
@@ -1524,19 +1712,23 @@
     });
 </script>
 
-<!-- Modal Notification -->
+<!-- Professional Toast & Modal UI -->
+<div id="msg-overlay"></div>
+
 <div id="modal-notification" class="modal-overlay">
-    <div class="gaming-modal" id="modal-container">
-        <div class="modal-body">
-            <div class="modal-icon-container" id="modal-icon-wrapper">
+    <div class="modal-content-clean">
+        <div class="modal-header-clean">
+            <div id="modal-icon-wrapper" class="modal-icon-clean">
                 <i id="modal-icon-i" class="fas"></i>
             </div>
-            <h2 class="modal-title" id="modal-title">Notification</h2>
-            <p class="modal-text" id="modal-text"></p>
+            <h2 class="modal-title-clean" id="modal-title">Notification</h2>
         </div>
-        <div class="modal-footer">
-            <button class="btn-gaming" id="modal-btn-confirm">CONTINUE</button>
-            <button class="btn-gaming error" id="modal-btn-cancel" style="display: none; margin-left: 10px;">CANCEL</button>
+        <div class="modal-body-clean">
+            <p class="modal-text-clean" id="modal-text"></p>
+        </div>
+        <div class="modal-footer-clean">
+            <button class="btn-modal btn-modal-secondary" id="modal-btn-cancel" style="display: none;">CANCEL</button>
+            <button class="btn-modal btn-modal-primary" id="modal-btn-confirm">CONTINUE</button>
         </div>
     </div>
 </div>
@@ -1548,9 +1740,47 @@
 <script>
     let modalCallback = null;
 
+    function showToast(message, type = 'info', title = null) {
+        const overlay = document.getElementById('msg-overlay');
+        if (!overlay) return;
+
+        const toast = document.createElement('div');
+        toast.className = `alert-toast ${type}`;
+        
+        const iconMap = {
+            'success': 'fa-check-circle',
+            'error': 'fa-times-circle',
+            'warning': 'fa-exclamation-triangle',
+            'info': 'fa-info-circle'
+        };
+
+        const displayTitle = title || type.toUpperCase();
+        
+        toast.innerHTML = `
+            <div class="alert-icon">
+                <i class="fas ${iconMap[type] || iconMap.info}"></i>
+            </div>
+            <div class="alert-content">
+                <div class="alert-title">${displayTitle}</div>
+                <div class="alert-msg">${message}</div>
+            </div>
+            <button class="close-toast" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        overlay.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
     function showModal(title, text, type = 'info', callback = null) {
         const modal = document.getElementById('modal-notification');
-        const container = document.getElementById('modal-container');
+        const iconWrapper = document.getElementById('modal-icon-wrapper');
         const iconI = document.getElementById('modal-icon-i');
         const titleEl = document.getElementById('modal-title');
         const textEl = document.getElementById('modal-text');
@@ -1559,58 +1789,47 @@
 
         modalCallback = callback;
 
-        // Apply gaming styles
-        container.className = 'gaming-modal ' + type;
-        titleEl.innerText = title;
+        // Apply styles based on type
+        iconWrapper.style.background = '';
+        iconWrapper.style.color = '';
+        
+        if (type === 'success') {
+            iconWrapper.style.background = 'rgba(40, 167, 69, 0.1)';
+            iconWrapper.style.color = 'var(--success)';
+            iconI.className = 'fas fa-check-circle';
+        } else if (type === 'error') {
+            iconWrapper.style.background = 'rgba(220, 53, 69, 0.1)';
+            iconWrapper.style.color = 'var(--danger)';
+            iconI.className = 'fas fa-times-circle';
+        } else if (type === 'warning') {
+            iconWrapper.style.background = 'rgba(255, 153, 0, 0.1)';
+            iconWrapper.style.color = 'var(--secondary)';
+            iconI.className = 'fas fa-exclamation-triangle';
+        } else {
+            iconWrapper.style.background = 'rgba(0, 102, 204, 0.1)';
+            iconWrapper.style.color = 'var(--primary)';
+            iconI.className = 'fas fa-info-circle';
+        }
+
+        titleEl.innerText = title || 'Notification';
         textEl.innerText = text;
         
         btnConfirm.innerText = "CONTINUE";
         btnConfirm.onclick = () => closeModal(true);
         btnCancel.style.display = "none";
 
-        // Show gaming icons based on type
-        iconI.className = 'fas';
-        if (type === 'success') {
-            iconI.classList.add('fa-trophy');
-            if (!title) titleEl.innerText = 'VICTORY!';
-        } else if (type === 'error') {
-            iconI.classList.add('fa-exclamation-triangle');
-            if (!title) titleEl.innerText = 'PAYMENT FAILED';
-        } else if (type === 'warning') {
-            iconI.classList.add('fa-exclamation-circle');
-            if (!title) titleEl.innerText = 'WARNING';
-        } else {
-            iconI.classList.add('fa-info-circle');
-            if (!title) titleEl.innerText = 'NOTIFICATION';
-        }
-
         modal.style.display = 'flex';
     }
 
     function showConfirm(title, text, callback) {
-        const modal = document.getElementById('modal-notification');
-        const container = document.getElementById('modal-container');
-        const iconI = document.getElementById('modal-icon-i');
-        const titleEl = document.getElementById('modal-title');
-        const textEl = document.getElementById('modal-text');
+        showModal(title, text, 'info', callback);
         const btnConfirm = document.getElementById('modal-btn-confirm');
         const btnCancel = document.getElementById('modal-btn-cancel');
-
-        modalCallback = callback;
-
-        container.className = 'gaming-modal info';
-        titleEl.innerText = title;
-        textEl.innerText = text;
-
-        btnConfirm.innerText = "YES, CONTINUE";
-        btnConfirm.onclick = () => closeModal(true);
         
-        btnCancel.style.display = "inline-block";
+        btnConfirm.innerText = "YES, CONTINUE";
+        btnCancel.style.display = "block";
         btnCancel.innerText = "CANCEL";
         btnCancel.onclick = () => closeModal(false);
-
-        iconI.className = 'fas fa-question-circle';
-        modal.style.display = 'flex';
     }
 
     function closeModal(confirmed = false) {
@@ -1622,19 +1841,23 @@
     }
 
     function showLoading(show = true) {
-        document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.style.display = show ? 'flex' : 'none';
     }
 
-    // Handle server messages (data provided via JSON script tag)
+    // Handle server messages
     window.addEventListener('load', () => {
         try {
             const el = document.getElementById('dj-messages');
             const arr = el ? JSON.parse(el.textContent || '[]') : [];
-            for (const m of arr) {
-                showModal(m.title, m.text, m.type);
-            }
-        } catch {
-            // ignore
+            arr.forEach((m, index) => {
+                // Stagger toasts slightly
+                setTimeout(() => {
+                    showToast(m.text, m.type, m.title);
+                }, index * 300);
+            });
+        } catch (e) {
+            console.error('Error parsing messages:', e);
         }
     });
 </script>

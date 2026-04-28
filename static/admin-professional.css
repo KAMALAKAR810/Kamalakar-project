@@ -255,54 +255,44 @@
 
 /* Alert Styling */
 .alert-professional {
-    padding: 16px;
-    border-radius: 10px;
-    border-left: 4px solid;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.05);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     margin-bottom: 20px;
     animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
 .alert-success {
-    background: #ecfdf5;
-    border-left-color: #10b981;
-    color: #047857;
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+    color: #166534;
 }
 
 .alert-danger {
-    background: #fee2e2;
-    border-left-color: #ef4444;
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
     color: #991b1b;
 }
 
 .alert-warning {
-    background: #fef3c7;
-    border-left-color: #f59e0b;
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
     color: #92400e;
 }
 
 .alert-info {
-    background: #dbeafe;
-    border-left-color: #3b82f6;
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
     color: #1e40af;
 }
 
 .alert-professional i {
-    font-size: 18px;
-    margin-top: 2px;
+    font-size: 16px;
+    flex-shrink: 0;
 }
 
 /* Stat Box Styling */
