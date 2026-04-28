@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import datetime, timedelta
-import uuid
+from datetime import timedelta
 
 # --- CHOICES ---
 

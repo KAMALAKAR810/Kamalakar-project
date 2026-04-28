@@ -2,8 +2,6 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 import re
-import random
-import os
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -12,7 +10,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 from django.http import JsonResponse
 # FIX: Renamed import to 'db_transaction' to avoid name collision with the
 # local variable 'transaction' used inside place_bet and the Transaction model.
@@ -21,14 +18,11 @@ from django.db.models import Sum, Q, Count, Max
 from django.utils import timezone
 import requests
 from django.conf import settings
-import base64
 from django_ratelimit.decorators import ratelimit
-from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password, check_password
 import secrets
 
 from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity
-import uuid
 
 
 @login_required

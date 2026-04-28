@@ -2,27 +2,34 @@
 {% block content %}
 <style>
     .organized-container {
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 15px;
+        padding: 24px;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .organized-table {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 10px;
-        margin-top: 20px;
+        border-collapse: collapse;
+        margin-top: 0;
     }
     .organized-table th {
-        background: var(--primary);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 15px;
+        padding: 18px;
         text-align: center;
-        border-radius: 8px;
+        border-radius: 0;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        font-size: 14px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        letter-spacing: 1.5px;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .organized-table th:first-child {
+        border-radius: 8px 0 0 0;
+    }
+    .organized-table th:last-child {
+        border-radius: 0 8px 0 0;
     }
     .organized-table td {
         padding: 0;
@@ -32,84 +39,144 @@
     .bet-data-card {
         border: none;
         border-radius: 10px;
-        padding: 12px 15px;
+        padding: 14px 16px;
         text-align: left;
         background: white;
-        margin-bottom: 10px;
+        margin: 10px;
         font-size: 14px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border-left: 4px solid var(--primary);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        border-left: 5px solid;
+        font-weight: 600;
     }
     .bet-data-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
     }
     .bet-data-card .num-label {
         font-weight: 800;
         color: #1a1a1a;
-        background: #f0f2f5;
-        padding: 4px 8px;
-        border-radius: 5px;
+        background: linear-gradient(135deg, #f0f2f5 0%, #e9ecef 100%);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
     }
     .bet-data-card .amt-label {
-        font-weight: 700;
-        color: #2e7d32;
+        font-weight: 800;
+        color: #10b981;
         font-family: 'Courier New', Courier, monospace;
+        font-size: 15px;
+        background: #ecfdf5;
+        padding: 4px 10px;
+        border-radius: 6px;
     }
     .empty-cell {
         text-align: center;
         padding: 20px;
-        color: #ccc;
+        color: #cbd5e1;
         font-style: italic;
         font-size: 12px;
+    }
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        align-items: flex-end;
+    }
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .filter-label {
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .no-data-container {
+        text-align: center;
+        padding: 60px 20px;
+        border-radius: 12px;
+        background: white;
+        border: 2px dashed #e2e8f0;
+    }
+    .no-data-icon {
+        font-size: 60px;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+    }
+    .no-data-title {
+        color: #64748b;
+        font-weight: 800;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+    .no-data-subtitle {
+        color: #94a3b8;
+        font-weight: 500;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+    .action-buttons .btn-gold {
+        flex: 1;
+        min-width: 140px;
     }
 </style>
 
 <div class="page-shell">
     <h2 class="page-title"><i class="fas fa-sitemap"></i> Organized Market Data</h2>
-    <p class="page-sub">Comprehensive view of all bets placed in selected market session.</p>
+    <p class="page-sub">Real-time comprehensive view of all bets placed in selected market session.</p>
     
-    <div class="data-panel" style="margin-bottom: 25px; border-radius: 15px; border: 1px solid #eee;">
-        <form method="GET" style="display: flex; gap: 20px; flex-wrap: wrap; background: none; border: none; padding: 10px; align-items: flex-end;">
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">DATE</label>
-                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
+    <div class="professional-card" style="margin-bottom: 25px;">
+        <form method="GET" class="filter-form">
+            <div class="filter-group">
+                <label class="filter-label">📅 Date</label>
+                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="bet-input">
             </div>
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">MARKET</label>
-                <select name="market" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
+            <div class="filter-group">
+                <label class="filter-label">🏪 Market</label>
+                <select name="market" onchange="this.form.submit()" class="bet-input">
                     <option value="">-- Select Market --</option>
                     {% for m in markets %}
                         <option value="{{ m.id }}" {% if m.id|stringformat:"s" == selected_market_id %}selected{% endif %}>{{ m.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display:block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555;">SESSION</label>
-                <select name="session" onchange="this.form.submit()" class="bet-input" style="width: 100%; height: 45px; border-radius: 10px;">
+            <div class="filter-group">
+                <label class="filter-label">⏱️ Session</label>
+                <select name="session" onchange="this.form.submit()" class="bet-input">
                     <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN SESSION</option>
                     <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE SESSION</option>
                 </select>
             </div>
-            <a href="{% url 'organize_data' %}" class="btn-gold" style="background: #333; text-decoration: none; padding: 12px 20px; border-radius: 10px; height: 45px; display: flex; align-items: center;">RESET</a>
+            <div style="display: flex; gap: 12px;">
+                <a href="{% url 'organize_data' %}" class="btn-gold" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #64748b; margin-top: 4px;">
+                    <i class="fas fa-redo"></i> RESET
+                </a>
+            </div>
         </form>
     </div>
 
     {% if selected_market_id %}
-    <div class="organized-container">
+    <div class="organized-container slide-in">
         <div style="overflow-x: auto;">
             <table class="organized-table">
                 <thead>
                     <tr>
-                        <th>Single</th>
-                        <th>Jodi</th>
-                        <th>Single Patti</th>
-                        <th>Double Patti</th>
-                        <th>Triple Patti</th>
+                        <th>💰 Single</th>
+                        <th>🎲 Jodi</th>
+                        <th>📊 Single Patti</th>
+                        <th>📈 Double Patti</th>
+                        <th>🎯 Triple Patti</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,7 +184,7 @@
                     <tr>
                         <td>
                             {% if row.SINGLE %}
-                            <div class="bet-data-card" style="border-left-color: #007bff;">
+                            <div class="bet-data-card" style="border-left-color: #3b82f6;">
                                 <span class="num-label">{{ row.SINGLE.number }}</span>
                                 <span class="amt-label">₹{{ row.SINGLE.amount }}</span>
                             </div>
@@ -127,7 +194,7 @@
                         </td>
                         <td>
                             {% if row.JODI %}
-                            <div class="bet-data-card" style="border-left-color: #28a745;">
+                            <div class="bet-data-card" style="border-left-color: #10b981;">
                                 <span class="num-label">{{ row.JODI.number }}</span>
                                 <span class="amt-label">₹{{ row.JODI.amount }}</span>
                             </div>
@@ -137,7 +204,7 @@
                         </td>
                         <td>
                             {% if row.SINGLE_PATTI %}
-                            <div class="bet-data-card" style="border-left-color: #ffc107;">
+                            <div class="bet-data-card" style="border-left-color: #f59e0b;">
                                 <span class="num-label">{{ row.SINGLE_PATTI.number }}</span>
                                 <span class="amt-label">₹{{ row.SINGLE_PATTI.amount }}</span>
                             </div>
@@ -147,7 +214,7 @@
                         </td>
                         <td>
                             {% if row.DOUBLE_PATTI %}
-                            <div class="bet-data-card" style="border-left-color: #17a2b8;">
+                            <div class="bet-data-card" style="border-left-color: #8b5cf6;">
                                 <span class="num-label">{{ row.DOUBLE_PATTI.number }}</span>
                                 <span class="amt-label">₹{{ row.DOUBLE_PATTI.amount }}</span>
                             </div>
@@ -157,7 +224,7 @@
                         </td>
                         <td>
                             {% if row.TRIPLE_PATTI %}
-                            <div class="bet-data-card" style="border-left-color: #dc3545;">
+                            <div class="bet-data-card" style="border-left-color: #ef4444;">
                                 <span class="num-label">{{ row.TRIPLE_PATTI.number }}</span>
                                 <span class="amt-label">₹{{ row.TRIPLE_PATTI.amount }}</span>
                             </div>
@@ -168,32 +235,33 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 60px; background: white; border-radius: 15px;">
-                            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" style="opacity: 0.1; margin-bottom: 20px;">
-                            <p style="color: #999; font-weight: 600;">No data found for this session.</p>
+                        <td colspan="5">
+                            <div class="no-data-container">
+                                <div class="no-data-icon">📭</div>
+                                <div class="no-data-title">No Bets Found</div>
+                                <div class="no-data-subtitle">There are no bets placed for this session yet.</div>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        <div class="action-buttons">
+            <button onclick="exportCurrentPage()" class="btn-gold" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-file-export"></i> EXPORT TO CSV
+            </button>
+            <button onclick="window.print()" class="btn-gold" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #64748b;">
+                <i class="fas fa-print"></i> PRINT PAGE
+            </button>
+        </div>
     </div>
     {% else %}
-    <div class="data-panel" style="text-align: center; padding: 80px; border-radius: 15px; background: white;">
-        <i class="fas fa-mouse-pointer" style="font-size: 50px; color: #eee; margin-bottom: 20px;"></i>
-        <h3 style="color: #666; font-weight: 700;">Ready to analyze?</h3>
-        <p style="color: #999;">Select a market above to view organized bet data.</p>
+    <div class="no-data-container">
+        <div class="no-data-icon">👆</div>
+        <div class="no-data-title">Ready to Analyze?</div>
+        <div class="no-data-subtitle">Select a market and session above to view detailed bet data.</div>
     </div>
     {% endif %}
 </div>
-{% block admin_action_footer %}
-<div class="admin-action-footer">
-  <button onclick="exportCurrentPage()" class="btn-action-bottom export-btn-bottom">
-    <i class="fas fa-file-export"></i> EXPORT TO CSV
-  </button>
-  <button onclick="window.print()" class="btn-action-bottom print-btn-bottom">
-    <i class="fas fa-print"></i> PRINT PAGE
-  </button>
-</div>
-{% endblock %}
 {% endblock %}
