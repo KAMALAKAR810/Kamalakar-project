@@ -93,34 +93,6 @@
         box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     }
 
-    .captcha-container {
-        margin: 25px 0;
-        padding: 20px;
-        background: #f8fafc;
-        border-radius: 10px;
-        border: 2px solid #e2e8f0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: all 0.3s ease;
-    }
-
-    .captcha-container:hover {
-        border-color: #cbd5e1;
-        background: #f1f5f9;
-    }
-
-    .captcha-label {
-        display: block;
-        font-weight: 700;
-        margin-bottom: 12px;
-        color: #1e293b;
-        text-align: center;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
     .auth-btn {
         width: 100%;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -209,34 +181,12 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-
-    .security-note {
-        background: #ecfdf5;
-        border-left: 4px solid #10b981;
-        padding: 12px 16px;
-        border-radius: 6px;
-        font-size: 13px;
-        color: #047857;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .security-note i {
-        font-size: 16px;
-    }
 </style>
 
 <div class="auth-container">
     <div class="auth-card">
         <h2>Welcome Back</h2>
         <p class="auth-subtitle">Sign in to your admin account</p>
-
-        <div class="security-note">
-            <i class="fas fa-shield-alt"></i>
-            <span>Your connection is secure and encrypted</span>
-        </div>
         
         <form method="POST" class="auth-form" id="login-form">
             {% csrf_token %}
@@ -244,13 +194,6 @@
             <div class="password-wrapper">
                 <input type="password" name="password" id="password" placeholder="Password" required>
                 <i class="fas fa-eye toggle-password" id="togglePassword"></i>
-            </div>
-
-            <div class="captcha-container">
-                <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-                    <label class="captcha-label">🤖 Verify You're Human</label>
-                    <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" style="transform: scale(0.9); transform-origin: 0 0;"></div>
-                </div>
             </div>
 
             <button type="submit" class="auth-btn">
@@ -285,7 +228,6 @@
     </div>
 </div>
 
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
     const togglePassword = document.querySelector('#togglePassword');
     const password = document.querySelector('#password');

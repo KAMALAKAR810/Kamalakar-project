@@ -311,13 +311,9 @@ def login_view(request):
             return redirect('admin_home')
         return redirect('user_home')
     
-    context = {'recaptcha_site_key': "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT"}
+    context = {}
     
     if request.method == 'POST':
-        # 0. Verify reCAPTCHA
-        if not _verify_recaptcha(request):
-            messages.error(request, "Please complete the reCAPTCHA correctly.")
-            return render(request, 'auth/login.html', context)
 
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
         is_ajax = request.content_type == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -519,24 +515,7 @@ def _send_email_otp(profile: Profile = None, email: str = None):
 
 import requests
 
-def _verify_recaptcha(request):
-    """Verifies Google reCAPTCHA v2 response."""
-    recaptcha_response = request.POST.get('g-recaptcha-response')
-    if not recaptcha_response:
-        return False
-    
-    secret_key = "6LdBk8ssAAAAAN60vJ9zIlqIKI-IgJ7Pt6RLnHZe"
-    data = {
-        'secret': secret_key,
-        'response': recaptcha_response
-    }
-    try:
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data, timeout=10)
-        result = r.json()
-        return result.get('success', False)
-    except Exception as e:
-        print(f"reCAPTCHA Error: {str(e)}")
-        return False
+
 
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
@@ -544,16 +523,12 @@ def register_view(request):
         return redirect('user_home')
 
     def _register_context(extra=None):
-        context = {'recaptcha_site_key': "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT"}
+        context = {}
         if extra:
             context.update(extra)
         return context
 
     if request.method == 'POST':
-        # 1. Verify reCAPTCHA
-        if not _verify_recaptcha(request):
-            messages.error(request, "Please complete the reCAPTCHA correctly.")
-            return render(request, 'auth/register.html', _register_context())
 
         # Honeypot — bots often fill hidden fields
         if request.POST.get("website", "").strip():
@@ -898,8 +873,7 @@ def user_home(request):
         return redirect('admin_summary')
     return render(request, 'user/user_home.html', {
         'markets': Market.objects.all(),
-        'page_title': 'Home Page',
-        'recaptcha_site_key': "6LdBk8ssAAAAAPt1p9BfFcx9qNED4ftGxPv59lXT"
+        'page_title': 'Home Page'
     })
 
 

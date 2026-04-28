@@ -144,9 +144,6 @@
    </p> 
    <div class="cta-buttons"> 
      {% if not user.is_authenticated %} 
-+    <div style="margin-bottom: 20px; display: flex; justify-content: center; width: 100%;">
-+      <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
-+    </div>
      <a href="{% url 'register' %}" class="btn-gold">Create Free Account</a> 
      {% else %} 
      <a href="#how-to-play" class="btn-gold">How to Play</a> 
@@ -161,21 +158,7 @@
      </a> 
    </div> 
  </section> 
-
- <script>
-   // Basic client-side check for reCAPTCHA on landing page if needed
-   document.querySelectorAll('.hero-section .btn-gold').forEach(btn => {
-     if (btn.href.includes('register')) {
-       btn.addEventListener('click', function(e) {
-         const response = grecaptcha.getResponse();
-         if (!response) {
-           e.preventDefault();
-           alert("Please complete the reCAPTCHA to proceed.");
-         }
-       });
-     }
-   });
- </script>  
+ 
  <section 
    id="how-to-play" 
    class="faq-section" 

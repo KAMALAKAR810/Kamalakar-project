@@ -62,7 +62,7 @@ class ContentSecurityPolicyMiddleware:
         if response.get("Content-Security-Policy"):
             return response
 
-        # Allow required CDNs and Google reCAPTCHA.
+        # Allow required CDNs.
         csp_parts = [
             "default-src 'self'",
             "base-uri 'self'",
@@ -72,9 +72,8 @@ class ContentSecurityPolicyMiddleware:
             "img-src 'self' data: https:",
             "font-src 'self' https://cdnjs.cloudflare.com data:",
             "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
-            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com",
+            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
             "connect-src 'self' https:",
-            "frame-src https://www.google.com",
         ]
 
         # In production, prefer upgrading any http subresources.
