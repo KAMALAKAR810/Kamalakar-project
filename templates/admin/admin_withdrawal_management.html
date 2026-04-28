@@ -1,87 +1,94 @@
 {% extends "admin_base.html" %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold mb-1">Withdrawal Requests</h2>
-        <p class="text-muted small">Review and approve user withdrawal requests</p>
+<div class="page-shell slide-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="page-title mb-1">
+                <i class="fas fa-money-bill-wave"></i> Withdrawal Requests
+            </h2>
+            <p class="page-sub">Review and process user withdrawal requests</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+        </div>
     </div>
-    <div class="d-flex gap-2">
-        <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-file-export me-1"></i> Export
-        </button>
-        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-print me-1"></i> Print
-        </button>
-    </div>
-</div>
 
-<div class="card shadow-sm border-0">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light">
-                <tr>
-                    <th class="border-0 px-4 py-3 small text-uppercase text-muted">Date</th>
-                    <th class="border-0 py-3 small text-uppercase text-muted">User (ID)</th>
-                    <th class="border-0 py-3 small text-uppercase text-muted">Bank Holder</th>
-                    <th class="border-0 py-3 small text-uppercase text-muted">A/C Details</th>
-                    <th class="border-0 py-3 small text-uppercase text-muted text-center">Amount</th>
-                    <th class="border-0 py-3 small text-uppercase text-muted">Status</th>
-                    <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for req in withdrawal_requests %}
-                <tr>
-                    <td class="px-4 small text-muted">{{ req.created_at|date:"d M, H:i" }}</td>
-                    <td>
-                        <div class="fw-bold">{{ req.user.username }}</div>
-                        <div class="text-muted small">ID: {{ req.user.profile.user_code }}</div>
-                    </td>
-                    <td>{{ req.bank_holder_name|default:"N/A" }}</td>
-                    <td>
-                        <div class="small">Mob: {{ req.mobile_number|default:"N/A" }}</div>
-                        <div class="small">A/C: {{ req.bank_account|default:"N/A" }}</div>
-                        {% if req.upi_id %}
-                            <div class="small text-primary">UPI: {{ req.upi_id }}</div>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        <span class="fw-bold text-dark fs-5">₹{{ req.amount }}</span>
-                    </td>
-                    <td>
-                        {% if req.status == 'PENDING' %}
-                            <span class="badge bg-warning-subtle text-warning px-3 rounded-pill">PENDING</span>
-                        {% elif req.status == 'APPROVED' %}
-                            <span class="badge bg-success-subtle text-success px-3 rounded-pill">APPROVED</span>
-                        {% else %}
-                            <span class="badge bg-danger-subtle text-danger px-3 rounded-pill">{{ req.status }}</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-4 text-end">
-                        {% if req.status == 'PENDING' %}
-                        <form method="POST" class="d-inline-flex gap-2">
-                            {% csrf_token %}
-                            <input type="hidden" name="request_id" value="{{ req.id }}">
-                            <button type="submit" name="status" value="APPROVED" class="btn btn-sm btn-success rounded-pill px-3">
-                                <i class="fas fa-check me-1"></i> Approve
-                            </button>
-                            <button type="submit" name="status" value="REJECTED" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                <i class="fas fa-times me-1"></i> Reject
-                            </button>
-                        </form>
-                        {% else %}
-                        <span class="text-muted small">Processed</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">No withdrawal requests found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="professional-card border-0">
+        <div class="table-responsive">
+            <table class="professional-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-3">Date</th>
+                        <th class="py-3">User (ID)</th>
+                        <th class="py-3">Bank Holder</th>
+                        <th class="py-3">A/C Details</th>
+                        <th class="py-3 text-center">Amount</th>
+                        <th class="py-3">Status</th>
+                        <th class="px-4 py-3 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in withdrawal_requests %}
+                    <tr>
+                        <td class="px-4 small text-muted">{{ req.created_at|date:"d M, H:i" }}</td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ req.user.username }}</div>
+                            <div class="text-muted small">ID: {{ req.user.profile.user_code }}</div>
+                        </td>
+                        <td class="fw-medium">{{ req.bank_holder_name|default:"N/A" }}</td>
+                        <td>
+                            <div class="small">Mob: {{ req.mobile_number|default:"N/A" }}</div>
+                            <div class="small">A/C: {{ req.bank_account|default:"N/A" }}</div>
+                            {% if req.upi_id %}
+                                <div class="small text-primary fw-bold">UPI: {{ req.upi_id }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-bold text-dark fs-5">₹{{ req.amount }}</span>
+                        </td>
+                        <td>
+                            {% if req.status == 'PENDING' %}
+                                <span class="badge-status badge-warning">PENDING</span>
+                            {% elif req.status == 'APPROVED' %}
+                                <span class="badge-status badge-success">APPROVED</span>
+                            {% else %}
+                                <span class="badge-status badge-danger">{{ req.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 text-end">
+                            {% if req.status == 'PENDING' %}
+                            <form method="POST" class="d-inline-flex gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="request_id" value="{{ req.id }}">
+                                <button type="submit" name="status" value="APPROVED" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">
+                                    <i class="fas fa-check me-1"></i> Approve
+                                </button>
+                                <button type="submit" name="status" value="REJECTED" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm">
+                                    <i class="fas fa-times me-1"></i> Reject
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="badge bg-light text-muted border px-3 rounded-pill">Processed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-history fa-3x mb-3 d-block opacity-25"></i>
+                            No withdrawal requests found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

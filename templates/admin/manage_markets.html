@@ -2,95 +2,102 @@
 {% load static %}
 
 {% block content %}
-<div class="row">
-    <div class="col-xl-8 mx-auto">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold mb-1">Manage Matka Markets</h2>
-                <p class="text-muted small">Only admins can view and update markets.</p>
+<div class="page-shell slide-in">
+    <div class="row">
+        <div class="col-xl-9 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-1">
+                        <i class="fas fa-store"></i> Market Management
+                    </h2>
+                    <p class="page-sub">Create and oversee Matka game markets and their active timings.</p>
+                </div>
+                <a href="{% url 'market_history' %}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-history me-2"></i>VIEW HISTORY
+                </a>
             </div>
-            <a href="{% url 'market_history' %}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
-                <i class="fas fa-history me-2"></i>VIEW HISTORY
-            </a>
-        </div>
 
-        <div class="card shadow-sm border-0 mb-5">
-            <div class="card-body p-4 p-md-5">
-                <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
-                    <i class="fas fa-plus-circle text-primary"></i> Create New Market
+            <div class="professional-card border-0 mb-5">
+                <h5 class="card-header border-0 bg-transparent p-0 mb-4">
+                    <i class="fas fa-plus-circle"></i> Create New Market
                 </h5>
                 <form method="POST">
                     {% csrf_token %}
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase">Market Name</label>
-                        <input type="text" name="name" class="form-control form-control-lg border-light bg-light" placeholder="e.g. KALYAN" required>
+                        <label class="form-label">Market Name</label>
+                        <input type="text" name="name" class="form-control form-control-lg" placeholder="e.g. KALYAN" required>
                     </div>
                     
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase" for="collection-date">Collection Date *</label> 
+                        <label class="form-label" for="collection-date">Collection Date *</label> 
                         <input type="datetime-local" id="collection-date" name="collection_date" 
-                               value="2026-03-25T12:00" class="form-control border-light bg-light" required> 
+                               value="2026-03-25T12:00" class="form-control" required> 
                     </div>
 
-                    <div class="row g-3 mb-4">
+                    <div class="row g-4 mb-5">
                         <div class="col-sm-6">
-                            <label class="form-label fw-bold small text-uppercase">Open Start Time</label>
-                            <input type="datetime-local" name="open_start_time" class="form-control border-light bg-light" required>
+                            <label class="form-label">Open Start Time</label>
+                            <input type="datetime-local" name="open_start_time" class="form-control" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label fw-bold small text-uppercase">Open End Time</label>
-                            <input type="datetime-local" name="open_end_time" class="form-control border-light bg-light" required>
+                            <label class="form-label">Open End Time</label>
+                            <input type="datetime-local" name="open_end_time" class="form-control" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label fw-bold small text-uppercase">Close Start Time</label>
-                            <input type="datetime-local" name="close_start_time" class="form-control border-light bg-light" required>
+                            <label class="form-label">Close Start Time</label>
+                            <input type="datetime-local" name="close_start_time" class="form-control" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label fw-bold small text-uppercase">Close End Time</label>
-                            <input type="datetime-local" name="close_end_time" class="form-control border-light bg-light" required>
+                            <label class="form-label">Close End Time</label>
+                            <input type="datetime-local" name="close_end_time" class="form-control" required>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-3 shadow-sm">
+                    <button type="submit" class="btn btn-primary-gradient btn-lg w-100 py-3">
                         <i class="fas fa-save me-2"></i>SAVE NEW MARKET
                     </button>
                 </form>
             </div>
-        </div>
 
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3 border-0">
-                <h5 class="fw-bold mb-0">Active Markets</h5>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="border-0 px-4 py-3 small text-uppercase text-muted">Market Name</th>
-                            <th class="border-0 py-3 small text-uppercase text-muted">Collection Date</th>
-                            <th class="border-0 py-3 small text-uppercase text-muted">Open (S-E)</th>
-                            <th class="border-0 py-3 small text-uppercase text-muted">Close (S-E)</th>
-                            <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for market in markets %}
-                        <tr>
-                            <td class="px-4"><strong class="text-primary">{{ market.name }}</strong></td>
-                            <td class="small">{{ market.collection_date|date:"d M Y, H:i" }}</td>
-                            <td class="small text-muted">{{ market.open_start_time|date:"H:i" }} - {{ market.open_end_time|date:"H:i" }}</td>
-                            <td class="small text-muted">{{ market.close_start_time|date:"H:i" }} - {{ market.close_end_time|date:"H:i" }}</td>
-                            <td class="px-4 text-end">
-                                <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill">
-                                    <i class="fas fa-undo-alt me-1"></i> RESET
-                                </button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="5" class="text-center py-4 text-muted">No markets defined yet.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="professional-card border-0">
+                <h5 class="card-header border-0 bg-transparent p-0 mb-4">
+                    <i class="fas fa-list-ul"></i> Active Markets
+                </h5>
+                <div class="table-responsive">
+                    <table class="professional-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3">Market Name</th>
+                                <th class="py-3">Collection Date</th>
+                                <th class="py-3">Open (S-E)</th>
+                                <th class="py-3">Close (S-E)</th>
+                                <th class="px-4 py-3 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for market in markets %}
+                            <tr>
+                                <td class="px-4"><strong class="text-primary fs-6">{{ market.name }}</strong></td>
+                                <td class="small text-dark fw-medium">{{ market.collection_date|date:"d M Y, H:i" }}</td>
+                                <td class="small text-muted">{{ market.open_start_time|date:"H:i" }} - {{ market.open_end_time|date:"H:i" }}</td>
+                                <td class="small text-muted">{{ market.close_start_time|date:"H:i" }} - {{ market.close_end_time|date:"H:i" }}</td>
+                                <td class="px-4 text-end">
+                                    <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill shadow-sm">
+                                        <i class="fas fa-undo-alt me-1"></i> RESET
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fas fa-store-slash fa-3x mb-3 d-block opacity-25"></i>
+                                    No active markets defined yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

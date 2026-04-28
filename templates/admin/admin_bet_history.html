@@ -1,29 +1,31 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<div class="container-fluid px-0">
+<div class="page-shell slide-in">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="h3 mb-1 fw-bold text-dark">User Bet History</h2>
-            <p class="text-muted small mb-0">Comprehensive list of all user bets across markets</p>
+            <h2 class="page-title mb-1">
+                <i class="fas fa-history text-primary me-2"></i> User Bet History
+            </h2>
+            <p class="page-sub">Comprehensive list of all user bets across markets</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{% url 'admin_bet_history' %}" class="btn btn-outline-secondary btn-sm px-3">
+            <a href="{% url 'admin_bet_history' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
                 <i class="fas fa-sync-alt me-1"></i> Refresh
             </a>
         </div>
     </div>
 
     <!-- Filters Section -->
-    <div class="card border-0 shadow-sm mb-4">
+    <div class="professional-card mb-4">
         <div class="card-body p-4">
             <form method="GET" class="row g-3 align-items-end">
                 <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Date</label>
-                    <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Date</label>
+                    <input type="date" name="date" class="form-control form-control-sm border-0 shadow-sm px-3" value="{{ selected_date }}" style="background: #f8f9fa;">
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Market</label>
-                    <select name="market" class="form-select form-select-sm">
+                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Market</label>
+                    <select name="market" class="form-select form-select-sm border-0 shadow-sm px-3" style="background: #f8f9fa;">
                         <option value="">All Markets</option>
                         {% for m in markets %}
                             <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
@@ -31,16 +33,16 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-2">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Section</label>
-                    <select name="session" class="form-select form-select-sm">
+                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Section</label>
+                    <select name="session" class="form-select form-select-sm border-0 shadow-sm px-3" style="background: #f8f9fa;">
                         <option value="">All Sections</option>
                         <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>Open</option>
                         <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>Close</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-2">
-                    <label class="form-label small fw-bold text-uppercase text-muted">User</label>
-                    <select name="user" class="form-select form-select-sm">
+                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">User</label>
+                    <select name="user" class="form-select form-select-sm border-0 shadow-sm px-3" style="background: #f8f9fa;">
                         <option value="">All Users</option>
                         {% for u in all_users %}
                             <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
@@ -48,10 +50,10 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
+                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold rounded-pill shadow-sm">
                         <i class="fas fa-filter me-1"></i> Filter
                     </button>
-                    <a href="{% url 'admin_bet_history' %}" class="btn btn-light border btn-sm w-100 fw-bold">
+                    <a href="{% url 'admin_bet_history' %}" class="btn btn-light border-0 btn-sm w-100 fw-bold rounded-pill shadow-sm">
                         Reset
                     </a>
                 </div>
@@ -59,53 +61,61 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm overflow-hidden">
+    <div class="professional-card overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table professional-table align-middle mb-0">
+                <thead>
                     <tr>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">User ID</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Username</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Market</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Date/Time</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Section</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Number</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Amount</th>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">Status</th>
+                        <th class="px-4">User ID</th>
+                        <th>Username</th>
+                        <th>Market</th>
+                        <th>Date/Time</th>
+                        <th>Section</th>
+                        <th>Number</th>
+                        <th>Amount</th>
+                        <th class="px-4">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for bet in bets %}
                     <tr>
-                        <td class="px-4 fw-bold text-primary">{{ bet.user.profile.user_code }}</td>
+                        <td class="px-4">
+                            <span class="fw-bold text-primary">{{ bet.user.profile.user_code }}</span>
+                        </td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <div class="bg-light rounded-circle p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
                                     <i class="fas fa-user text-muted small"></i>
                                 </div>
-                                {{ bet.user.username }}
+                                <span class="fw-medium">{{ bet.user.username }}</span>
                             </div>
                         </td>
-                        <td><span class="badge bg-info-subtle text-info px-2 py-1">{{ bet.market.name }}</span></td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info rounded-pill px-3 border border-info-subtle">{{ bet.market.name }}</span>
+                        </td>
                         <td class="small text-muted">{{ bet.created_at|date:"d M Y, H:i" }}</td>
                         <td>
-                            <span class="badge {% if bet.session == 'OPEN' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} px-2 py-1">
+                            <span class="badge {% if bet.session == 'OPEN' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} rounded-pill px-3 border border-{% if bet.session == 'OPEN' %}success{% else %}warning{% endif %}-subtle">
                                 {{ bet.session }}
                             </span>
                         </td>
-                        <td><strong class="text-dark">{{ bet.number }}</strong></td>
+                        <td><span class="badge bg-dark text-white rounded-pill px-3">{{ bet.number }}</span></td>
                         <td class="fw-bold text-dark">₹{{ bet.amount }}</td>
                         <td class="px-4">
-                            <span class="badge {% if bet.status == 'WIN' %}bg-success{% elif bet.status == 'LOSS' %}bg-danger{% else %}bg-secondary{% endif %} rounded-pill px-3">
+                            <span class="badge-status {% if bet.status == 'WIN' %}badge-status-success{% elif bet.status == 'LOSS' %}badge-status-danger{% else %}badge-status-pending{% endif %}">
+                                <i class="fas {% if bet.status == 'WIN' %}fa-check-circle{% elif bet.status == 'LOSS' %}fa-times-circle{% else %}fa-clock{% endif %} me-1"></i>
                                 {{ bet.status }}
                             </span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
-                            <p class="mb-0">No bet history found for the selected criteria.</p>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="fas fa-search fa-4x mb-3 text-light-emphasis opacity-25"></i>
+                                <h5 class="text-muted fw-normal">No bet history found</h5>
+                                <p class="text-muted small mb-0">Try adjusting your filters or check back later</p>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
