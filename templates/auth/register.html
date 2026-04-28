@@ -301,6 +301,34 @@
             grid-column: 1 / -1;
         }
     }
+
+    @media (max-width: 600px) {
+        .auth-shell {
+            padding: 16px 12px 28px;
+        }
+
+        .auth-panel,
+        .auth-card {
+            border-radius: 18px;
+        }
+
+        .auth-panel,
+        .auth-card-inner,
+        .auth-footer {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+
+        .auth-panel {
+            padding-top: 24px;
+            padding-bottom: 24px;
+        }
+
+        .auth-panel h1,
+        .auth-header h2 {
+            font-size: 1.75rem;
+        }
+    }
 </style>
 
 <section class="auth-shell">

@@ -1,15 +1,30 @@
 {% extends "admin_base.html" %}
 {% block content %}
+<style>
+    .user-admin-table .btn-group {
+        display: inline-flex;
+    }
+
+    @media (max-width: 767.98px) {
+        .user-admin-table .btn-group {
+            display: flex;
+        }
+
+        .user-admin-table .btn-group .btn {
+            border-radius: 999px !important;
+        }
+    }
+</style>
 
 <div class="page-shell slide-in">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
             <h2 class="page-title mb-1">
                 <i class="fas fa-users-cog"></i> User Management
             </h2>
             <p class="page-sub">Review and manage user profiles and verification status</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="page-toolbar-actions">
             <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
                 <i class="fas fa-file-export me-1"></i> Export
             </button>
@@ -21,7 +36,7 @@
 
     <div class="professional-card border-0">
         <div class="table-responsive">
-            <table class="professional-table align-middle mb-0">
+            <table class="professional-table responsive-admin-table user-admin-table align-middle mb-0">
                 <thead>
                     <tr>
                         <th class="px-4 py-3">Profile</th>
@@ -36,7 +51,7 @@
                 <tbody>
                     {% for profile in profiles %}
                     <tr>
-                        <td class="px-4">
+                        <td class="px-4 mobile-card-top" data-label="Profile">
                             {% if profile.profile_pic %}
                                 <img src="{{ profile.profile_pic.url }}" class="rounded-circle border shadow-sm" style="width: 45px; height: 45px; object-fit: cover;" alt="P">
                             {% else %}
@@ -45,11 +60,11 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td class="fw-bold text-dark">{{ profile.user.first_name|default:profile.user.username }}</td>
-                        <td><span class="badge bg-light text-dark border px-2 py-1">{{ profile.user.username }}</span></td>
-                        <td class="fw-medium">{{ profile.mobile }}</td>
-                        <td class="small text-muted">{{ profile.created_at|date:"d M Y, H:i" }}</td>
-                        <td>
+                        <td class="fw-bold text-dark" data-label="Full Name">{{ profile.user.first_name|default:profile.user.username }}</td>
+                        <td data-label="Username"><span class="badge bg-light text-dark border px-2 py-1">{{ profile.user.username }}</span></td>
+                        <td class="fw-medium" data-label="Mobile">{{ profile.mobile }}</td>
+                        <td class="small text-muted" data-label="Joined Date">{{ profile.created_at|date:"d M Y, H:i" }}</td>
+                        <td data-label="Verified">
                             {% if profile.is_mobile_verified %}
                                 <span class="badge-status badge-success">
                                     <i class="fas fa-check-circle me-1"></i> Verified
@@ -60,7 +75,7 @@
                                 </span>
                             {% endif %}
                         </td>
-                        <td class="px-4 text-end">
+                        <td class="px-4 text-end mobile-card-actions" data-label="Actions">
                             <div class="btn-group shadow-sm rounded-pill overflow-hidden">
                                 <button onclick="sendWelcome(this, '{{ profile.user.id }}')" class="btn btn-sm btn-outline-primary border-end-0 px-3" title="Send Welcome Message">
                                     <i class="fas fa-envelope"></i>

@@ -1,15 +1,54 @@
 {% extends "admin_base.html" %}
 {% block content %}
+<style>
+    @media (max-width: 767.98px) {
+        #pending-requests .responsive-admin-table tbody td:nth-child(1),
+        #pending-requests .responsive-admin-table tbody td:nth-child(5),
+        #approval-history .responsive-admin-table tbody td:nth-child(1) {
+            display: block;
+        }
+
+        #pending-requests .responsive-admin-table tbody td:nth-child(1)::before,
+        #pending-requests .responsive-admin-table tbody td:nth-child(5)::before,
+        #approval-history .responsive-admin-table tbody td:nth-child(1)::before {
+            content: none;
+        }
+
+        #pending-requests .responsive-admin-table tbody td:nth-child(2)::before,
+        #approval-history .responsive-admin-table tbody td:nth-child(2)::before {
+            content: "Amount";
+        }
+
+        #pending-requests .responsive-admin-table tbody td:nth-child(3)::before,
+        #approval-history .responsive-admin-table tbody td:nth-child(3)::before {
+            content: "UTR Number";
+        }
+
+        #pending-requests .responsive-admin-table tbody td:nth-child(4)::before {
+            content: "Date";
+        }
+
+        #approval-history .responsive-admin-table tbody td:nth-child(4)::before {
+            content: "Approved At";
+        }
+
+        #pending-requests .responsive-admin-table tbody td:nth-child(5) {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #e2e8f0;
+        }
+    }
+</style>
 
 <div class="page-shell slide-in">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
             <h2 class="page-title mb-1">
                 <i class="fas fa-credit-card"></i> Payment Management
             </h2>
             <p class="page-sub"><i class="fas fa-calendar-alt me-1"></i> {{ today|date:"D, d M Y" }}</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="page-toolbar-actions">
             <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
                 <i class="fas fa-file-export me-1"></i> Export
             </button>
@@ -78,7 +117,7 @@
             <i class="fas fa-magic"></i> Auto-Approve via UTR
         </h5>
         <p class="text-muted small mb-3">Enter a UTR number to instantly verify and credit the user's wallet.</p>
-        <form method="POST" class="d-flex gap-2">
+        <form method="POST" class="responsive-inline-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="auto_approve">
             <input type="text" name="utr_number" class="form-control" placeholder="Enter 12-digit UTR Number" required>
@@ -88,11 +127,11 @@
 
     <!-- Pending Requests -->
     <div class="professional-card border-0 mb-4" id="pending-requests">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="page-toolbar mb-4">
             <h5 class="card-header border-0 bg-transparent p-0 mb-0">
                 <i class="fas fa-clock"></i> Pending Deposit Requests
             </h5>
-            <form method="GET" class="d-flex gap-2" style="max-width: 300px;">
+            <form method="GET" class="admin-search-row">
                 <input type="text" name="utr_search" value="{{ utr_search }}" class="form-control form-control-sm" placeholder="Search UTR...">
                 <button type="submit" class="btn btn-sm btn-primary-gradient px-3">Search</button>
                 {% if utr_search %}
@@ -101,7 +140,7 @@
             </form>
         </div>
         <div class="table-responsive">
-            <table class="professional-table align-middle mb-0">
+            <table class="professional-table responsive-admin-table align-middle mb-0">
                 <thead>
                     <tr>
                         <th class="px-4 py-3">User</th>
@@ -157,7 +196,7 @@
             <i class="fas fa-history"></i> Recently Approved History
         </h5>
         <div class="table-responsive">
-            <table class="professional-table align-middle mb-0">
+            <table class="professional-table responsive-admin-table align-middle mb-0">
                 <thead>
                     <tr>
                         <th class="px-4 py-3">User</th>

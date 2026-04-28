@@ -1,79 +1,213 @@
 {% extends "admin_base.html" %}
+
 {% block content %}
-<div class="auth-card" style="max-width: 450px; margin: 50px auto; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
-    <div style="margin-bottom: 30px;">
-        <i class="fas fa-user-shield" style="font-size: 64px; color: var(--primary);"></i>
-        <h1 style="margin-top: 20px; font-weight: 800; color: var(--dark);">Admin 2FA</h1>
-        <p style="color: var(--gray);">Please complete the second factor authentication to access the admin area.</p>
+<style>
+    .admin-2fa-shell {
+        width: min(100%, 480px);
+        margin: 24px auto;
+        padding: 32px 28px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        text-align: center;
+    }
+
+    .admin-2fa-icon {
+        width: 78px;
+        height: 78px;
+        margin: 0 auto 20px;
+        border-radius: 22px;
+        display: grid;
+        place-items: center;
+        color: var(--primary);
+        background: #eff6ff;
+        font-size: 2.2rem;
+    }
+
+    .admin-2fa-title {
+        margin: 0 0 10px;
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: var(--dark);
+    }
+
+    .admin-2fa-subtitle {
+        margin: 0 0 26px;
+        color: var(--gray);
+        line-height: 1.6;
+    }
+
+    .admin-2fa-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .btn-tab {
+        padding: 12px 18px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--gray);
+        cursor: pointer;
+        font-weight: 700;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn-tab.active {
+        background: var(--primary);
+        color: #ffffff;
+        border-color: var(--primary);
+    }
+
+    .admin-2fa-form {
+        display: grid;
+        gap: 18px;
+        text-align: left;
+    }
+
+    .admin-2fa-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .admin-2fa-input,
+    .admin-2fa-answer,
+    .admin-2fa-question {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid #dbe2ea;
+        background: #ffffff;
+    }
+
+    .admin-2fa-input,
+    .admin-2fa-answer {
+        padding: 15px 16px;
+    }
+
+    .admin-2fa-input {
+        font-size: 1.55rem;
+        text-align: center;
+        letter-spacing: 0.55em;
+    }
+
+    .admin-2fa-question {
+        padding: 14px 16px;
+        background: #f8fafc;
+        border-left: 4px solid var(--primary);
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .admin-2fa-actions {
+        margin-top: 26px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+    }
+
+    .admin-2fa-cancel {
+        color: var(--danger);
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    @media (max-width: 575.98px) {
+        .admin-2fa-shell {
+            margin: 8px auto;
+            padding: 24px 18px;
+            border-radius: 20px;
+        }
+
+        .admin-2fa-title {
+            font-size: 2rem;
+        }
+
+        .admin-2fa-input {
+            font-size: 1.35rem;
+            letter-spacing: 0.45em;
+        }
+    }
+</style>
+
+<div class="admin-2fa-shell">
+    <div class="admin-2fa-icon">
+        <i class="fas fa-user-shield"></i>
+    </div>
+    <h1 class="admin-2fa-title">Admin 2FA</h1>
+    <p class="admin-2fa-subtitle">Please complete the second factor authentication to access the admin area.</p>
+
+    <div class="admin-2fa-tabs">
+        <button onclick="switchTab('pin')" id="btn-pin" class="btn-tab active" type="button">PIN</button>
+        <button onclick="switchTab('security_question')" id="btn-question" class="btn-tab" type="button">Question</button>
     </div>
 
-    <!-- Tabs for different auth methods -->
-    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap;">
-        <button onclick="switchTab('pin')" id="btn-pin" class="btn-tab active" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--primary); background: var(--primary); color: white; cursor: pointer; font-weight: 700;">PIN</button>
-        <button onclick="switchTab('security_question')" id="btn-question" class="btn-tab" style="padding: 10px 20px; border-radius: 50px; border: 1px solid var(--border); background: white; color: var(--gray); cursor: pointer; font-weight: 700;">Question</button>
-    </div>
-
-    <!-- PIN Form -->
-    <form id="form-pin" method="POST" style="display: block;">
+    <form id="form-pin" method="POST" class="admin-2fa-form">
         {% csrf_token %}
         <input type="hidden" name="auth_type" value="pin">
-        <div class="form-group" style="margin-bottom: 25px;">
-            <label style="display: block; text-align: left; font-weight: 600; margin-bottom: 8px;">Enter 6-Digit PIN</label>
-            <input type="password" name="pin" maxlength="6" pattern="\d{6}" required placeholder="••••••" style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid var(--border); font-size: 24px; text-align: center; letter-spacing: 10px;">
+        <div>
+            <label class="admin-2fa-label" for="pin-input">Enter 6-Digit PIN</label>
+            <input
+                id="pin-input"
+                class="admin-2fa-input"
+                type="password"
+                name="pin"
+                maxlength="6"
+                pattern="\d{6}"
+                required
+                placeholder="******"
+                inputmode="numeric"
+            >
         </div>
-        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 8px; font-weight: 800;">VERIFY PIN</button>
+        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 14px; font-weight: 800;">Verify PIN</button>
     </form>
 
-    <!-- Security Question Form -->
-    <form id="form-security_question" method="POST" style="display: none;">
+    <form id="form-security_question" method="POST" class="admin-2fa-form" style="display: none;">
         {% csrf_token %}
         <input type="hidden" name="auth_type" value="security_question">
-        <div class="form-group" style="margin-bottom: 25px; text-align: left;">
-            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Security Question:</label>
-            <p style="padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary); font-weight: 700;">{{ profile.admin_security_question }}</p>
-            <label style="display: block; font-weight: 600; margin: 15px 0 8px;">Your Answer: <span style="font-weight: 400; font-size: 11px; color: var(--danger);">(Case Sensitive)</span></label>
-            <input type="text" name="answer" required placeholder="Enter answer..." style="width: 100%; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+        <div>
+            <label class="admin-2fa-label">Security Question</label>
+            <div class="admin-2fa-question">{{ profile.admin_security_question }}</div>
         </div>
-        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 8px; font-weight: 800;">VERIFY ANSWER</button>
+        <div>
+            <label class="admin-2fa-label" for="answer-input">Your Answer <span style="font-weight: 500; font-size: 12px; color: var(--danger);">(Case Sensitive)</span></label>
+            <input id="answer-input" class="admin-2fa-answer" type="text" name="answer" required placeholder="Enter answer">
+        </div>
+        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 14px; font-weight: 800;">Verify Answer</button>
     </form>
 
-    <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
-        <a href="{% url 'logout' %}" style="color: var(--danger); text-decoration: none; font-weight: 600; font-size: 14px;">
-            <i class="fas fa-sign-out-alt"></i> Cancel and Logout
+    <div class="admin-2fa-actions">
+        <a href="{% url 'logout' %}" class="admin-2fa-cancel">
+            <i class="fas fa-right-from-bracket"></i> Cancel and Logout
         </a>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
     function switchTab(tab) {
-        // Hide all forms
         const pinForm = document.getElementById('form-pin');
         const questionForm = document.getElementById('form-security_question');
-        
+
         if (pinForm) pinForm.style.display = 'none';
         if (questionForm) questionForm.style.display = 'none';
-        
-        // Remove active class from buttons
-        document.querySelectorAll('.btn-tab').forEach(btn => {
-            btn.style.background = 'white';
-            btn.style.color = 'var(--gray)';
-            btn.style.borderColor = 'var(--border)';
+
+        document.querySelectorAll('.btn-tab').forEach((btn) => {
+            btn.classList.remove('active');
         });
 
-        // Show selected form
         const targetForm = document.getElementById('form-' + tab);
-        if (targetForm) targetForm.style.display = 'block';
-        
-        // Add active style to button
-        const btnId = tab === 'security_question' ? 'btn-question' : 'btn-pin';
-        const activeBtn = document.getElementById(btnId);
+        if (targetForm) {
+            targetForm.style.display = 'grid';
+        }
+
+        const activeBtn = document.getElementById(tab === 'security_question' ? 'btn-question' : 'btn-pin');
         if (activeBtn) {
-            activeBtn.style.background = 'var(--primary)';
-            activeBtn.style.color = 'white';
-            activeBtn.style.borderColor = 'var(--primary)';
+            activeBtn.classList.add('active');
         }
     }
 </script>
