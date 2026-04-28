@@ -171,9 +171,19 @@ class Market(models.Model):
 
     open_start_time = models.DateTimeField(null=True, blank=True, help_text="Time when Open betting starts")
     open_end_time = models.DateTimeField(null=True, blank=True, help_text="Official Open end time")
+    open_duration_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Persisted countdown duration for the open session in minutes.",
+    )
 
     close_start_time = models.DateTimeField(null=True, blank=True, help_text="Time when Close betting starts")
     close_end_time = models.DateTimeField(null=True, blank=True, help_text="Official Close end time")
+    close_duration_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Persisted countdown duration for the close session in minutes.",
+    )
 
     # Admin Results
     open_patti = models.CharField(max_length=3, blank=True, null=True)
@@ -221,6 +231,35 @@ class Market(models.Model):
     @property
     def is_open_betting_open(self):
         return self.is_betting_allowed("OPEN")
+
+    def configure_session_timer(self, session_type, start_time, duration_minutes):
+        duration_minutes = int(duration_minutes) if duration_minutes is not None else None
+        if duration_minutes is None or duration_minutes <= 0:
+            raise ValueError("Duration must be a positive integer.")
+
+        end_time = start_time + timedelta(minutes=duration_minutes)
+        if session_type == "OPEN":
+            self.open_start_time = start_time
+            self.open_end_time = end_time
+            self.open_duration_minutes = duration_minutes
+        else:
+            self.close_start_time = start_time
+            self.close_end_time = end_time
+            self.close_duration_minutes = duration_minutes
+        return end_time
+
+    def reset_session_timer(self, session_type, start_time=None):
+        start_time = start_time or timezone.localtime()
+        if session_type == "OPEN":
+            duration = self.open_duration_minutes
+            if not duration:
+                return None
+            return self.configure_session_timer("OPEN", start_time, duration)
+
+        duration = self.close_duration_minutes
+        if not duration:
+            return None
+        return self.configure_session_timer("CLOSE", start_time, duration)
 
     def __str__(self):
         return self.name

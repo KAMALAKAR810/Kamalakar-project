@@ -29,27 +29,27 @@
                     </div>
                     
                     <div class="mb-4">
-                        <label class="form-label" for="collection-date">Collection Date *</label> 
+                        <label class="form-label" for="collection-date">Collection Date *</label>
                         <input type="datetime-local" id="collection-date" name="collection_date" 
-                               value="2026-03-25T12:00" class="form-control" required> 
+                               class="form-control" required>
                     </div>
 
                     <div class="row g-4 mb-5">
                         <div class="col-sm-6">
-                            <label class="form-label">Open Start Time</label>
-                            <input type="datetime-local" name="open_start_time" class="form-control" required>
+                            <label class="form-label">Open Timer Starts</label>
+                            <input type="datetime-local" name="open_start_time" class="form-control">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Open End Time</label>
-                            <input type="datetime-local" name="open_end_time" class="form-control" required>
+                            <label class="form-label">Open Duration (Minutes)</label>
+                            <input type="number" name="open_duration_minutes" class="form-control" min="1" step="1" placeholder="60" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Close Start Time</label>
-                            <input type="datetime-local" name="close_start_time" class="form-control" required>
+                            <label class="form-label">Close Timer Starts</label>
+                            <input type="datetime-local" name="close_start_time" class="form-control">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Close End Time</label>
-                            <input type="datetime-local" name="close_end_time" class="form-control" required>
+                            <label class="form-label">Close Duration (Minutes)</label>
+                            <input type="number" name="close_duration_minutes" class="form-control" min="1" step="1" placeholder="120" required>
                         </div>
                     </div>
 
@@ -69,8 +69,8 @@
                             <tr>
                                 <th class="px-4 py-3">Market Name</th>
                                 <th class="py-3">Collection Date</th>
-                                <th class="py-3">Open (S-E)</th>
-                                <th class="py-3">Close (S-E)</th>
+                                <th class="py-3">Open Timer</th>
+                                <th class="py-3">Close Timer</th>
                                 <th class="px-4 py-3 text-end">Actions</th>
                             </tr>
                         </thead>
@@ -79,11 +79,17 @@
                             <tr>
                                 <td class="px-4"><strong class="text-primary fs-6">{{ market.name }}</strong></td>
                                 <td class="small text-dark fw-medium">{{ market.collection_date|date:"d M Y, H:i" }}</td>
-                                <td class="small text-muted">{{ market.open_start_time|date:"H:i" }} - {{ market.open_end_time|date:"H:i" }}</td>
-                                <td class="small text-muted">{{ market.close_start_time|date:"H:i" }} - {{ market.close_end_time|date:"H:i" }}</td>
+                                <td class="small text-muted">
+                                    {{ market.open_start_time|date:"d M H:i" }} to {{ market.open_end_time|date:"d M H:i" }}
+                                    <div class="small">Duration: {{ market.open_duration_minutes|default:"-" }} min</div>
+                                </td>
+                                <td class="small text-muted">
+                                    {{ market.close_start_time|date:"d M H:i" }} to {{ market.close_end_time|date:"d M H:i" }}
+                                    <div class="small">Duration: {{ market.close_duration_minutes|default:"-" }} min</div>
+                                </td>
                                 <td class="px-4 text-end">
                                     <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill shadow-sm">
-                                        <i class="fas fa-undo-alt me-1"></i> RESET
+                                        <i class="fas fa-undo-alt me-1"></i> RESTART TIMER
                                     </button>
                                 </td>
                             </tr>
@@ -105,8 +111,8 @@
 
 <script>
     function confirmReset(id, name) {
-        if (confirm(`Reset Market?\nThis will archive current results for ${name} and clear all timings. Continue?`)) {
-            window.location.href = `/reset-market/${id}/`;
+        if (confirm(`Restart timer for ${name}?\nThis keeps the market and durations, archives the current state, and starts the countdown again.`)) {
+            window.location.href = `/admin-reset-market/${id}/`;
         }
     }
 </script>

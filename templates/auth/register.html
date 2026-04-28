@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_head %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endblock %}
 {% block content %}
 <style>
     .auth-shell {
@@ -262,6 +265,18 @@
         box-shadow: 0 20px 36px rgba(29, 78, 216, 0.22);
     }
 
+    .recaptcha-wrap {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 6px;
+    }
+
+    .recaptcha-wrap > div {
+        min-width: fit-content;
+    }
+
     .auth-footer {
         padding: 18px 28px 26px;
         border-top: 1px solid var(--border);
@@ -422,6 +437,10 @@
 
                     <div class="auth-note">
                         After signup, an OTP is sent to your email and must be verified before the account is completed.
+                    </div>
+
+                    <div class="recaptcha-wrap">
+                        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
                     </div>
 
                     <div class="check-row">

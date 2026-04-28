@@ -678,28 +678,17 @@ let marketTimings = [
     {
         id: {{ market.id }},
         name: "{{ market.name }}",
-        openEndTime: "{% if market.open_end_time %}{{ market.open_end_time|date:'c' }}{% endif %}",
-        closeEndTime: "{% if market.close_end_time %}{{ market.close_end_time|date:'c' }}{% endif %}",
-        openDeclared: {% if market.open_single %}true{% else %}false{% endif %},
-        closeDeclared: {% if market.close_single %}true{% else %}false{% endif %}
+        open: {
+            endTime: "{% if market.open_end_time %}{{ market.open_end_time|date:'c' }}{% endif %}",
+            declared: {% if market.open_single %}true{% else %}false{% endif %}
+        },
+        close: {
+            endTime: "{% if market.close_end_time %}{{ market.close_end_time|date:'c' }}{% endif %}",
+            declared: {% if market.close_single %}true{% else %}false{% endif %}
+        }
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
 ];
-
-/**
- * Helper function to convert 12-hour (HH:MM AM/PM) to 24-hour format
- */
-const convertTo24Hour = (time12h) => {
-    if (!time12h || time12h === 'N/A') return "00:00";
-    const match = time12h.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    if (!match) return "00:00";
-    let hours = parseInt(match[1], 10);
-    const minutes = match[2];
-    const modifier = match[3].toUpperCase();
-    if (modifier === 'PM' && hours < 12) hours += 12;
-    else if (modifier === 'AM' && hours === 12) hours = 0;
-    return `${hours.toString().padStart(2, '0')}:${minutes}`;
-};
 
 /**
  * Calculates time difference between now and endTime
@@ -733,7 +722,7 @@ const updateCountdowns = () => {
         // Update Open Timer
         const openTimerEl = document.getElementById(`open-timer-${market.id}`);
         if (openTimerEl) {
-            const openDiff = getTimeDiff(market.openEndTime, market.openDeclared);
+            const openDiff = getTimeDiff(market.open.endTime, market.open.declared);
             const timerTextEl = openTimerEl.querySelector('.timer-text');
             if (timerTextEl) timerTextEl.textContent = openDiff.text;
             openTimerEl.className = `countdown-timer open-session ${openDiff.class}`;
@@ -742,7 +731,7 @@ const updateCountdowns = () => {
         // Update Close Timer
         const closeTimerEl = document.getElementById(`close-timer-${market.id}`);
         if (closeTimerEl) {
-            const closeDiff = getTimeDiff(market.closeEndTime, market.closeDeclared);
+            const closeDiff = getTimeDiff(market.close.endTime, market.close.declared);
             const timerTextEl = closeTimerEl.querySelector('.timer-text');
             if (timerTextEl) timerTextEl.textContent = closeDiff.text;
             closeTimerEl.className = `countdown-timer close-session ${closeDiff.class}`;
@@ -751,16 +740,16 @@ const updateCountdowns = () => {
         // Update Status Badge
         const statusEl = document.getElementById(`status-${market.id}`);
         if (statusEl) {
-            const openEnd = market.openEndTime ? new Date(market.openEndTime) : null;
-            const closeEnd = market.closeEndTime ? new Date(market.closeEndTime) : null;
+            const openEnd = market.open.endTime ? new Date(market.open.endTime) : null;
+            const closeEnd = market.close.endTime ? new Date(market.close.endTime) : null;
             let status, statusClass;
-            if (market.closeDeclared) {
+            if (market.close.declared) {
                 status = 'CLOSED';
                 statusClass = 'closed';
             } else if (closeEnd && now >= closeEnd) {
                 status = 'CLOSING...';
                 statusClass = 'closed';
-            } else if (openEnd && now >= openEnd && !market.openDeclared) {
+            } else if (openEnd && now >= openEnd && !market.open.declared) {
                 status = 'OPEN';
                 statusClass = 'open';
             } else if (openEnd && now < openEnd) {
@@ -787,16 +776,10 @@ const refreshMarketData = () => {
             data.forEach(apiMarket => {
                 const market = marketTimings.find(m => m.id === apiMarket.id);
                 if (market) {
-                    market.openDeclared = apiMarket.open_declared;
-                    market.closeDeclared = apiMarket.close_declared;
-                    const today = new Date().toISOString().split('T')[0];
-                    const offset = "+05:30"; // Asia/Kolkata
-                    if (apiMarket.open_time && apiMarket.open_time !== 'N/A') {
-                        market.openEndTime = `${today}T${convertTo24Hour(apiMarket.open_time)}${offset}`;
-                    }
-                    if (apiMarket.close_time && apiMarket.close_time !== 'N/A') {
-                        market.closeEndTime = `${today}T${convertTo24Hour(apiMarket.close_time)}${offset}`;
-                    }
+                    market.open.declared = apiMarket.open.declared;
+                    market.close.declared = apiMarket.close.declared;
+                    market.open.endTime = apiMarket.open.end_time;
+                    market.close.endTime = apiMarket.close.end_time;
                 }
             });
         })

@@ -332,6 +332,62 @@ def _verify_recaptcha_response(request, recaptcha_response):
         return False
 
 
+def _parse_positive_minutes(value, label):
+    try:
+        minutes = int(value)
+    except (TypeError, ValueError):
+        raise ValidationError(f"{label} duration must be a whole number of minutes.")
+    if minutes <= 0:
+        raise ValidationError(f"{label} duration must be greater than zero.")
+    return minutes
+
+
+def _parse_datetime_local(value):
+    if not value:
+        return None
+
+    dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if timezone.is_naive(dt):
+        return timezone.make_aware(dt, timezone.get_current_timezone())
+    return timezone.localtime(dt)
+
+
+def _market_timer_payload(market):
+    now = timezone.localtime()
+
+    def session_payload(start_time, end_time, duration_minutes, declared):
+        remaining_seconds = None
+        if end_time and not declared:
+            remaining_seconds = max(0, int((end_time - now).total_seconds()))
+
+        return {
+            "start_time": start_time.isoformat() if start_time else None,
+            "end_time": end_time.isoformat() if end_time else None,
+            "duration_minutes": duration_minutes,
+            "remaining_seconds": remaining_seconds,
+            "declared": declared,
+        }
+
+    return {
+        "id": market.id,
+        "market_name": market.name,
+        "collection_date": market.collection_date.isoformat() if market.collection_date else None,
+        "open": session_payload(
+            market.open_start_time,
+            market.open_end_time,
+            market.open_duration_minutes,
+            bool(market.open_single),
+        ),
+        "close": session_payload(
+            market.close_start_time,
+            market.close_end_time,
+            market.close_duration_minutes,
+            bool(market.close_single),
+        ),
+        "timezone": settings.TIME_ZONE,
+    }
+
+
 def landing(request):
     safe_next = _get_safe_next_url(request)
 
@@ -579,7 +635,9 @@ def register_view(request):
         return redirect('user_home')
 
     def _register_context(extra=None):
-        context = {}
+        context = {
+            "recaptcha_site_key": getattr(settings, "RECAPTCHA_SITE_KEY", ""),
+        }
         if extra:
             context.update(extra)
         return context
@@ -589,6 +647,11 @@ def register_view(request):
         # Honeypot — bots often fill hidden fields
         if request.POST.get("website", "").strip():
             messages.error(request, "Registration could not be completed.")
+            return render(request, 'auth/register.html', _register_context())
+
+        recaptcha_response = (request.POST.get("g-recaptcha-response") or "").strip()
+        if not _verify_recaptcha_response(request, recaptcha_response):
+            messages.error(request, "Please complete the reCAPTCHA verification before creating your account.")
             return render(request, 'auth/register.html', _register_context())
 
         name = (request.POST.get('name') or '').strip()
@@ -880,19 +943,9 @@ def resend_email_otp_view(request):
 # --- BASIC PAGES ---
 
 def market_timing_api(request):
-    """Returns JSON data with market name, open time, close time, and timezone."""
+    """Returns persisted market countdown data for client-side timers."""
     markets = Market.objects.all()
-    data = []
-    for m in markets:
-        data.append({
-            "id": m.id,
-            "market_name": m.name,
-            "open_time": m.open_end_time.strftime("%I:%M %p") if m.open_end_time else "N/A",
-            "close_time": m.close_end_time.strftime("%I:%M %p") if m.close_end_time else "N/A",
-            "open_declared": bool(m.open_single),
-            "close_declared": bool(m.close_single),
-            "timezone": settings.TIME_ZONE
-        })
+    data = [_market_timer_payload(m) for m in markets]
     return JsonResponse(data, safe=False)
 
 
@@ -934,6 +987,65 @@ def csrf_failure(request, reason=""):
 
 def display(request):
     return render(request, 'user/display_page.html', {'markets': Market.objects.all()})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def create_market_timer_api(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Method not allowed."}, status=405)
+
+    try:
+        name = (request.POST.get("name") or "").strip()
+        if not name:
+            raise ValidationError("Market name is required.")
+
+        open_duration = _parse_positive_minutes(request.POST.get("open_duration_minutes"), "Open")
+        close_duration = _parse_positive_minutes(request.POST.get("close_duration_minutes"), "Close")
+        collection_date = _parse_datetime_local(request.POST.get("collection_date")) or timezone.localtime()
+        open_start_time = _parse_datetime_local(request.POST.get("open_start_time")) or timezone.localtime()
+        close_start_time = _parse_datetime_local(request.POST.get("close_start_time")) or open_start_time
+
+        with db_transaction.atomic():
+            market = Market(name=name, collection_date=collection_date)
+            market.configure_session_timer("OPEN", open_start_time, open_duration)
+            market.configure_session_timer("CLOSE", close_start_time, close_duration)
+            market.save()
+    except ValidationError as exc:
+        return JsonResponse({"status": "error", "message": exc.messages[0]}, status=400)
+    except Exception:
+        logger.exception("Market creation API failed.")
+        return JsonResponse({"status": "error", "message": "Unable to create market timer."}, status=500)
+
+    return JsonResponse({"status": "success", "market": _market_timer_payload(market)}, status=201)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def reset_market_timer_api(request, market_id):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Method not allowed."}, status=405)
+
+    market = get_object_or_404(Market, id=market_id)
+    now = timezone.localtime()
+
+    try:
+        with db_transaction.atomic():
+            if request.POST.get("reset_open", "1") == "1":
+                market.reset_session_timer("OPEN", now)
+                market.open_patti = None
+                market.open_single = None
+                market.open_declared_at = None
+
+            if request.POST.get("reset_close", "1") == "1":
+                market.reset_session_timer("CLOSE", now)
+                market.close_patti = None
+                market.close_single = None
+                market.close_declared_at = None
+
+            market.save()
+    except ValueError as exc:
+        return JsonResponse({"status": "error", "message": str(exc)}, status=400)
+
+    return JsonResponse({"status": "success", "market": _market_timer_payload(market)})
 
 
 def user_home(request):
@@ -2215,12 +2327,20 @@ def reset_market(request, market_id):
         close_single=market.close_single
     )
     
-    # Reset market fields to None (allowing re-entry for a new cycle)
-    market.collection_date = None
-    market.open_start_time = None
-    market.open_end_time = None
-    market.close_start_time = None
-    market.close_end_time = None
+    now = timezone.localtime()
+
+    # Reset market timers while preserving persisted durations if they exist.
+    market.collection_date = now
+    if market.open_duration_minutes:
+        market.reset_session_timer("OPEN", now)
+    else:
+        market.open_start_time = None
+        market.open_end_time = None
+    if market.close_duration_minutes:
+        market.reset_session_timer("CLOSE", now)
+    else:
+        market.close_start_time = None
+        market.close_end_time = None
     market.open_patti = None
     market.open_single = None
     market.open_declared_at = None
@@ -2229,7 +2349,7 @@ def reset_market(request, market_id):
     market.close_declared_at = None
     market.save()
     
-    messages.success(request, f"Market '{market.name}' has been reset and archived successfully.")
+    messages.success(request, f"Market '{market.name}' has been reset and its persisted countdown restarted.")
     return redirect('manage_markets')
 
 
@@ -2252,25 +2372,25 @@ def manage_markets(request):
         name = request.POST.get('name')
         coll_date = request.POST.get('collection_date')
         ost = request.POST.get('open_start_time')
-        oet = request.POST.get('open_end_time')
+        open_duration = request.POST.get('open_duration_minutes')
         cst = request.POST.get('close_start_time')
-        cet = request.POST.get('close_end_time')
-        
-        # Replace 'T' with space if present for some DB backends, 
-        # though Django usually handles datetime-local format.
-        def parse_dt(dt_str):
-            if dt_str:
-                return dt_str.replace('T', ' ')
-            return None
+        close_duration = request.POST.get('close_duration_minutes')
 
-        Market.objects.create(
-            name=name,
-            collection_date=parse_dt(coll_date),
-            open_start_time=parse_dt(ost),
-            open_end_time=parse_dt(oet),
-            close_start_time=parse_dt(cst),
-            close_end_time=parse_dt(cet)
-        )
+        try:
+            collection_date = _parse_datetime_local(coll_date) or timezone.localtime()
+            open_start_time = _parse_datetime_local(ost) or timezone.localtime()
+            close_start_time = _parse_datetime_local(cst) or open_start_time
+            open_duration_minutes = _parse_positive_minutes(open_duration, "Open")
+            close_duration_minutes = _parse_positive_minutes(close_duration, "Close")
+
+            market = Market(name=name, collection_date=collection_date)
+            market.configure_session_timer("OPEN", open_start_time, open_duration_minutes)
+            market.configure_session_timer("CLOSE", close_start_time, close_duration_minutes)
+            market.save()
+        except ValidationError as exc:
+            messages.error(request, exc.messages[0])
+            return redirect('manage_markets')
+
         messages.success(request, f"Market '{name}' created successfully!")
         return redirect('manage_markets')
         

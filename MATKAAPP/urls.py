@@ -78,4 +78,6 @@ urlpatterns = [
     path("api/wallet/balance/", views.wallet_balance_api, name="wallet_balance_api"),
     path("api/wallet/history/", views.wallet_history_api, name="wallet_history_api"),
     path("api/market-timing/", views.market_timing_api, name="market_timing_api"),
+    path("api/markets/create/", views.create_market_timer_api, name="create_market_timer_api"),
+    path("api/markets/<int:market_id>/reset-timer/", views.reset_market_timer_api, name="reset_market_timer_api"),
 ]
