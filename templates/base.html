@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% if page_title %}{{ page_title }} - {% endif %}ChangeLifeWithNumbers</title>
     <link rel="icon" type="image/png" href="{% static 'logo.jpeg' %}">
     {% block extra_head %}{% endblock %}
@@ -699,6 +699,8 @@
             text-decoration: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .logout-pill:hover {
@@ -723,6 +725,15 @@
         }
 
         .btn-signin:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0, 102, 204, 0.2); }
+
+        /* Android / touch — instant response on all interactive elements */
+        a, button, [role="button"],
+        .btn-gold, .btn-signin, .logout-pill,
+        .header-icon-btn, .header-wallet-btn,
+        .nav-link, .theme-toggle {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body.dark-mode .header-icon-btn,
         body.dark-mode .user-profile-group {
