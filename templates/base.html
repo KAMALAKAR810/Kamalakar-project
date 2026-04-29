@@ -1834,44 +1834,244 @@
             return;
         }
 
-        const logoutUrl = "{% url 'session_idle_logout_api' %}";
-        const loginUrl = "{% url 'login' %}";
-        const idleTimeoutMs = parseInt(document.body.dataset.idleTimeoutMs || '1800000', 10);
-        let idleTimer = null;
-        let loggingOut = false;
+        // ── Idle-logout configuration ────────────────────────────────────────
+        const LOGOUT_URL      = "{% url 'session_idle_logout_api' %}";
+        const LOGIN_URL       = "{% url 'login' %}";
+        const IDLE_TIMEOUT_MS = parseInt(document.body.dataset.idleTimeoutMs || '1800000', 10); // 30 min
+        const WARN_BEFORE_MS  = 2 * 60 * 1000;   // warn 2 min before logout
+        const WARN_TIMEOUT_MS = IDLE_TIMEOUT_MS - WARN_BEFORE_MS;
+        const BC_CHANNEL      = 'clwn_idle_activity'; // BroadcastChannel name
 
-        function getCsrfToken() {
-            return readCookie('csrftoken');
-        }
+        let warnTimer   = null;
+        let logoutTimer = null;
+        let loggingOut  = false;
+        let warnVisible = false;
 
-        function resetIdleTimer() {
-            window.clearTimeout(idleTimer);
-            idleTimer = window.setTimeout(async function () {
-                if (loggingOut) return;
-                loggingOut = true;
-                try {
-                    await fetch(logoutUrl, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCsrfToken(),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-Device-ID': window.__deviceId || ''
-                        },
-                        credentials: 'same-origin'
-                    });
-                } catch (error) {
-                    console.error('Idle logout failed:', error);
-                } finally {
-                    window.location.href = loginUrl;
+        // ── Cross-tab sync via BroadcastChannel ──────────────────────────────
+        // When the user is active in any tab, all tabs reset their timers.
+        let bc = null;
+        try {
+            bc = new BroadcastChannel(BC_CHANNEL);
+            bc.onmessage = function (e) {
+                if (e.data === 'activity') {
+                    _scheduleTimers();
+                    _hideWarning();
                 }
-            }, idleTimeoutMs);
+            };
+        } catch (_) { /* BroadcastChannel not supported — single-tab only */ }
+
+        function _broadcastActivity() {
+            try { if (bc) bc.postMessage('activity'); } catch (_) {}
         }
 
-        ['click', 'keydown', 'scroll', 'mousemove', 'touchstart'].forEach((eventName) => {
-            window.addEventListener(eventName, resetIdleTimer, { passive: true });
+        // ── Warning modal HTML (injected once) ───────────────────────────────
+        (function _injectWarningModal() {
+            if (document.getElementById('idle-warn-modal')) return;
+            const el = document.createElement('div');
+            el.id = 'idle-warn-modal';
+            el.setAttribute('role', 'alertdialog');
+            el.setAttribute('aria-modal', 'true');
+            el.setAttribute('aria-labelledby', 'idle-warn-title');
+            el.setAttribute('aria-describedby', 'idle-warn-body');
+            el.style.cssText = [
+                'display:none',
+                'position:fixed',
+                'inset:0',
+                'background:rgba(15,23,42,0.75)',
+                'backdrop-filter:blur(8px)',
+                'z-index:99999',
+                'justify-content:center',
+                'align-items:center',
+                'padding:20px',
+            ].join(';');
+            el.innerHTML = `
+                <div style="background:#fff;border-radius:20px;max-width:380px;width:100%;
+                            box-shadow:0 30px 60px rgba(0,0,0,0.25);overflow:hidden;
+                            animation:idleModalPop .35s cubic-bezier(.175,.885,.32,1.275);">
+                    <style>
+                        @keyframes idleModalPop {
+                            from { transform:scale(.85) translateY(20px); opacity:0; }
+                            to   { transform:scale(1)  translateY(0);     opacity:1; }
+                        }
+                        #idle-warn-modal button { cursor:pointer; }
+                    </style>
+                    <div style="background:linear-gradient(135deg,#ff6b35,#f7c59f);
+                                padding:28px 28px 20px;text-align:center;">
+                        <div style="font-size:48px;margin-bottom:8px;">⏱️</div>
+                        <h2 id="idle-warn-title"
+                            style="margin:0;font-size:1.3rem;font-weight:800;color:#fff;
+                                   text-shadow:0 1px 3px rgba(0,0,0,.2);">
+                            Still there?
+                        </h2>
+                    </div>
+                    <div style="padding:24px 28px 8px;text-align:center;">
+                        <p id="idle-warn-body"
+                           style="color:#475569;font-size:.95rem;line-height:1.6;margin:0 0 6px;">
+                            You've been inactive. For your security, you'll be
+                            automatically signed out in
+                        </p>
+                        <div id="idle-warn-countdown"
+                             style="font-size:2.5rem;font-weight:900;color:#dc2626;
+                                    font-variant-numeric:tabular-nums;letter-spacing:2px;
+                                    margin:8px 0 16px;">
+                            2:00
+                        </div>
+                    </div>
+                    <div style="padding:0 28px 28px;display:flex;gap:12px;">
+                        <button id="idle-warn-stay"
+                                style="flex:1;padding:13px;border-radius:12px;border:none;
+                                       background:#0066cc;color:#fff;font-weight:700;
+                                       font-size:.9rem;letter-spacing:.5px;
+                                       transition:background .2s;">
+                            STAY LOGGED IN
+                        </button>
+                        <button id="idle-warn-logout"
+                                style="flex:1;padding:13px;border-radius:12px;
+                                       border:1px solid #e2e8f0;background:#f8fafc;
+                                       color:#64748b;font-weight:700;font-size:.9rem;">
+                            SIGN OUT NOW
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(el);
+
+            document.getElementById('idle-warn-stay').addEventListener('click', function () {
+                _onUserActivity();
+            });
+            document.getElementById('idle-warn-logout').addEventListener('click', function () {
+                _doLogout();
+            });
+        })();
+
+        // ── Countdown display inside the warning modal ────────────────────────
+        let _countdownInterval = null;
+
+        function _startCountdown(remainingMs) {
+            clearInterval(_countdownInterval);
+            const el = document.getElementById('idle-warn-countdown');
+            if (!el) return;
+
+            function _render(ms) {
+                const s = Math.max(0, Math.ceil(ms / 1000));
+                const m = Math.floor(s / 60);
+                const sec = s % 60;
+                el.textContent = m + ':' + String(sec).padStart(2, '0');
+                if (s <= 30) el.style.animation = 'pulse-text 0.8s ease-in-out infinite';
+                else         el.style.animation = '';
+            }
+
+            let remaining = remainingMs;
+            _render(remaining);
+            _countdownInterval = setInterval(function () {
+                remaining -= 1000;
+                if (remaining <= 0) {
+                    clearInterval(_countdownInterval);
+                    _render(0);
+                } else {
+                    _render(remaining);
+                }
+            }, 1000);
+        }
+
+        function _showWarning() {
+            if (warnVisible || loggingOut) return;
+            warnVisible = true;
+            const modal = document.getElementById('idle-warn-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                _startCountdown(WARN_BEFORE_MS);
+                // Trap focus on the Stay button for accessibility
+                const stayBtn = document.getElementById('idle-warn-stay');
+                if (stayBtn) setTimeout(function () { stayBtn.focus(); }, 50);
+            }
+        }
+
+        function _hideWarning() {
+            if (!warnVisible) return;
+            warnVisible = false;
+            clearInterval(_countdownInterval);
+            const modal = document.getElementById('idle-warn-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        // ── Core timer scheduling ─────────────────────────────────────────────
+        function _scheduleTimers() {
+            clearTimeout(warnTimer);
+            clearTimeout(logoutTimer);
+
+            // Show warning 2 minutes before logout
+            warnTimer = setTimeout(function () {
+                _showWarning();
+            }, WARN_TIMEOUT_MS);
+
+            // Auto-logout after full idle period
+            logoutTimer = setTimeout(function () {
+                _doLogout();
+            }, IDLE_TIMEOUT_MS);
+        }
+
+        // ── Logout ────────────────────────────────────────────────────────────
+        async function _doLogout() {
+            if (loggingOut) return;
+            loggingOut = true;
+            clearTimeout(warnTimer);
+            clearTimeout(logoutTimer);
+            clearInterval(_countdownInterval);
+
+            // Update countdown to 0:00 so user sees it before redirect
+            const el = document.getElementById('idle-warn-countdown');
+            if (el) el.textContent = '0:00';
+
+            try {
+                await fetch(LOGOUT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-Device-ID': window.__deviceId || ''
+                    },
+                    credentials: 'same-origin'
+                });
+            } catch (err) {
+                console.error('[IdleLogout] Server invalidation failed:', err);
+            } finally {
+                // Redirect with a reason param so the login page can show a message
+                window.location.href = LOGIN_URL + '?reason=idle_timeout';
+            }
+        }
+
+        // ── Activity handler ──────────────────────────────────────────────────
+        function _onUserActivity() {
+            if (loggingOut) return;
+            _hideWarning();
+            _scheduleTimers();
+            _broadcastActivity();
+        }
+
+        // ── Event listeners ───────────────────────────────────────────────────
+        // Throttle to at most once per second to avoid hammering clearTimeout
+        let _lastActivity = 0;
+        function _throttledActivity() {
+            const now = Date.now();
+            if (now - _lastActivity < 1000) return;
+            _lastActivity = now;
+            _onUserActivity();
+        }
+
+        ['click', 'keydown', 'keypress', 'scroll', 'mousemove', 'touchstart', 'touchmove', 'wheel', 'pointerdown']
+            .forEach(function (evt) {
+                window.addEventListener(evt, _throttledActivity, { passive: true });
+            });
+
+        // Visibility change: when user returns to the tab, reset the timer
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                _onUserActivity();
+            }
         });
 
-        resetIdleTimer();
+        // ── Bootstrap ─────────────────────────────────────────────────────────
+        _scheduleTimers();
     })();
 
     let modalCallback = null;

@@ -47,7 +47,8 @@ class SecurityHeadersMiddleware:
         )
 
         # Tighten caching for auth endpoints (helps avoid auth leaks)
-        if request.path.startswith("/login") or request.path.startswith("/register") or request.path.startswith("/verify-email"):
+        _no_cache_prefixes = ("/login", "/register", "/verify-email", "/logout", "/admin-2fa")
+        if any(request.path.startswith(p) for p in _no_cache_prefixes):
             response.setdefault("Cache-Control", "no-store")
             response.setdefault("Pragma", "no-cache")
 
@@ -56,6 +57,12 @@ class SecurityHeadersMiddleware:
 class GatekeeperMiddleware:
     """
     Enforces reCAPTCHA verification before allowing access to the website.
+
+    The login and register pages are intentionally exempt from the captcha gate:
+    - /login/ is protected by rate limiting (django-ratelimit), account lockout
+      (django-axes), CSRF tokens, and Django's password hashing — no reCAPTCHA needed.
+    - /register/ carries its own reCAPTCHA widget inline, so the gate is redundant.
+    All other pages require the landing-page captcha to be passed first.
     """
     def __init__(self, get_response):
         self.get_response = get_response
@@ -63,6 +70,8 @@ class GatekeeperMiddleware:
     def __call__(self, request):
         exact_exempt_paths = {
             reverse('landing'),
+            reverse('login'),
+            reverse('register'),
             reverse('telegram_webhook'),
             '/favicon.ico',
         }

@@ -31,7 +31,6 @@ import secrets
 from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message, WithdrawalRequest, Notification, MarketHistory, PaymentSettings, DepositRequest, UserActivity, UserDeviceSession
 
 logger = logging.getLogger(__name__)
-_telegram_application = None
 DEVICE_ID_COOKIE_NAME = "clwn_device_id"
 
 
@@ -189,7 +188,17 @@ def wallet_view(request):
                 "Withdrawal Requested",
                 f"Your request for ₹{amount} has been submitted."
             )
-            
+
+        # Notify admin on Telegram (outside atomic block — non-critical)
+        send_telegram_message(
+            f"🏧 <b>New Withdrawal Request</b>\n"
+            f"👤 User: <b>{request.user.username}</b>\n"
+            f"💵 Amount: <b>₹{amount}</b>\n"
+            f"🏦 UPI/Account: <code>{upi_id or mobile_number or bank_account or 'N/A'}</code>\n"
+            f"👨‍💼 Name: {bank_holder_name}\n"
+            f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}"
+        )
+
         messages.success(request, f"Withdrawal request for ₹{amount} submitted!")
         return redirect('wallet_history')
         
@@ -494,9 +503,13 @@ def login_view(request):
         if request.user.is_superuser:
             return redirect('admin_home')
         return redirect('user_home')
-    
+
     context = {}
-    
+
+    # Show a friendly message when the user was auto-logged out due to inactivity
+    if request.GET.get('reason') == 'idle_timeout':
+        messages.warning(request, "You were signed out automatically after 30 minutes of inactivity.")
+
     if request.method == 'POST':
 
         # 1. Detect if this is an AJAX JSON request or a standard Form POST
@@ -908,7 +921,17 @@ def verify_email_otp_view(request):
                     profile.is_email_verified = True
                     profile.email_verified_at = timezone.now()
                     profile.save()
-                    
+
+                    # Notify admin on Telegram
+                    send_telegram_message(
+                        f"🎉 <b>New User Registered</b>\n"
+                        f"👤 Username: <b>{user.username}</b>\n"
+                        f"📛 Name: {reg_data['name']}\n"
+                        f"📧 Email: {reg_data['email']}\n"
+                        f"📱 Mobile: {reg_data['mobile']}\n"
+                        f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}"
+                    )
+
                     # Send welcome message
                     admin_user = User.objects.filter(is_superuser=True).first()
                     if admin_user:
@@ -2168,6 +2191,18 @@ def chat_view(request, user_id=None):
                 image=image,
                 auto_delete=auto_delete
             )
+
+            # Notify admin on Telegram when a user sends a message
+            if not request.user.is_superuser:
+                msg_preview = (content[:100] + "…") if content and len(content) > 100 else (content or "📷 Image")
+                send_telegram_message(
+                    f"💬 <b>New Chat Message</b>\n"
+                    f"👤 From: <b>{request.user.username}</b>\n"
+                    f"📝 Message: {msg_preview}\n"
+                    f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}\n"
+                    f"🔗 Reply at: /admin-chat-user/{request.user.id}/"
+                )
+
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'status': 'success'})
             return redirect('chat') if not request.user.is_superuser else redirect('admin_chat_user', user_id=other_user.id)
@@ -2258,7 +2293,16 @@ def payment_page(request):
             utr_number=utr_number,
             status='PENDING'
         )
-        
+
+        # Notify admin on Telegram
+        send_telegram_message(
+            f"💰 <b>New Deposit Request</b>\n"
+            f"👤 User: <b>{request.user.username}</b>\n"
+            f"💵 Amount: <b>₹{amount}</b>\n"
+            f"🔖 UTR: <code>{utr_number}</code>\n"
+            f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}"
+        )
+
         return JsonResponse({'status': 'success', 'message': 'UTR submitted successfully! Your wallet will be updated after verification.'})
 
     # Standard GET: Show initial amount entry form
@@ -2493,49 +2537,134 @@ def _get_telegram_bot_token():
     return (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
 
 
-async def _get_telegram_application():
-    global _telegram_application
+def _get_telegram_admin_chat_id():
+    return (os.getenv("TELEGRAM_ADMIN_CHAT_ID") or "").strip()
 
-    if _telegram_application is not None:
-        return _telegram_application
 
-    from telegram.ext import Application
+# ---------------------------------------------------------------------------
+# send_telegram_message — fire-and-forget, thread-safe, PythonAnywhere-safe
+# ---------------------------------------------------------------------------
+# PythonAnywhere's WSGI workers are synchronous.  Running an async coroutine
+# inside a sync view (or blocking on requests.post) would stall the worker.
+# We push every outbound Telegram message onto a background daemon thread so
+# the HTTP response is returned to the user immediately (< 5 ms overhead).
+# ---------------------------------------------------------------------------
 
-    token = _get_telegram_bot_token()
-    application = Application.builder().token(token).build()
-    await application.initialize()
-    await application.start()
-    _telegram_application = application
-    return _telegram_application
+def send_telegram_message(text: str, chat_id: str = None, token: str = None) -> None:
+    """
+    Send a Telegram message in a background thread.
 
+    Args:
+        text:    Message body (HTML formatting supported).
+        chat_id: Destination chat/user ID.  Defaults to TELEGRAM_ADMIN_CHAT_ID.
+        token:   Bot token.  Defaults to TELEGRAM_BOT_TOKEN env var.
+
+    The function returns immediately; the actual HTTP call happens in a daemon
+    thread so it never blocks the Django request/response cycle.
+    """
+    _token   = token   or _get_telegram_bot_token()
+    _chat_id = chat_id or _get_telegram_admin_chat_id()
+
+    if not _token or not _chat_id:
+        logger.warning(
+            "[TelegramNotify] Skipped — TELEGRAM_BOT_TOKEN or "
+            "TELEGRAM_ADMIN_CHAT_ID not configured."
+        )
+        return
+
+    def _send():
+        url = f"https://api.telegram.org/bot{_token}/sendMessage"
+        payload = {
+            "chat_id":    _chat_id,
+            "text":       text,
+            "parse_mode": "HTML",
+        }
+        try:
+            resp = requests.post(url, json=payload, timeout=8)
+            if not resp.ok:
+                logger.warning(
+                    "[TelegramNotify] API returned %s: %s",
+                    resp.status_code, resp.text[:200],
+                )
+        except requests.RequestException as exc:
+            logger.error("[TelegramNotify] Request failed: %s", exc)
+
+    import threading
+    t = threading.Thread(target=_send, daemon=True)
+    t.start()
+
+
+# ---------------------------------------------------------------------------
+# Telegram webhook — receives updates FROM Telegram
+# ---------------------------------------------------------------------------
+# PythonAnywhere note: async views require Django 3.1+ with ASGI.  On the
+# free/paid WSGI tier the async view is run via asyncio.run() by Django's
+# ASGIHandler.  If you are on a pure WSGI setup and async views are not
+# supported, replace the async def with a sync def and use
+# asyncio.run(application.process_update(update)) inside a try/except.
+# ---------------------------------------------------------------------------
 
 @csrf_exempt
-async def telegram_webhook(request):
+def telegram_webhook(request):
+    """
+    Receives Telegram webhook POST requests.
+
+    Design goals for PythonAnywhere / free-tier hosting:
+    - Always returns a 200 JSON response within milliseconds so Telegram
+      does not retry and does not mark the webhook as failing (503).
+    - Heavy processing (bot logic) is offloaded to a daemon thread so the
+      WSGI worker is freed immediately.
+    - @csrf_exempt is required — Telegram cannot send a Django CSRF token.
+    """
     if request.method != "POST":
-        return HttpResponse("Invalid Method", status=405)
+        return JsonResponse({"ok": False, "error": "Only POST allowed."}, status=405)
 
     token = _get_telegram_bot_token()
     if not token:
-        logger.error("Telegram webhook called without TELEGRAM_BOT_TOKEN configured.")
-        return HttpResponse("Telegram bot is not configured.", status=503)
+        logger.error("[TelegramWebhook] TELEGRAM_BOT_TOKEN is not configured.")
+        # Return 200 so Telegram stops retrying — the error is on our side.
+        return JsonResponse({"ok": True, "warning": "Bot not configured."})
 
+    # Parse body immediately (fast, in-thread)
     try:
         payload = json.loads(request.body.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        return HttpResponseBadRequest("Invalid JSON payload.")
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        logger.warning("[TelegramWebhook] Invalid JSON payload: %s", exc)
+        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
 
-    try:
-        from telegram import Update
+    # Offload bot processing to a background thread so we can return 200
+    # to Telegram within milliseconds (Telegram requires < 5 s response).
+    def _process():
+        import asyncio
+        try:
+            from telegram import Update
+            from telegram.ext import Application
 
-        application = await _get_telegram_application()
-        update = Update.de_json(payload, application.bot)
-        if update is None:
-            return HttpResponseBadRequest("Invalid Telegram update.")
-        await application.process_update(update)
-        return HttpResponse("OK", status=200)
-    except Exception:
-        logger.exception("Telegram webhook processing failed.")
-        return HttpResponse("Webhook processing failed.", status=500)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+            async def _run():
+                app = Application.builder().token(token).build()
+                await app.initialize()
+                update = Update.de_json(payload, app.bot)
+                if update:
+                    await app.process_update(update)
+                await app.shutdown()
+
+            loop.run_until_complete(_run())
+        except Exception:
+            logger.exception("[TelegramWebhook] Background processing failed.")
+        finally:
+            try:
+                loop.close()
+            except Exception:
+                pass
+
+    import threading
+    threading.Thread(target=_process, daemon=True).start()
+
+    # Telegram only cares that we return 200 quickly.
+    return JsonResponse({"ok": True})
 
 
 # --- Social Authentication Views ---

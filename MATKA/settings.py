@@ -313,7 +313,13 @@ else:
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@example.com")
+# Sender name shown in the recipient's inbox.
+# Format: "Display Name <address@domain.com>"
+# Override via DEFAULT_FROM_EMAIL in .env for production.
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    "ChangeLifeWithNumbers <changelifewithnumbers@gmail.com>",
+)
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 
 # In local development, default to console backend if SMTP isn't configured.

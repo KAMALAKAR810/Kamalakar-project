@@ -38,6 +38,7 @@
                         <div class="col-sm-6">
                             <label class="form-label">Open Timer Starts</label>
                             <input type="datetime-local" name="open_start_time" class="form-control">
+                            <div class="form-text">Leave blank to start immediately on save.</div>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">Open Duration (Minutes)</label>
@@ -46,6 +47,7 @@
                         <div class="col-sm-6">
                             <label class="form-label">Close Timer Starts</label>
                             <input type="datetime-local" name="close_start_time" class="form-control">
+                            <div class="form-text">Leave blank to start immediately on save.</div>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">Close Duration (Minutes)</label>
@@ -69,26 +71,51 @@
                             <tr>
                                 <th class="px-4 py-3">Market Name</th>
                                 <th class="py-3">Collection Date</th>
-                                <th class="py-3">Open Timer</th>
-                                <th class="py-3">Close Timer</th>
+                                <th class="py-3">Open Countdown</th>
+                                <th class="py-3">Close Countdown</th>
                                 <th class="px-4 py-3 text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for market in markets %}
-                            <tr>
-                                <td class="px-4"><strong class="text-primary fs-6">{{ market.name }}</strong></td>
-                                <td class="small text-dark fw-medium">{{ market.collection_date|date:"d M Y, H:i" }}</td>
-                                <td class="small text-muted">
-                                    {{ market.open_start_time|date:"d M H:i" }} to {{ market.open_end_time|date:"d M H:i" }}
-                                    <div class="small">Duration: {{ market.open_duration_minutes|default:"-" }} min</div>
+                            <tr data-market-id="{{ market.id }}">
+                                <td class="px-4">
+                                    <strong class="text-primary fs-6">{{ market.name }}</strong>
                                 </td>
-                                <td class="small text-muted">
-                                    {{ market.close_start_time|date:"d M H:i" }} to {{ market.close_end_time|date:"d M H:i" }}
-                                    <div class="small">Duration: {{ market.close_duration_minutes|default:"-" }} min</div>
+                                <td class="small text-dark fw-medium">
+                                    {{ market.collection_date|date:"d M Y, H:i" }}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        <div class="admin-countdown open-countdown fw-bold font-monospace"
+                                             id="admin-open-{{ market.id }}"
+                                             data-end="{{ market.open_end_time|date:'c' }}"
+                                             data-declared="{% if market.open_single %}1{% else %}0{% endif %}">
+                                            --:--:--
+                                        </div>
+                                        <div class="small text-muted">
+                                            {{ market.open_start_time|date:"d M H:i" }} → {{ market.open_end_time|date:"H:i" }}
+                                            <span class="badge bg-secondary ms-1">{{ market.open_duration_minutes|default:"-" }} min</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        <div class="admin-countdown close-countdown fw-bold font-monospace"
+                                             id="admin-close-{{ market.id }}"
+                                             data-end="{{ market.close_end_time|date:'c' }}"
+                                             data-declared="{% if market.close_single %}1{% else %}0{% endif %}">
+                                            --:--:--
+                                        </div>
+                                        <div class="small text-muted">
+                                            {{ market.close_start_time|date:"d M H:i" }} → {{ market.close_end_time|date:"H:i" }}
+                                            <span class="badge bg-secondary ms-1">{{ market.close_duration_minutes|default:"-" }} min</span>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-4 text-end">
-                                    <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')" class="btn btn-sm btn-outline-danger px-3 rounded-pill shadow-sm">
+                                    <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')"
+                                            class="btn btn-sm btn-outline-danger px-3 rounded-pill shadow-sm">
                                         <i class="fas fa-undo-alt me-1"></i> RESTART TIMER
                                     </button>
                                 </td>
@@ -109,11 +136,120 @@
     </div>
 </div>
 
-<script>
-    function confirmReset(id, name) {
-        if (confirm(`Restart timer for ${name}?\nThis keeps the market and durations, archives the current state, and starts the countdown again.`)) {
-            window.location.href = `/admin-reset-market/${id}/`;
-        }
+<style>
+    .admin-countdown {
+        font-size: 1.1rem;
+        letter-spacing: 1px;
     }
+    .open-countdown  { color: #2563eb; }
+    .close-countdown { color: #dc2626; }
+    .admin-countdown.ended   { color: #6b7280; font-weight: 400; font-size: 0.85rem; }
+    .admin-countdown.expiring {
+        color: #dc2626;
+        animation: pulse-admin 1s ease-in-out infinite;
+    }
+    @keyframes pulse-admin {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.4; }
+    }
+</style>
+
+<script>
+(function () {
+    /**
+     * Admin market countdown — server-persisted.
+     *
+     * Each countdown element carries its end_time in a data-end attribute
+     * (ISO-8601, set by Django at render time).  The JS simply counts down
+     * to that absolute timestamp, so the timer is correct after any page
+     * refresh.  A background poll re-syncs end_time values every 10 s so
+     * that a timer reset by the admin is reflected immediately.
+     */
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function formatCountdown(endTimeStr, declared) {
+        if (declared === '1' || declared === true) {
+            return { text: 'Result Declared', cssClass: 'ended' };
+        }
+        if (!endTimeStr) {
+            return { text: 'Not set', cssClass: 'ended' };
+        }
+
+        const endTime = new Date(endTimeStr);
+        if (isNaN(endTime.getTime())) {
+            return { text: 'Invalid time', cssClass: 'ended' };
+        }
+
+        const diff = endTime - Date.now();
+        if (diff <= 0) {
+            return { text: 'Expired', cssClass: 'ended' };
+        }
+
+        const h = Math.floor(diff / 3_600_000);
+        const m = Math.floor((diff % 3_600_000) / 60_000);
+        const s = Math.floor((diff % 60_000) / 1_000);
+        const text = [h, m, s].map(function (n) { return String(n).padStart(2, '0'); }).join(':');
+        const expiring = diff <= 10 * 60_000;
+
+        return { text: text, cssClass: expiring ? 'expiring' : '' };
+    }
+
+    // ── Tick ─────────────────────────────────────────────────────────────────
+
+    function tick() {
+        document.querySelectorAll('.admin-countdown').forEach(function (el) {
+            const endTimeStr = el.dataset.end;
+            const declared   = el.dataset.declared;
+            const isOpen     = el.classList.contains('open-countdown');
+            const info       = formatCountdown(endTimeStr, declared);
+
+            el.textContent = info.text;
+            // Preserve the session-colour class, only toggle state classes.
+            el.className = 'admin-countdown fw-bold font-monospace '
+                         + (isOpen ? 'open-countdown' : 'close-countdown')
+                         + ' ' + info.cssClass;
+        });
+    }
+
+    // ── Server sync ───────────────────────────────────────────────────────────
+    // Re-fetches end_time from the DB so that a timer reset by the admin
+    // (in another tab or by another admin) is reflected without a page reload.
+
+    function syncFromServer() {
+        fetch('/api/market-timing/', { credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+            .then(function (data) {
+                data.forEach(function (apiMarket) {
+                    var openEl  = document.getElementById('admin-open-'  + apiMarket.id);
+                    var closeEl = document.getElementById('admin-close-' + apiMarket.id);
+
+                    if (openEl && apiMarket.open) {
+                        if (apiMarket.open.end_time) openEl.dataset.end = apiMarket.open.end_time;
+                        openEl.dataset.declared = apiMarket.open.declared ? '1' : '0';
+                    }
+                    if (closeEl && apiMarket.close) {
+                        if (apiMarket.close.end_time) closeEl.dataset.end = apiMarket.close.end_time;
+                        closeEl.dataset.declared = apiMarket.close.declared ? '1' : '0';
+                    }
+                });
+                tick(); // repaint immediately after sync
+            })
+            .catch(function (err) {
+                console.warn('[AdminTimer] Server sync failed:', err);
+            });
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────────────────────────
+    tick();
+    setInterval(tick, 1000);
+    setInterval(syncFromServer, 10000);
+})();
+
+function confirmReset(id, name) {
+    if (confirm('Restart timer for ' + name + '?\nThis archives the current state and restarts the countdown from now.')) {
+        window.location.href = '/admin-reset-market/' + id + '/';
+    }
+}
 </script>
 {% endblock %}

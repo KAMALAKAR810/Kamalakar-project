@@ -252,132 +252,173 @@
 
 <script>
 /**
- * Market Countdown and Real-time Results Logic
+ * Market Countdown — server-persisted, refresh-safe.
+ *
+ * The end_time for each session is stored in the database (open_end_time /
+ * close_end_time).  On every page load the template embeds those values so
+ * the countdown starts immediately from the correct remaining time.
+ * A background poll (every 10 s) re-syncs with the server so that any admin
+ * reset or result declaration is reflected without a full page reload.
+ *
+ * Guard: if this snippet is included more than once on the same page (e.g.
+ * user_home includes display.html which is also included elsewhere) we skip
+ * re-initialisation to avoid duplicate intervals.
  */
+(function () {
+    // ── Duplicate-include guard ──────────────────────────────────────────────
+    if (window.__matkaTimerInitialised) return;
+    window.__matkaTimerInitialised = true;
 
-// Initial market timing data from Django
-let marketTimings = [
-    {% for market in markets %}
-    {
-        id: {{ market.id }},
-        name: "{{ market.name }}",
-        open: {
-            endTime: "{% if market.open_end_time %}{{ market.open_end_time|date:'c' }}{% endif %}",
-            declared: {% if market.open_single %}true{% else %}false{% endif %}
-        },
-        close: {
-            endTime: "{% if market.close_end_time %}{{ market.close_end_time|date:'c' }}{% endif %}",
-            declared: {% if market.close_single %}true{% else %}false{% endif %}
+    // ── Seed data from server (avoids a flash of "--:--:--" on first render) ─
+    // end_time values are ISO-8601 strings produced by Django's |date:"c" filter.
+    const marketTimings = [
+        {% for market in markets %}
+        {
+            id: {{ market.id }},
+            name: "{{ market.name|escapejs }}",
+            open: {
+                endTime: "{% if market.open_end_time %}{{ market.open_end_time|date:'c' }}{% endif %}",
+                declared: {% if market.open_single %}true{% else %}false{% endif %}
+            },
+            close: {
+                endTime: "{% if market.close_end_time %}{{ market.close_end_time|date:'c' }}{% endif %}",
+                declared: {% if market.close_single %}true{% else %}false{% endif %}
+            }
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /**
+     * Returns display info for a single session timer.
+     * @param {string} endTimeStr  ISO-8601 end time from the server
+     * @param {boolean} declared   Whether the result has been declared
+     */
+    function getTimeDiff(endTimeStr, declared) {
+        if (declared) {
+            return { status: 'ended', text: 'Result Declared', cssClass: 'ended' };
         }
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-];
-
-/**
- * Calculates time difference between now and endTime
- */
-const getTimeDiff = (endTimeStr, declared) => {
-    if (declared) return { status: 'ended', text: 'Result Declared', class: 'ended' };
-    if (!endTimeStr) return { status: 'no-time', text: 'No timing set', class: 'ended' };
-
-    const endTime = new Date(endTimeStr);
-    if (isNaN(endTime.getTime())) return { status: 'invalid', text: 'Invalid Time', class: 'ended' };
-
-    const now = new Date();
-    const diff = endTime - now;
-
-    if (diff <= 0) return { status: 'ended', text: 'Market Closed', class: 'ended' };
-
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    const expiringSoon = diff <= 10 * 60 * 1000; // 10 minutes
-
-    return {
-        status: expiringSoon ? 'expiring' : 'active',
-        text: timeStr,
-        class: expiringSoon ? 'expiring-soon' : ''
-    };
-};
-
-/**
- * Updates the UI for all countdown timers and status badges
- */
-const updateCountdowns = () => {
-    const now = new Date();
-
-    marketTimings.forEach(market => {
-        // Update Open Timer
-        const openTimerEl = document.getElementById(`open-timer-${market.id}`);
-        if (openTimerEl) {
-            const openDiff = getTimeDiff(market.open.endTime, market.open.declared);
-            openTimerEl.querySelector('.timer-text').textContent = openDiff.text;
-            openTimerEl.className = `countdown-timer open-session ${openDiff.class}`;
+        if (!endTimeStr) {
+            return { status: 'no-time', text: 'No timing set', cssClass: 'ended' };
         }
 
-        // Update Close Timer
-        const closeTimerEl = document.getElementById(`close-timer-${market.id}`);
-        if (closeTimerEl) {
-            const closeDiff = getTimeDiff(market.close.endTime, market.close.declared);
-            closeTimerEl.querySelector('.timer-text').textContent = closeDiff.text;
-            closeTimerEl.className = `countdown-timer close-session ${closeDiff.class}`;
+        const endTime = new Date(endTimeStr);
+        if (isNaN(endTime.getTime())) {
+            return { status: 'invalid', text: 'Invalid Time', cssClass: 'ended' };
         }
 
-        // Update Status Badge
-        const statusEl = document.getElementById(`status-${market.id}`);
-        if (statusEl) {
-            const openEnd = market.open.endTime ? new Date(market.open.endTime) : null;
-            const closeEnd = market.close.endTime ? new Date(market.close.endTime) : null;
+        const diff = endTime - Date.now();
 
-            let status, statusClass;
+        if (diff <= 0) {
+            return { status: 'ended', text: 'Market Closed', cssClass: 'ended' };
+        }
 
-            if (market.close.declared) {
-                status = 'Closed';
-                statusClass = 'closed';
-            } else if (closeEnd && now >= closeEnd) {
-                status = 'Closing...';
-                statusClass = 'closed';
-            } else if (openEnd && now >= openEnd && !market.open.declared) {
-                status = 'Open Now';
-                statusClass = 'open';
-            } else if (openEnd && now < openEnd) {
-                status = 'Upcoming';
-                statusClass = 'upcoming';
-            } else {
-                status = 'Active';
-                statusClass = 'open';
+        const h = Math.floor(diff / 3_600_000);
+        const m = Math.floor((diff % 3_600_000) / 60_000);
+        const s = Math.floor((diff % 60_000) / 1_000);
+        const timeStr = [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+        const expiringSoon = diff <= 10 * 60_000; // last 10 minutes
+
+        return {
+            status: expiringSoon ? 'expiring' : 'active',
+            text: timeStr,
+            cssClass: expiringSoon ? 'expiring-soon' : ''
+        };
+    }
+
+    // ── DOM update ───────────────────────────────────────────────────────────
+
+    function updateCountdowns() {
+        const now = Date.now();
+
+        marketTimings.forEach(function (market) {
+            // Open timer
+            const openEl = document.getElementById('open-timer-' + market.id);
+            if (openEl) {
+                const info = getTimeDiff(market.open.endTime, market.open.declared);
+                openEl.querySelector('.timer-text').textContent = info.text;
+                openEl.className = 'countdown-timer open-session ' + info.cssClass;
             }
 
-            statusEl.className = `market-status ${statusClass}`;
-            statusEl.querySelector('.status-text').textContent = status;
-        }
-    });
-};
+            // Close timer
+            const closeEl = document.getElementById('close-timer-' + market.id);
+            if (closeEl) {
+                const info = getTimeDiff(market.close.endTime, market.close.declared);
+                closeEl.querySelector('.timer-text').textContent = info.text;
+                closeEl.className = 'countdown-timer close-session ' + info.cssClass;
+            }
 
-/**
- * Fetches fresh market timing data from API
- */
-const refreshMarketData = () => {
-    fetch("{% url 'market_timing_api' %}")
-        .then(response => response.json())
-        .then(data => {
-            data.forEach(apiMarket => {
-                const market = marketTimings.find(m => m.id === apiMarket.id);
-                if (market) {
-                    market.open.declared = apiMarket.open.declared;
-                    market.close.declared = apiMarket.close.declared;
-                    market.open.endTime = apiMarket.open.end_time;
-                    market.close.endTime = apiMarket.close.end_time;
+            // Status badge
+            const statusEl = document.getElementById('status-' + market.id);
+            if (statusEl) {
+                const openEnd  = market.open.endTime  ? new Date(market.open.endTime)  : null;
+                const closeEnd = market.close.endTime ? new Date(market.close.endTime) : null;
+
+                let label, cssClass;
+
+                if (market.close.declared) {
+                    label = 'Closed'; cssClass = 'closed';
+                } else if (closeEnd && now >= closeEnd.getTime()) {
+                    label = 'Closing…'; cssClass = 'closed';
+                } else if (openEnd && now >= openEnd.getTime() && !market.open.declared) {
+                    label = 'Open Now'; cssClass = 'open';
+                } else if (openEnd && now < openEnd.getTime()) {
+                    label = 'Upcoming'; cssClass = 'upcoming';
+                } else {
+                    label = 'Active'; cssClass = 'open';
                 }
-            });
-        })
-        .catch(err => console.error('Error fetching market timings:', err));
-};
 
-// Initial run and intervals
-updateCountdowns();
-setInterval(updateCountdowns, 1000);
-setInterval(refreshMarketData, 30000);
+                statusEl.className = 'market-status ' + cssClass;
+                statusEl.querySelector('.status-text').textContent = label;
+            }
+        });
+    }
+
+    // ── Server sync ──────────────────────────────────────────────────────────
+    // Fetches fresh end_time values from the DB every 10 seconds.
+    // This is what makes the timer persist across page refreshes — the
+    // authoritative time is always the server-stored end_time, not a
+    // client-side start + duration calculation.
+
+    function syncFromServer() {
+        fetch('/api/market-timing/', { credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+            .then(function (data) {
+                data.forEach(function (apiMarket) {
+                    const local = marketTimings.find(function (m) { return m.id === apiMarket.id; });
+                    if (!local) return;
+
+                    // Update open session
+                    if (apiMarket.open) {
+                        local.open.endTime  = apiMarket.open.end_time  || local.open.endTime;
+                        local.open.declared = apiMarket.open.declared;
+                    }
+
+                    // Update close session
+                    if (apiMarket.close) {
+                        local.close.endTime  = apiMarket.close.end_time  || local.close.endTime;
+                        local.close.declared = apiMarket.close.declared;
+                    }
+                });
+                // Immediately repaint after a sync so the user sees the
+                // corrected time without waiting for the next tick.
+                updateCountdowns();
+            })
+            .catch(function (err) {
+                console.warn('[MatkaTimer] Server sync failed:', err);
+            });
+    }
+
+    // ── Bootstrap ────────────────────────────────────────────────────────────
+    // Run once immediately so the correct time shows before the first tick.
+    updateCountdowns();
+
+    // Tick every second for smooth HH:MM:SS display.
+    setInterval(updateCountdowns, 1000);
+
+    // Re-sync with the server every 10 seconds.
+    setInterval(syncFromServer, 10000);
+
+})();
 </script>
