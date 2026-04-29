@@ -329,6 +329,9 @@
             background: rgba(255, 255, 255, 0.86);
             box-shadow: var(--shadow-soft);
             color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .admin-avatar {
@@ -375,6 +378,7 @@
             background: rgba(255, 255, 255, 0.98);
             border: 1px solid rgba(148, 163, 184, 0.18);
             box-shadow: var(--shadow-panel);
+            z-index: 9999;
             display: none;
         }
 
@@ -1266,7 +1270,8 @@
             }
 
             if (profileToggle && profileMenu) {
-                profileToggle.addEventListener('click', function () {
+                profileToggle.addEventListener('click', function (event) {
+                    event.stopPropagation();
                     const isOpen = profileMenu.classList.toggle('show');
                     profileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 });
