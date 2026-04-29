@@ -2,8 +2,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.static import serve
-from django.urls import re_path
 from django.views.generic import RedirectView
 
 urlpatterns = [
@@ -18,11 +16,10 @@ handler500 = 'MATKAAPP.views.error_500'
 handler403 = 'MATKAAPP.views.error_403'
 handler400 = 'MATKAAPP.views.error_400'
 
-# This line is the "magic" that serves your profile pictures during development
+# Serve media/static only in development.
+# In production (PythonAnywhere), configure static/media mappings in the Web tab:
+#   /static/  →  /home/<username>/<project>/staticfiles
+#   /media/   →  /home/<username>/<project>/media
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-else:
-    urlpatterns += [
-        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
-        re_path(r"^static/(?P<path>.*)$", serve, {"document_root": settings.STATIC_ROOT}),
-    ]
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

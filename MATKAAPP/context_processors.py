@@ -1,6 +1,10 @@
 import re
+from django.core.cache import cache
 
 from .models import Message, Notification, Profile
+
+_WHATSAPP_CACHE_KEY = "admin_whatsapp_number"
+_WHATSAPP_CACHE_TTL = 300  # 5 minutes
 
 
 def _normalize_whatsapp_number(value):
@@ -24,15 +28,19 @@ def admin_ui_context(request):
                 "unread_msgs": unread_count,
             })
 
-    admin_profile = (
-        Profile.objects.select_related("user")
-        .filter(user__is_superuser=True)
-        .order_by("user_id")
-        .first()
-    )
-    whatsapp_number = _normalize_whatsapp_number(
-        getattr(admin_profile, "support_whatsapp_number", "")
-    ) or "918217228765"
+    # Cache the admin WhatsApp number to avoid a DB hit on every request
+    whatsapp_number = cache.get(_WHATSAPP_CACHE_KEY)
+    if whatsapp_number is None:
+        admin_profile = (
+            Profile.objects.select_related("user")
+            .filter(user__is_superuser=True)
+            .order_by("user_id")
+            .first()
+        )
+        whatsapp_number = _normalize_whatsapp_number(
+            getattr(admin_profile, "support_whatsapp_number", "")
+        ) or "918217228765"
+        cache.set(_WHATSAPP_CACHE_KEY, whatsapp_number, _WHATSAPP_CACHE_TTL)
 
     context.update({
         "support_whatsapp_number": whatsapp_number,

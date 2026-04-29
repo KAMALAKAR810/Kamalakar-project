@@ -135,16 +135,23 @@ class ContentSecurityPolicyMiddleware:
 
 class DelayedWinningCreditMiddleware:
     """
-    Task 11: Credits winning bets 30 minutes after result declaration.
-    Checks for any PENDING or WIN bets that need crediting when user interacts.
+    Credits winning bets 30 minutes after result declaration.
+    Only runs for authenticated non-admin users on non-static, non-API paths.
     """
+    # Paths where we never need to credit winnings
+    _SKIP_PREFIXES = ('/static/', '/media/', '/api/', '/secure-admin-5266/', '/accounts/')
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated:
+        if (
+            request.user.is_authenticated
+            and not request.user.is_superuser
+            and not any(request.path.startswith(p) for p in self._SKIP_PREFIXES)
+        ):
             self.process_pending_winnings(request.user)
-        
+
         response = self.get_response(request)
         return response
 

@@ -104,6 +104,23 @@
             font: inherit;
         }
 
+        /* Ensure all interactive elements are always clickable */
+        button,
+        [role="button"],
+        a,
+        .nav-link,
+        .admin-profile-toggle,
+        .mobile-toggle,
+        .nav-icon-btn,
+        .profile-menu-link,
+        .btn,
+        [type="button"],
+        [type="submit"],
+        [type="reset"] {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+
         .admin-app {
             min-height: 100vh;
             display: grid;
@@ -808,10 +825,12 @@
             backdrop-filter: blur(4px);
             display: none;
             z-index: 35;
+            pointer-events: none;
         }
 
         .sidebar-overlay.show {
             display: block;
+            pointer-events: auto;
         }
 
         .modal-overlay {
@@ -823,6 +842,12 @@
             justify-content: center;
             z-index: 60;
             padding: 1.25rem;
+            pointer-events: none;
+        }
+
+        .modal-overlay[style*="flex"],
+        .modal-overlay.show {
+            pointer-events: auto;
         }
 
         .modal-content-clean {
@@ -1247,21 +1272,31 @@
 
     <script>
         (function () {
-            const sidebar = document.getElementById('admin-sidebar');
+            const sidebar        = document.getElementById('admin-sidebar');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const menuToggle = document.getElementById('menu-toggle');
-            const profileToggle = document.getElementById('profile-menu-toggle');
-            const profileMenu = document.getElementById('profile-menu');
+            const menuToggle     = document.getElementById('menu-toggle');
+            const profileToggle  = document.getElementById('profile-menu-toggle');
+            const profileMenu    = document.getElementById('profile-menu');
 
-            function closeSidebar() {
-                sidebar.classList.remove('open');
+            // ── Safety: clear any stuck overlays on page load ────────────────
+            if (sidebarOverlay) {
                 sidebarOverlay.classList.remove('show');
+            }
+            if (profileMenu) {
+                profileMenu.classList.remove('show');
+            }
+
+            // ── Sidebar toggle (mobile) ──────────────────────────────────────
+            function closeSidebar() {
+                if (sidebar)        sidebar.classList.remove('open');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('show');
             }
 
             if (menuToggle) {
-                menuToggle.addEventListener('click', function () {
-                    sidebar.classList.toggle('open');
-                    sidebarOverlay.classList.toggle('show');
+                menuToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    if (sidebar)        sidebar.classList.toggle('open');
+                    if (sidebarOverlay) sidebarOverlay.classList.toggle('show');
                 });
             }
 
@@ -1269,17 +1304,55 @@
                 sidebarOverlay.addEventListener('click', closeSidebar);
             }
 
+            // ── Profile dropdown ─────────────────────────────────────────────
+            function openProfileMenu() {
+                if (!profileMenu || !profileToggle) return;
+                profileMenu.classList.add('show');
+                profileToggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeProfileMenu() {
+                if (!profileMenu || !profileToggle) return;
+                profileMenu.classList.remove('show');
+                profileToggle.setAttribute('aria-expanded', 'false');
+            }
+
             if (profileToggle && profileMenu) {
-                profileToggle.addEventListener('click', function (event) {
-                    event.stopPropagation();
-                    const isOpen = profileMenu.classList.toggle('show');
-                    profileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                profileToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const isOpen = profileMenu.classList.contains('show');
+                    if (isOpen) {
+                        closeProfileMenu();
+                    } else {
+                        openProfileMenu();
+                    }
                 });
 
-                document.addEventListener('click', function (event) {
-                    if (!event.target.closest('#profile-menu-wrap')) {
-                        profileMenu.classList.remove('show');
-                        profileToggle.setAttribute('aria-expanded', 'false');
+                // Keyboard support: Enter / Space open the menu
+                profileToggle.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        profileToggle.click();
+                    }
+                    if (e.key === 'Escape') {
+                        closeProfileMenu();
+                        profileToggle.focus();
+                    }
+                });
+
+                // Close when clicking anywhere outside the dropdown
+                document.addEventListener('click', function (e) {
+                    if (profileMenu.classList.contains('show') &&
+                        !e.target.closest('#profile-menu-wrap')) {
+                        closeProfileMenu();
+                    }
+                });
+
+                // Close on Escape key globally
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && profileMenu.classList.contains('show')) {
+                        closeProfileMenu();
+                        profileToggle.focus();
                     }
                 });
             }
