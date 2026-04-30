@@ -29,8 +29,9 @@ urlpatterns = [
     path("otp-result/", views.otp_result_view, name="otp_result"),
 
     # --- Game Pages ---
-    path("single/", views.single, name="single"),
-    path("jodi/", views.jodi, name="jodi"),
+    path("single/", views.single, name="single_game"),
+    path("jodi/", views.jodi, name="jodi_game"),
+    path("patti/", views.single_pathi, name="patti_game"),
     path("single_pathi/", views.single_pathi, name="single_pathi"),
     path("double_pathi/", views.double_pathi, name="double_pathi"),
     path("tripple_pathi/", views.tripple_pathi, name="tripple_pathi"),

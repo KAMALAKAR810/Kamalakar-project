@@ -2543,7 +2543,9 @@ def send_telegram_message(text: str, chat_id: str = None, token: str = None) -> 
     _chat_id = chat_id or _get_telegram_admin_chat_id()
 
     if not _token or not _chat_id:
-        logger.warning("[TelegramNotify] Skipped — Bot token or Admin Chat ID not configured.")
+        # Silently fail or log to avoid interrupting the main flow
+        # But we log it so the admin knows why notifications are missing
+        logger.warning("[TelegramNotify] Missing TELEGRAM_BOT_TOKEN or Admin Chat ID. Notification skipped.")
         return
 
     def _send():
@@ -2555,13 +2557,15 @@ def send_telegram_message(text: str, chat_id: str = None, token: str = None) -> 
             "disable_web_page_preview": True,
         }
         try:
+            # Use a reasonable timeout to avoid hanging the thread
             resp = requests.post(url, json=payload, timeout=10)
             if not resp.ok:
-                logger.error(f"[TelegramNotify] API error {resp.status_code}: {resp.text[:200]}")
+                logger.error(f"[TelegramNotify] API returned {resp.status_code}: {resp.text[:200]}")
         except Exception as e:
             logger.error(f"[TelegramNotify] Exception during send: {str(e)}")
 
     import threading
+    # Daemon thread ensures it doesn't block process exit, though PythonAnywhere handles this
     thread = threading.Thread(target=_send, daemon=True)
     thread.start()
 
@@ -2573,48 +2577,60 @@ def send_telegram_message(text: str, chat_id: str = None, token: str = None) -> 
 @csrf_exempt
 def telegram_webhook(request):
     """
-    Receives Telegram webhook updates. Always returns 200 quickly to avoid 503.
+    Receives Telegram webhook updates. 
+    Optimized for PythonAnywhere: always returns 200 quickly to avoid 503 errors.
     """
     if request.method != "POST":
-        return JsonResponse({"ok": False, "error": "POST required"}, status=405)
+        return JsonResponse({"ok": False, "error": "Only POST allowed"}, status=405)
 
-    # Return 200 immediately to Telegram (within 5s limit)
-    # This prevents 503 errors on slow processing
+    # 1. Quick check for configuration
     token = _get_telegram_bot_token()
     if not token:
-        return JsonResponse({"ok": True, "description": "Token missing"})
+        # Log specifically so admin sees it in PythonAnywhere logs
+        logger.error("[TelegramWebhook] TELEGRAM_BOT_TOKEN is not configured.")
+        # Return 200 OK to Telegram so it doesn't keep retrying and causing 503s
+        return JsonResponse({"ok": True, "description": "Token not configured"})
 
+    # 2. Parse payload safely
     try:
         payload = json.loads(request.body.decode("utf-8"))
     except Exception as e:
-        logger.warning(f"[TelegramWebhook] JSON error: {e}")
+        logger.warning(f"[TelegramWebhook] Invalid JSON: {e}")
         return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
 
-    # Process in background
-    def _process_background(data):
-        import asyncio
-        from telegram import Update
-        from telegram.ext import Application
-        
+    # 3. Offload processing to background thread to free up the WSGI worker immediately
+    def _process_in_background(data):
         try:
-            # For ptb v20+, we need an event loop
+            # We use local imports to avoid global dependency issues if package is missing
+            from telegram import Update
+            from telegram.ext import Application
+            import asyncio
+
+            # Create a new event loop for this thread (required for ptb v20+)
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            
-            async def _async_handle():
+
+            async def _handle():
+                # Build application and process the update
                 async with Application.builder().token(token).build() as app:
                     update = Update.de_json(data, app.bot)
                     if update:
                         await app.process_update(update)
-            
-            loop.run_until_complete(_async_handle())
-            loop.close()
+
+            try:
+                loop.run_until_complete(_handle())
+            finally:
+                loop.close()
+                
+        except ImportError:
+            logger.error("[TelegramWebhook] 'python-telegram-bot' package not installed.")
         except Exception:
-            logger.exception("[TelegramWebhook] Background process error")
+            logger.exception("[TelegramWebhook] Background processing failed.")
 
     import threading
-    threading.Thread(target=_process_background, args=(payload,), daemon=True).start()
+    threading.Thread(target=_process_in_background, args=(payload,), daemon=True).start()
 
+    # 4. Always return 200 OK within milliseconds
     return JsonResponse({"ok": True})
 
 
