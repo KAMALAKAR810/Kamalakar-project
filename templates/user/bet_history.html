@@ -1,47 +1,48 @@
-<head>
-    
-</head>
 {% extends "base.html" %}
 {% block content %}
-<div class="page-shell">
-    <h2 class="page-title">My Prediction History</h2>
-    <p class="page-sub">Track your predictions and winnings with advanced filters</p>
+<div class="page-shell slide-in">
+    <div class="section-header mb-4">
+        <h2 class="display-6 fw-black text-primary m-0">My Prediction History</h2>
+        <p class="text-muted">Track your predictions and winnings with advanced filters</p>
+    </div>
 
     <!-- Filters Section -->
-    <div class="data-panel">
-        <form method="GET" class="row">
-            <div>
-                <label>DATE</label>
-                <input type="date" name="date" class="bet-input" value="{{ selected_date }}">
-            </div>
-            <div>
-                <label>MARKET</label>
-                <select name="market" class="bet-input">
-                    <option value="">All Markets</option>
-                    {% for m in markets %}
-                        <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label>SESSION</label>
-                <select name="session" class="bet-input">
-                    <option value="">All Sessions</option>
-                    <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN</option>
-                    <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE</option>
-                </select>
-            </div>
-            <div>
-                <button type="submit" class="btn-gold">Filter</button>
-                <a href="{% url 'bet_history' %}" class="btn-gold">Reset</a>
+    <div class="card mb-4">
+        <form method="GET">
+            <div class="row g-3 align-center">
+                <div class="col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="bet-input control" value="{{ selected_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Market</label>
+                    <select name="market" class="bet-input control">
+                        <option value="">All Markets</option>
+                        {% for m in markets %}
+                            <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Session</label>
+                    <select name="session" class="bet-input control">
+                        <option value="">All Sessions</option>
+                        <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN</option>
+                        <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex" style="padding-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary flex-1">Filter</button>
+                    <a href="{% url 'bet_history' %}" class="btn btn-outline-secondary flex-1">Reset</a>
+                </div>
             </div>
         </form>
     </div>
 
-    <div class="data-panel">
+    <div class="card p-0 overflow-hidden">
     {% if user_bets %}
-    <div>
-        <table class="app-table table table-bordered">
+    <div class="table-responsive">
+        <table class="professional-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -51,55 +52,60 @@
                     <th>Number</th>
                     <th>Amount</th>
                     <th>Status</th>
-                    <th>Win Amount</th>
+                    <th>Win Amt</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for bet in user_bets %}
                 <tr id="bet-row-{{ bet.id }}">
-                    <td>{{ bet.date|date:"d-m-Y" }}</td>
-                    <td>{{ bet.market.name }}</td>
-                    <td><span class="status-badge {% if bet.session == 'OPEN' %}open{% else %}closed{% endif %}">{{ bet.session }}</span></td>
-                    <td>{{ bet.game_type }}</td>
-                    <td><strong>{{ bet.number }}</strong></td>
-                    <td>₹{{ bet.amount }}</td>
+                    <td>{{ bet.date|date:"d M" }}</td>
+                    <td class="fw-bold">{{ bet.market.name }}</td>
+                    <td>
+                        <span class="badge {% if bet.session == 'OPEN' %}bg-primary-soft text-primary{% else %}bg-light text-muted{% endif %}">
+                            {{ bet.session }}
+                        </span>
+                    </td>
+                    <td class="small">{{ bet.game_type }}</td>
+                    <td><span class="badge bg-dark text-white">{{ bet.number }}</span></td>
+                    <td class="fw-bold">₹{{ bet.amount }}</td>
                     <td>
                         {% if bet.is_deleted %}
-                            <span class="status-badge closed">DELETED</span>
+                            <span class="badge bg-danger text-white">DELETED</span>
                         {% else %}
-                            <span class="status-badge {% if bet.status == 'WIN' %}open{% elif bet.status == 'LOSS' %}closed{% endif %}">
+                            <span class="badge {% if bet.status == 'WIN' %}bg-success text-white{% elif bet.status == 'LOSS' %}bg-danger text-white{% else %}bg-warning text-dark{% endif %}">
                                 {{ bet.status }}
                             </span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td class="fw-bold {% if bet.status == 'WIN' %}text-success{% endif %}">
                         {% if bet.status == 'WIN' %}₹{{ bet.win_amount }}{% else %}-{% endif %}
                     </td>
                     <td>
                         {% if not bet.is_deleted and bet.status == 'PENDING' %}
-                            <button onclick="deleteBet({{ bet.id }})" class="btn-gold">
-                                <i class="fas fa-trash-alt"></i> Delete
+                            <button onclick="deleteBet({{ bet.id }})" class="btn btn-danger btn-sm p-1 px-2">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="5">TOTAL SUMMARY:</td>
-                    <td>₹{{ total_betted }}</td>
+            <tfoot class="bg-light">
+                <tr class="fw-black">
+                    <td colspan="5" class="text-end">TOTAL SUMMARY:</td>
+                    <td class="text-primary">₹{{ total_betted }}</td>
                     <td></td>
-                    <td>₹{{ total_won }}</td>
+                    <td class="text-success">₹{{ total_won }}</td>
+                    <td></td>
                 </tr>
             </tfoot>
         </table>
     </div>
     {% else %}
-    <div>
-        <i class="fas fa-history"></i>
-        <p>No prediction history found for the selected filters.</p>
+    <div class="text-center py-5">
+        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No prediction history found for the selected filters.</p>
     </div>
     {% endif %}
     </div>
@@ -122,7 +128,6 @@ function deleteBet(betId) {
     .then(data => {
         if (data.status === 'success') {
             showModal("Success", data.message, "success");
-            // Reload after a short delay
             setTimeout(() => location.reload(), 2000);
         } else {
             showModal("Error", data.message, "error");
