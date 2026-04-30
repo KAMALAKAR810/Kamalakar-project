@@ -74,6 +74,8 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
 .wallet-pill:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 
 .nav-dropdown .dropdown-menu { background: #001a33; border: 1px solid rgba(255,255,255,0.12); }
+.nav-dropdown .dropdown-menu { list-style: none; padding-left: 0; }
+.nav-dropdown .dropdown-menu li { list-style: none; }
 .nav-dropdown .dropdown-item { color: rgba(255,255,255,0.9); font-weight: 700; }
 .nav-dropdown .dropdown-item:hover { background: rgba(255,255,255,0.08); color: var(--secondary); }
 .nav-dropdown .dropdown-toggle::after { margin-left: 0.35rem; }
@@ -90,7 +92,18 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
 .market-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
 .market-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: 0.3s; }
 .market-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-.market-card-header { padding: 1rem; background: var(--light); border-bottom: 1px solid var(--border); font-weight: 800; }
+.market-card-header { padding: 0; border-bottom: 1px solid var(--border); font-weight: 800; }
+.market-head { background: #3b5bff; color: #fff; padding: 0.9rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.market-head-title { font-weight: 900; letter-spacing: 0.02em; text-transform: uppercase; font-size: 0.92rem; }
+.market-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.65rem; border-radius: 999px; font-weight: 900; font-size: 0.72rem; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.25); white-space: nowrap; }
+.market-pill--declared { background: rgba(255,255,255,0.22); }
+.market-pill--live { background: rgba(16,185,129,0.18); border-color: rgba(16,185,129,0.3); }
+.market-body { padding: 1.1rem; background: var(--white); }
+.market-result-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-radius: 14px; background: var(--white); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; }
+.market-cell { padding: 1.05rem 0.9rem; text-align: center; font-weight: 900; color: var(--gray); }
+.market-cell + .market-cell { border-left: 1px solid rgba(148,163,184,0.35); }
+.market-jodi { font-size: 2.1rem; color: var(--dark); letter-spacing: 0.04em; }
+.market-jodi strong { color: var(--dark); }
 .result-jodi { font-size: 2.5rem; font-weight: 900; color: var(--primary); }
 .countdown-timer { font-family: monospace; font-size: 1.1rem; color: var(--danger); }
 .status-text { font-size: 0.75rem; text-transform: uppercase; }
@@ -124,6 +137,20 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
 .auth-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
 .auth-footer { margin-top: 1rem; text-align: center; color: var(--gray); font-size: 0.85rem; }
 .auth-footer a { color: var(--primary); font-weight: 800; }
+
+/* Verification Gate (Home Entry) */
+.verify-shell { min-height: 80vh; display: grid; place-items: center; padding: 1.5rem 1rem; }
+.verify-card { width: 100%; max-width: 380px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); padding: 1.5rem; display: grid; gap: 1rem; text-align: center; }
+.verify-logo { width: 76px; height: 76px; margin: 0 auto; border-radius: 18px; object-fit: cover; }
+.verify-title { font-weight: 900; font-size: 1.25rem; }
+.verify-subtitle { color: var(--gray); font-size: 0.9rem; }
+.verify-form { display: grid; gap: 1rem; text-align: left; }
+.verify-check { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem; border: 1px solid var(--border); border-radius: 14px; background: rgba(248, 250, 252, 0.85); cursor: pointer; user-select: none; }
+.verify-check input { width: auto; margin: 0; position: absolute; opacity: 0; pointer-events: none; }
+.verify-box { width: 38px; height: 38px; border-radius: 12px; border: 2px solid rgba(100,116,139,0.25); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex-shrink: 0; }
+.verify-label { font-weight: 900; color: var(--dark); }
+.verify-check input:checked + .verify-box { background: var(--primary); border-color: var(--primary); }
+.verify-check input:checked + .verify-box i { color: var(--white); }
 
 /* 7. Chat Module */
 .chat-container { height: 70vh; display: flex; flex-direction: column; background: var(--white); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }

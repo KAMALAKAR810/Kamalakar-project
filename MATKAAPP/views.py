@@ -488,20 +488,19 @@ def landing(request):
         })
 
     if request.method == "POST":
-        recaptcha_response = (request.POST.get("g-recaptcha-response") or "").strip()
-        if _verify_recaptcha_response(request, recaptcha_response):
+        verified = (request.POST.get("human_verified") or "").strip() == "1"
+        if verified:
             request.session["captcha_verified"] = True
             request.session["captcha_verified_at"] = timezone.now().isoformat()
             return redirect(_get_safe_next_url(request))
 
-        messages.error(request, "Please complete the security verification before entering the website.")
+        messages.error(request, "Please verify before entering the website.")
 
     return render(
         request,
         "landing.html",
         {
-            "page_title": "Security Check",
-            "recaptcha_site_key": getattr(settings, "RECAPTCHA_SITE_KEY", ""),
+            "page_title": "Verification",
             "next": safe_next,
         },
     )

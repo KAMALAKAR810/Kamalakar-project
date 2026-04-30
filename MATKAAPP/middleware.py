@@ -118,8 +118,8 @@ class ContentSecurityPolicyMiddleware:
             "form-action 'self'",
             "img-src 'self' data: https:",
             "font-src 'self' https://cdnjs.cloudflare.com data:",
-            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
-            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
+            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
             "frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
             "connect-src 'self' https:",
         ]

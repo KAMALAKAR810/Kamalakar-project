@@ -14,23 +14,23 @@
         {% if compact %}
             {% for market in markets|slice:":6" %}
                 <div class="market-card" data-market-id="{{ market.id }}">
-                    <div class="market-card-header d-flex justify-content-between align-items-center">
-                        <span class="market-name fw-bold">{{ market.name }}</span>
-                        <span class="market-status" id="status-{{ market.id }}">
-                            <i class="fas fa-circle me-1"></i>
-                            <span class="status-text">Loading...</span>
-                        </span>
+                    <div class="market-card-header">
+                        <div class="market-head">
+                            <div class="market-head-title">{{ market.name }}</div>
+                            <div class="market-pill market-status {% if market.close_single or market.close_patti %}market-pill--declared{% else %}market-pill--live{% endif %}" id="status-{{ market.id }}">
+                                <i class="fas fa-circle me-1"></i>
+                                <span class="status-text">{% if market.close_single or market.close_patti %}RESULT DECLARED{% else %}LIVE{% endif %}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="market-card-body text-center py-3">
-                        <div class="result-row d-flex justify-content-center align-items-center gap-2">
-                            <div class="result-patti fw-bold text-muted">{{ market.open_patti|default:"***" }}</div>
-                            <div class="result-jodi-wrapper px-3 py-1 rounded bg-light border">
-                                <div class="result-jodi fw-black display-6">
-                                    {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
-                                </div>
+                    <div class="market-body">
+                        <div class="market-result-row">
+                            <div class="market-cell">{{ market.open_patti|default:"***" }}</div>
+                            <div class="market-cell market-jodi">
+                                {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
                             </div>
-                            <div class="result-patti fw-bold text-muted">{{ market.close_patti|default:"***" }}</div>
+                            <div class="market-cell">{{ market.close_patti|default:"***" }}</div>
                         </div>
                     </div>
 
@@ -63,23 +63,23 @@
         {% else %}
             {% for market in markets %}
         <div class="market-card" data-market-id="{{ market.id }}">
-            <div class="market-card-header d-flex justify-content-between align-items-center">
-                <span class="market-name fw-bold">{{ market.name }}</span>
-                <span class="market-status" id="status-{{ market.id }}">
-                    <i class="fas fa-circle me-1"></i>
-                    <span class="status-text">Loading...</span>
-                </span>
+            <div class="market-card-header">
+                <div class="market-head">
+                    <div class="market-head-title">{{ market.name }}</div>
+                    <div class="market-pill market-status {% if market.close_single or market.close_patti %}market-pill--declared{% else %}market-pill--live{% endif %}" id="status-{{ market.id }}">
+                        <i class="fas fa-circle me-1"></i>
+                        <span class="status-text">{% if market.close_single or market.close_patti %}RESULT DECLARED{% else %}LIVE{% endif %}</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="market-card-body text-center py-4">
-                <div class="result-row d-flex justify-content-center align-items-center gap-3">
-                    <div class="result-patti fw-bold text-muted">{{ market.open_patti|default:"***" }}</div>
-                    <div class="result-jodi-wrapper px-3 py-1 rounded bg-light border">
-                        <div class="result-jodi fw-black display-6">
-                            {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
-                        </div>
+            <div class="market-body">
+                <div class="market-result-row">
+                    <div class="market-cell">{{ market.open_patti|default:"***" }}</div>
+                    <div class="market-cell market-jodi">
+                        {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
                     </div>
-                    <div class="result-patti fw-bold text-muted">{{ market.close_patti|default:"***" }}</div>
+                    <div class="market-cell">{{ market.close_patti|default:"***" }}</div>
                 </div>
             </div>
 
@@ -237,7 +237,9 @@
                     label = 'Active'; cssClass = 'open';
                 }
 
-                statusEl.className = 'market-status ' + cssClass;
+                statusEl.classList.remove('open', 'closed', 'upcoming', 'market-pill--declared', 'market-pill--live');
+                statusEl.classList.add('market-status', cssClass);
+                statusEl.classList.add(cssClass === 'closed' ? 'market-pill--declared' : 'market-pill--live');
                 statusEl.querySelector('.status-text').textContent = label;
             }
         });
