@@ -12,6 +12,7 @@
 
     
     
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-authenticated="{% if user.is_authenticated %}1{% else %}0{% endif %}"
       data-username="{% if user.is_authenticated %}{{ user.username|escapejs }}{% endif %}"
