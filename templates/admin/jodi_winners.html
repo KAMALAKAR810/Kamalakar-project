@@ -4,14 +4,14 @@
     <h2 class="page-title">Jodi Winners</h2>
     <p class="page-sub">List of users who predicted correct Jodi numbers</p>
 
-    <div class="data-panel" style="margin-bottom: 25px;">
-        <form method="GET" class="row" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">DATE</label>
-                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="bet-input" style="padding: 10px;">
+    <div class="data-panel">
+        <form method="GET" class="row">
+            <div>
+                <label>DATE</label>
+                <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="bet-input">
             </div>
-            <div style="flex: 1; min-width: 150px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--gray);">MARKET</label>
+            <div>
+                <label>MARKET</label>
                 <select name="market" class="bet-input" onchange="this.form.submit()">
                     <option value="ALL">-- All Markets --</option>
                     {% for m in markets %}
@@ -19,7 +19,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <a href="{% url 'jodi_winners' %}" class="btn-gold" style="padding: 10px 20px; background: #333; text-decoration: none;">RESET</a>
+            <a href="{% url 'jodi_winners' %}" class="btn-gold">RESET</a>
         </form>
     </div>
 
@@ -44,13 +44,13 @@
                     <td>{{ w.user.profile.user_code }}</td>
                     <td>{{ w.market.name }}</td>
                     <td>{{ w.created_at|date:"d M Y" }}</td>
-                    <td><strong style="color: var(--primary); font-size: 18px;">{{ w.number }}</strong></td>
+                    <td><strong>{{ w.number }}</strong></td>
                     <td>₹{{ w.amount }}</td>
-                    <td style="color: var(--success); font-weight: 800;">₹{{ w.win_amount }}</td>
+                    <td>₹{{ w.win_amount }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray);">No Jodi winners found.</td>
+                    <td colspan="7">No Jodi winners found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

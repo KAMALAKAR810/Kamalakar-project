@@ -25,7 +25,7 @@
                     <td>{{ bet.user.username }}</td>
                     <td>{{ bet.market.name }}</td>
                     <td>{{ bet.session }}</td>
-                    <td><strong style="color:#b8860b;">{{ bet.number }}</strong></td>
+                    <td><strong>{{ bet.number }}</strong></td>
                     <td>₹{{ bet.amount }}</td>
                     <td>
                         {% if bet.status == "PENDING" %}
@@ -43,9 +43,9 @@
         </table>
     </div>
     {% else %}
-    <div class="data-panel" style="text-align:center; padding: 48px 20px;">
-        <i class="fa fa-info-circle" style="font-size:40px; color:#ccc;"></i>
-        <p style="margin-top:15px; color:#666;">No bets have been placed yet.</p>
+    <div class="data-panel">
+        <i class="fa fa-info-circle"></i>
+        <p>No bets have been placed yet.</p>
     </div>
     {% endif %}
 </div>

@@ -1,44 +1,6 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<style>
-    @media (max-width: 767.98px) {
-        #pending-requests .responsive-admin-table tbody td:nth-child(1),
-        #pending-requests .responsive-admin-table tbody td:nth-child(5),
-        #approval-history .responsive-admin-table tbody td:nth-child(1) {
-            display: block;
-        }
 
-        #pending-requests .responsive-admin-table tbody td:nth-child(1)::before,
-        #pending-requests .responsive-admin-table tbody td:nth-child(5)::before,
-        #approval-history .responsive-admin-table tbody td:nth-child(1)::before {
-            content: none;
-        }
-
-        #pending-requests .responsive-admin-table tbody td:nth-child(2)::before,
-        #approval-history .responsive-admin-table tbody td:nth-child(2)::before {
-            content: "Amount";
-        }
-
-        #pending-requests .responsive-admin-table tbody td:nth-child(3)::before,
-        #approval-history .responsive-admin-table tbody td:nth-child(3)::before {
-            content: "UTR Number";
-        }
-
-        #pending-requests .responsive-admin-table tbody td:nth-child(4)::before {
-            content: "Date";
-        }
-
-        #approval-history .responsive-admin-table tbody td:nth-child(4)::before {
-            content: "Approved At";
-        }
-
-        #pending-requests .responsive-admin-table tbody td:nth-child(5) {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid #e2e8f0;
-        }
-    }
-</style>
 
 <div class="page-shell slide-in">
     <div class="page-toolbar mb-4">
@@ -59,7 +21,7 @@
     </div>
 
     <!-- Admin Sub-Navigation -->
-    <div class="nav nav-pills bg-white p-2 rounded-pill shadow-sm mb-4 flex-nowrap overflow-auto sticky-top" style="top: 80px; z-index: 900; border: 1px solid #e2e8f0;">
+    <div class="nav nav-pills bg-white p-2 rounded-pill shadow-sm mb-4 flex-nowrap overflow-auto sticky-top">
         <a href="#upi-settings" class="nav-link small fw-bold text-nowrap rounded-pill px-3">
             <i class="fas fa-qrcode me-1"></i> UPI SETTINGS
         </a>
@@ -69,7 +31,7 @@
         <a href="#pending-requests" class="nav-link small fw-bold text-nowrap rounded-pill px-3 position-relative">
             <i class="fas fa-clock me-1"></i> PENDING REQUESTS 
             {% if pending_deposits %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm" style="font-size: 0.6rem;">
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm">
                     {{ pending_deposits|length }}
                 </span>
             {% endif %}

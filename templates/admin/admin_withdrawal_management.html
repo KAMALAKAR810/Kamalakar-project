@@ -1,44 +1,6 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<style>
-    @media (max-width: 767.98px) {
-        .withdrawal-admin-table tbody td:nth-child(2),
-        .withdrawal-admin-table tbody td:nth-child(7) {
-            display: block;
-        }
 
-        .withdrawal-admin-table tbody td:nth-child(2)::before,
-        .withdrawal-admin-table tbody td:nth-child(7)::before {
-            content: none;
-        }
-
-        .withdrawal-admin-table tbody td:nth-child(1)::before {
-            content: "Date";
-        }
-
-        .withdrawal-admin-table tbody td:nth-child(3)::before {
-            content: "Bank Holder";
-        }
-
-        .withdrawal-admin-table tbody td:nth-child(4)::before {
-            content: "A/C Details";
-        }
-
-        .withdrawal-admin-table tbody td:nth-child(5)::before {
-            content: "Amount";
-        }
-
-        .withdrawal-admin-table tbody td:nth-child(6)::before {
-            content: "Status";
-        }
-
-        .withdrawal-admin-table tbody td:nth-child(7) {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid #e2e8f0;
-        }
-    }
-</style>
 
 <div class="page-shell slide-in">
     <div class="page-toolbar mb-4">

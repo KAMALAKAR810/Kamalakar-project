@@ -40,7 +40,7 @@ def admin_2fa_view(request):
         return redirect('user_home')
     
     if request.session.get('admin_2fa_verified'):
-        return redirect('admin_home')
+        return redirect('admin_summary')
     
     profile = request.user.profile
     
@@ -52,7 +52,7 @@ def admin_2fa_view(request):
             if pin == profile.admin_pin:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('admin_home')
+                return redirect('admin_summary')
             else:
                 messages.error(request, "Invalid PIN!")
         
@@ -61,7 +61,7 @@ def admin_2fa_view(request):
             if answer == profile.admin_security_answer:
                 request.session['admin_2fa_verified'] = True
                 messages.success(request, "2FA Verified successfully!")
-                return redirect('admin_home')
+                return redirect('admin_summary')
             else:
                 messages.error(request, "Incorrect answer!")
             
@@ -501,7 +501,7 @@ def landing(request):
 def login_view(request):
     if request.user.is_authenticated:
         if request.user.is_superuser:
-            return redirect('admin_home')
+            return redirect('admin_summary')
         return redirect('user_home')
 
     context = {}
@@ -559,9 +559,8 @@ def login_view(request):
                 response = JsonResponse({'status': 'success'})
                 return _set_device_cookie(response, device_id)
             
-            # Admins land on the site Home page (admin_home) as well
             if user.is_superuser:
-                next_url = request.GET.get('next') or 'admin_home'
+                next_url = request.GET.get('next') or 'admin_summary'
             else:
                 next_url = request.GET.get('next') or 'user_home'
             response = redirect(next_url)
@@ -1147,19 +1146,9 @@ def reset_market_timer_api(request, market_id):
 
 
 def user_home(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('admin_summary')
     return render(request, 'user/user_home.html', {
         'markets': Market.objects.all(),
         'page_title': 'Home Page'
-    })
-
-
-@user_passes_test(lambda u: u.is_superuser)
-def admin_home(request):
-    return render(request, 'admin/admin_home.html', {
-        'markets': Market.objects.all(),
-        'page_title': 'Admin Home'
     })
 
 

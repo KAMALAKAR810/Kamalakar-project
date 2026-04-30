@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page-shell" style="text-align: center; padding: 100px 20px;">
-    <div style="font-size: 80px; color: var(--danger); margin-bottom: 20px;">
+<div class="page-shell">
+    <div>
         <i class="fas fa-exclamation-triangle"></i>
     </div>
-    <h1 style="font-size: 32px; font-weight: 800; color: var(--dark); margin-bottom: 15px;">Something Went Wrong</h1>
-    <p style="font-size: 18px; color: var(--gray); max-width: 600px; margin: 0 auto 40px;">
+    <h1>Something Went Wrong</h1>
+    <p>
         We're experiencing some technical difficulties or a network issue. Please try refreshing the page or check back later.
     </p>
-    <a href="{% url 'user_home' %}" class="btn-gold" style="padding: 15px 40px; text-decoration: none;">
+    <a href="{% url 'user_home' %}" class="btn-gold">
         <i class="fas fa-home"></i> Back to Home
     </a>
 </div>

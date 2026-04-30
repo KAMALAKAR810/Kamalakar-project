@@ -1,20 +1,6 @@
 {% extends "admin_base.html" %}
 {% block content %}
-<style>
-    .user-admin-table .btn-group {
-        display: inline-flex;
-    }
 
-    @media (max-width: 767.98px) {
-        .user-admin-table .btn-group {
-            display: flex;
-        }
-
-        .user-admin-table .btn-group .btn {
-            border-radius: 999px !important;
-        }
-    }
-</style>
 
 <div class="page-shell slide-in">
     <div class="page-toolbar mb-4">
@@ -53,9 +39,9 @@
                     <tr>
                         <td class="px-4 mobile-card-top" data-label="Profile">
                             {% if profile.profile_pic %}
-                                <img src="{{ profile.profile_pic.url }}" class="rounded-circle border shadow-sm" style="width: 45px; height: 45px; object-fit: cover;" alt="P">
+                                <img src="{{ profile.profile_pic.url }}" class="rounded-circle border shadow-sm" alt="P">
                             {% else %}
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm">
                                     <i class="fas fa-user"></i>
                                 </div>
                             {% endif %}

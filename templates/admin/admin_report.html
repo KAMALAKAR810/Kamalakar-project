@@ -77,7 +77,7 @@
                                 {% else %}
                                     <span class="{% if data.net_pl > 0 %}text-success{% elif data.net_pl < 0 %}text-danger{% else %}text-dark{% endif %}">
                                         Rs {{ data.net_pl }}
-                                        <small class="d-block text-uppercase" style="font-size: 0.65rem;">
+                                        <small class="d-block text-uppercase">
                                             {% if data.net_pl > 0 %}Profit{% elif data.net_pl < 0 %}Loss{% else %}Break-even{% endif %}
                                         </small>
                                     </span>

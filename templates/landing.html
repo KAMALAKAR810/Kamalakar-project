@@ -6,74 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<style>
-    .entry-shell {
-        min-height: calc(100vh - 40px);
-        display: grid;
-        place-items: center;
-        padding: 24px 16px 40px;
-    }
 
-    .entry-card {
-        width: min(100%, 420px);
-        display: grid;
-        justify-items: center;
-        gap: 24px;
-        padding: 28px 20px;
-        border-radius: 24px;
-        border: 1px solid var(--border);
-        background: #ffffff;
-        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
-    }
-
-    .entry-logo {
-        width: 104px;
-        height: 104px;
-        border-radius: 28px;
-        object-fit: cover;
-        box-shadow: 0 18px 32px rgba(15, 23, 42, 0.14);
-    }
-
-    .entry-form {
-        width: 100%;
-        display: grid;
-        justify-items: center;
-    }
-
-    .entry-form.is-submitting {
-        opacity: 0.72;
-        pointer-events: none;
-    }
-
-    .recaptcha-wrap {
-        width: 100%;
-        overflow-x: auto;
-        padding-bottom: 4px;
-        display: flex;
-        justify-content: center;
-    }
-
-    .recaptcha-wrap > div {
-        min-width: fit-content;
-    }
-
-    @media (max-width: 480px) {
-        .entry-shell {
-            padding: 16px 12px 28px;
-        }
-
-        .entry-card {
-            padding: 22px 14px;
-            border-radius: 20px;
-        }
-
-        .entry-logo {
-            width: 88px;
-            height: 88px;
-            border-radius: 22px;
-        }
-    }
-</style>
 
 <section class="entry-shell">
     <div class="entry-card">

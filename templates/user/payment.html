@@ -1,62 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<style>
-    .payment-shell {
-        max-width: 500px;
-        margin: 20px auto;
-        padding: 24px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        color: #333;
-    }
-    .payment-shell h2 { text-align: center; color: #1a1a1a; margin-bottom: 24px; }
-    
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; }
-    .form-group input { 
-        width: 100%; 
-        padding: 12px; 
-        border: 1px solid #ddd; 
-        border-radius: 6px; 
-        background: #f9f9f9; 
-        font-size: 14px;
-        font-weight: 600;
-        color: #333;
-    }
-    .form-group input[readonly] { background: #eee; cursor: not-allowed; }
 
-    .qr-modal {
-        display: none;
-        position: fixed;
-        z-index: 2000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.9);
-        align-items: center;
-        justify-content: center;
-    }
-    .qr-content {
-        background: #fff;
-        padding: 30px;
-        border-radius: 12px;
-        text-align: center;
-        max-width: 350px;
-        width: 90%;
-    }
-    .qr-image {
-        width: 250px;
-        height: 250px;
-        margin: 15px auto;
-        background: #f0f0f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #ddd;
-    }
-</style>
 
 <div class="payment-shell">
     <h2>Add Wallet Points</h2>
@@ -80,7 +24,7 @@
     <form id="amount-form" method="POST" action="{% url 'payment' %}">
         {% csrf_token %}
         <input type="hidden" name="amount" id="hidden-amount">
-        <button type="submit" class="gold-btn" style="width: 100%; margin-top: 15px;">
+        <button type="submit" class="gold-btn">
             GENERATE QR & PAY
         </button>
     </form>

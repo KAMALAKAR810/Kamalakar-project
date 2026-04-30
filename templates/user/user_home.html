@@ -1,140 +1,4 @@
 {% extends "base.html" %} {% load static %} {% block content %} 
- <style> 
-   .hero-section { 
-     background: linear-gradient(135deg, var(--dark) 0%, #333 100%); 
-     color: var(--white); 
-     padding: 60px 20px; 
-     border-radius: 16px; 
-     text-align: center; 
-     margin-bottom: 40px; 
-     box-shadow: var(--shadow); 
-   } 
-  
-   .hero-section h1 { 
-     font-size: 36px; 
-     font-weight: 800; 
-     margin-bottom: 15px; 
-     letter-spacing: -1px; 
-   } 
-  
-   .hero-section p { 
-     font-size: 18px; 
-     color: #ccc; 
-     max-width: 700px; 
-     margin: 0 auto 30px; 
-   } 
-  
-   .cta-buttons { 
-     display: flex; 
-     justify-content: center; 
-     gap: 15px; 
-   } 
-  
-   .info-grid { 
-     display: grid; 
-     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-     gap: 25px; 
-     margin-bottom: 40px; 
-   } 
-  
-   .info-card { 
-     background: var(--white); 
-     border: 1px solid var(--border); 
-     border-radius: 12px; 
-     padding: 25px; 
-     transition: var(--transition); 
-   } 
-  
-   .info-card:hover { 
-     transform: translateY(-5px); 
-     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05); 
-   } 
-  
-   .info-card h2 { 
-     font-size: 18px; 
-     font-weight: 700; 
-     margin-bottom: 20px; 
-     display: flex; 
-     align-items: center; 
-     gap: 10px; 
-     color: var(--primary); 
-   } 
-  
-   .rate-list { 
-     list-style: none; 
-   } 
-  
-   .rate-item { 
-     display: flex; 
-     justify-content: space-between; 
-     padding: 12px 0; 
-     border-bottom: 1px solid var(--light); 
-     font-weight: 500; 
-   } 
-  
-   .rate-item:last-child { 
-     border-bottom: none; 
-   } 
-  
-   .rate-value { 
-     color: var(--success); 
-     font-weight: 700; 
-   } 
-  
-   .section-header { 
-     display: flex; 
-     justify-content: space-between; 
-     align-items: center; 
-     margin-bottom: 25px; 
-   } 
-  
-   .section-header h2 { 
-     font-size: 22px; 
-     font-weight: 700; 
-   } 
-  
-   .view-all { 
-     font-size: 14px; 
-     color: var(--primary); 
-     text-decoration: none; 
-     font-weight: 600; 
-   } 
-  
-   .faq-section { 
-     margin-top: 60px; 
-   } 
-  
-   .faq-item { 
-     margin-bottom: 20px; 
-     background: var(--white); 
-     border: 1px solid var(--border); 
-     border-radius: 8px; 
-     padding: 20px; 
-   } 
-  
-   .faq-item h3 { 
-     font-size: 16px; 
-     margin-bottom: 10px; 
-     color: var(--dark); 
-   } 
-  
-   .faq-item p { 
-     font-size: 14px; 
-     color: var(--gray); 
-   } 
-  
-   @media (max-width: 768px) { 
-     .hero-section h1 { 
-       font-size: 28px; 
-     } 
-     .hero-section p { 
-       font-size: 16px; 
-     } 
-     .cta-buttons { 
-       flex-direction: column; 
-     } 
-   } 
- </style> 
   
  <section class="hero-section"> 
    <h1>Predict. Win. <span>Prosper.</span></h1> 
@@ -153,7 +17,7 @@
        target="_blank" 
        rel="noopener"
        class="btn-gold" 
-       style="background: var(--white); color: var(--dark) !important" 
+       
      > 
        <i class="fab fa-whatsapp"></i> Contact Support 
      </a> 
@@ -163,19 +27,13 @@
  <section 
    id="how-to-play" 
    class="faq-section" 
-   style=" 
-     margin-top: 40px; 
-     background: var(--white); 
-     padding: 40px; 
-     border-radius: 16px; 
-     border: 1px solid var(--border); 
-   " 
+   
  > 
    <div class="section-header"> 
      <h2>How to Play</h2> 
    </div> 
-   <div style="font-size: 15px; line-height: 1.8; color: var(--dark)"> 
-     <ol style="padding-left: 20px"> 
+   <div> 
+     <ol> 
        <li> 
          <strong>Login to your account:</strong> Ensure you are logged in to 
          access the betting markets. 
@@ -210,64 +68,64 @@
  </section> 
   
  <div class="info-grid"> 
-   <div class="info-card" style="grid-column: 1 / -1;"> 
+   <div class="info-card"> 
      <h2><i class="fas fa-bullhorn"></i> NOTICE BOARD</h2> 
-     <div style="font-size: 14px; color: var(--dark); line-height: 1.6;"> 
-       <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 16px;">🎯 Market Game Rates</h3> 
-       <ul style="list-style: none; padding-left: 0; margin-bottom: 20px;"> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Single: 10 × 90</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Jodi: 10 × 900</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Single Patti: 1400</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Double Patti: 2800</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid var(--light);">• Triple Patti: 3000</li> 
+     <div> 
+       <h3>🎯 Market Game Rates</h3> 
+       <ul> 
+         <li>• Single: 10 × 90</li> 
+         <li>• Jodi: 10 × 900</li> 
+         <li>• Single Patti: 1400</li> 
+         <li>• Double Patti: 2800</li> 
+         <li>• Triple Patti: 3000</li> 
        </ul> 
   
-       <h3 style="color: var(--danger); margin-bottom: 10px; font-size: 16px;">⚠️ General Instructions</h3> 
-       <ul style="list-style: none; padding-left: 0;"> 
-         <li style="margin-bottom: 8px;">• Minimum Deposit: ₹100</li> 
-         <li style="margin-bottom: 8px;">• Minimum Withdrawal: ₹100</li> 
-         <li style="margin-bottom: 8px;">• Markets will close 10 minutes before the result announcement time (Open Time).</li> 
-         <li style="margin-bottom: 8px;">• Once a bet is placed, it can be modified up to 3 times only.</li> 
-         <li style="margin-bottom: 8px;">• For queries or suggestions, please contact the Admin via Chat or WhatsApp only.</li> 
-         <li style="margin-bottom: 8px; color: var(--danger); font-weight: 700;">• ❌ Do not call the Admin.</li> 
-         <li style="margin-bottom: 8px;">• After making payment via QR code, share the screenshot on WhatsApp or Chat.</li> 
-         <li style="margin-bottom: 8px;">• Points will be credited to your wallet after successful payment verification.</li> 
-         <li style="margin-bottom: 8px;">• 🎥 How to Play: <a href="#" target="_blank" style="color: var(--primary); font-weight: 600;">[Video Link]</a></li> 
-         <li style="margin-bottom: 8px;">• Please check your betting history after placing a bet for confirmation.</li> 
-         <li style="margin-bottom: 8px;">• Winning amount will be automatically credited to your wallet within 2 hours after market closure.</li> 
-         <li style="margin-bottom: 8px;">• Any holiday or timing changes will be updated here.</li> 
-         <li style="margin-bottom: 8px;">• You can check running markets in the Live Market Results section.</li> 
+       <h3>⚠️ General Instructions</h3> 
+       <ul> 
+         <li>• Minimum Deposit: ₹100</li> 
+         <li>• Minimum Withdrawal: ₹100</li> 
+         <li>• Markets will close 10 minutes before the result announcement time (Open Time).</li> 
+         <li>• Once a bet is placed, it can be modified up to 3 times only.</li> 
+         <li>• For queries or suggestions, please contact the Admin via Chat or WhatsApp only.</li> 
+         <li>• ❌ Do not call the Admin.</li> 
+         <li>• After making payment via QR code, share the screenshot on WhatsApp or Chat.</li> 
+         <li>• Points will be credited to your wallet after successful payment verification.</li> 
+         <li>• 🎥 How to Play: <a href="#" target="_blank">[Video Link]</a></li> 
+         <li>• Please check your betting history after placing a bet for confirmation.</li> 
+         <li>• Winning amount will be automatically credited to your wallet within 2 hours after market closure.</li> 
+         <li>• Any holiday or timing changes will be updated here.</li> 
+         <li>• You can check running markets in the Live Market Results section.</li> 
        </ul> 
      </div> 
    </div> 
   
-   <div class="info-card" style="grid-column: 1 / -1; background: #fffcf0; border-color: #ffe082;"> 
+   <div class="info-card"> 
      <h2><i class="fas fa-bullhorn"></i> सूचना बोर्ड </h2> 
-     <div style="font-size: 14px; color: var(--dark); line-height: 1.6;"> 
-       <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 16px;">🎯 मार्केट गेम रेट्स</h3> 
-       <ul style="list-style: none; padding-left: 0; margin-bottom: 20px;"> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• सिंगल: 10 × 90</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• जोड़ी: 10 × 900</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• सिंगल पत्ती: 1400</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• डबल पत्ती: 2800</li> 
-         <li style="padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">• ट्रिपल पत्ती: 3000</li> 
+     <div> 
+       <h3>🎯 मार्केट गेम रेट्स</h3> 
+       <ul> 
+         <li>• सिंगल: 10 × 90</li> 
+         <li>• जोड़ी: 10 × 900</li> 
+         <li>• सिंगल पत्ती: 1400</li> 
+         <li>• डबल पत्ती: 2800</li> 
+         <li>• ट्रिपल पत्ती: 3000</li> 
        </ul> 
   
-       <h3 style="color: var(--danger); margin-bottom: 10px; font-size: 16px;">⚠️ सामान्य निर्देश</h3> 
-       <ul style="list-style: none; padding-left: 0;"> 
-         <li style="margin-bottom: 8px;">• न्यूनतम जमा (Deposit): ₹100</li> 
-         <li style="margin-bottom: 8px;">• न्यूनतम निकासी (Withdrawal): ₹100</li> 
-         <li style="margin-bottom: 8px;">• मार्केट रिजल्ट घोषित होने से 10 मिनट पहले (ओपन टाइम) बंद हो जाएगा।</li> 
-         <li style="margin-bottom: 8px;">• एक बार बेट लगाने के बाद, इसे अधिकतम 3 बार ही बदला जा सकता है।</li> 
-         <li style="margin-bottom: 8px;">• किसी भी प्रश्न या सुझाव के लिए केवल चैट या व्हाट्सएप के माध्यम से एडमिन से संपर्क करें।</li> 
-         <li style="margin-bottom: 8px; color: var(--danger); font-weight: 700;">• ❌ एडमिन को कॉल न करें।</li> 
-         <li style="margin-bottom: 8px;">• QR कोड से भुगतान करने के बाद, स्क्रीनशॉट व्हाट्सएप या चैट में शेयर करें।</li> 
-         <li style="margin-bottom: 8px;">• सफल भुगतान के बाद पॉइंट्स आपके वॉलेट में जोड़ दिए जाएंगे।</li> 
-         <li style="margin-bottom: 8px;">• 🎥 कैसे खेलें: <a href="#" style="color: var(--primary); font-weight: 600;">[वीडियो लिंक]</a></li> 
-         <li style="margin-bottom: 8px;">• बेट लगाने के बाद कन्फर्मेशन के लिए हिस्ट्री जरूर चेक करें।</li> 
-         <li style="margin-bottom: 8px;">• जीत की राशि मार्केट बंद होने के 2 घंटे के भीतर अपने आप वॉलेट में जुड़ जाएगी।</li> 
-         <li style="margin-bottom: 8px;">• किसी भी छुट्टी या समय में बदलाव की जानकारी यहां अपडेट की जाएगी।</li> 
-         <li style="margin-bottom: 8px;">• चल रहे मार्केट की जानकारी Live Market Results सेक्शन में उपलब्ध होगी</li> 
+       <h3>⚠️ सामान्य निर्देश</h3> 
+       <ul> 
+         <li>• न्यूनतम जमा (Deposit): ₹100</li> 
+         <li>• न्यूनतम निकासी (Withdrawal): ₹100</li> 
+         <li>• मार्केट रिजल्ट घोषित होने से 10 मिनट पहले (ओपन टाइम) बंद हो जाएगा।</li> 
+         <li>• एक बार बेट लगाने के बाद, इसे अधिकतम 3 बार ही बदला जा सकता है।</li> 
+         <li>• किसी भी प्रश्न या सुझाव के लिए केवल चैट या व्हाट्सएप के माध्यम से एडमिन से संपर्क करें।</li> 
+         <li>• ❌ एडमिन को कॉल न करें।</li> 
+         <li>• QR कोड से भुगतान करने के बाद, स्क्रीनशॉट व्हाट्सएप या चैट में शेयर करें।</li> 
+         <li>• सफल भुगतान के बाद पॉइंट्स आपके वॉलेट में जोड़ दिए जाएंगे।</li> 
+         <li>• 🎥 कैसे खेलें: <a href="#">[वीडियो लिंक]</a></li> 
+         <li>• बेट लगाने के बाद कन्फर्मेशन के लिए हिस्ट्री जरूर चेक करें।</li> 
+         <li>• जीत की राशि मार्केट बंद होने के 2 घंटे के भीतर अपने आप वॉलेट में जुड़ जाएगी।</li> 
+         <li>• किसी भी छुट्टी या समय में बदलाव की जानकारी यहां अपडेट की जाएगी।</li> 
+         <li>• चल रहे मार्केट की जानकारी Live Market Results सेक्शन में उपलब्ध होगी</li> 
        </ul> 
      </div> 
    </div> 

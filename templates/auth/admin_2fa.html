@@ -1,137 +1,7 @@
 {% extends "admin_base.html" %}
 
 {% block content %}
-<style>
-    .admin-2fa-shell {
-        width: min(100%, 480px);
-        margin: 24px auto;
-        padding: 32px 28px;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 24px;
-        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-        text-align: center;
-    }
 
-    .admin-2fa-icon {
-        width: 78px;
-        height: 78px;
-        margin: 0 auto 20px;
-        border-radius: 22px;
-        display: grid;
-        place-items: center;
-        color: var(--primary);
-        background: #eff6ff;
-        font-size: 2.2rem;
-    }
-
-    .admin-2fa-title {
-        margin: 0 0 10px;
-        font-size: 2.4rem;
-        font-weight: 800;
-        color: var(--dark);
-    }
-
-    .admin-2fa-subtitle {
-        margin: 0 0 26px;
-        color: var(--gray);
-        line-height: 1.6;
-    }
-
-    .admin-2fa-tabs {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-bottom: 24px;
-    }
-
-    .btn-tab {
-        padding: 12px 18px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        background: #ffffff;
-        color: var(--gray);
-        cursor: pointer;
-        font-weight: 700;
-        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    }
-
-    .btn-tab.active {
-        background: var(--primary);
-        color: #ffffff;
-        border-color: var(--primary);
-    }
-
-    .admin-2fa-form {
-        display: grid;
-        gap: 18px;
-        text-align: left;
-    }
-
-    .admin-2fa-label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 700;
-        color: var(--dark);
-    }
-
-    .admin-2fa-input,
-    .admin-2fa-answer,
-    .admin-2fa-question {
-        width: 100%;
-        border-radius: 14px;
-        border: 1px solid #dbe2ea;
-        background: #ffffff;
-    }
-
-    .admin-2fa-input,
-    .admin-2fa-answer {
-        padding: 15px 16px;
-    }
-
-    .admin-2fa-input {
-        font-size: 1.55rem;
-        text-align: center;
-        letter-spacing: 0.55em;
-    }
-
-    .admin-2fa-question {
-        padding: 14px 16px;
-        background: #f8fafc;
-        border-left: 4px solid var(--primary);
-        font-weight: 700;
-        line-height: 1.5;
-    }
-
-    .admin-2fa-actions {
-        margin-top: 26px;
-        padding-top: 20px;
-        border-top: 1px solid var(--border);
-    }
-
-    .admin-2fa-cancel {
-        color: var(--danger);
-        text-decoration: none;
-        font-weight: 700;
-    }
-
-    @media (max-width: 575.98px) {
-        .admin-2fa-shell {
-            margin: 8px auto;
-            padding: 24px 18px;
-            border-radius: 20px;
-        }
-
-        .admin-2fa-title {
-            font-size: 2rem;
-        }
-
-        .admin-2fa-input {
-            font-size: 1.35rem;
-            letter-spacing: 0.45em;
-        }
-    }
-</style>
 
 <div class="admin-2fa-shell">
     <div class="admin-2fa-icon">
@@ -162,10 +32,10 @@
                 inputmode="numeric"
             >
         </div>
-        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 14px; font-weight: 800;">Verify PIN</button>
+        <button type="submit" class="btn-gold">Verify PIN</button>
     </form>
 
-    <form id="form-security_question" method="POST" class="admin-2fa-form" style="display: none;">
+    <form id="form-security_question" method="POST" class="admin-2fa-form">
         {% csrf_token %}
         <input type="hidden" name="auth_type" value="security_question">
         <div>
@@ -173,10 +43,10 @@
             <div class="admin-2fa-question">{{ profile.admin_security_question }}</div>
         </div>
         <div>
-            <label class="admin-2fa-label" for="answer-input">Your Answer <span style="font-weight: 500; font-size: 12px; color: var(--danger);">(Case Sensitive)</span></label>
+            <label class="admin-2fa-label" for="answer-input">Your Answer <span>(Case Sensitive)</span></label>
             <input id="answer-input" class="admin-2fa-answer" type="text" name="answer" required placeholder="Enter answer">
         </div>
-        <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; border-radius: 14px; font-weight: 800;">Verify Answer</button>
+        <button type="submit" class="btn-gold">Verify Answer</button>
     </form>
 
     <div class="admin-2fa-actions">

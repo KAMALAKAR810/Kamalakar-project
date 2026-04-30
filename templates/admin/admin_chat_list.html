@@ -12,7 +12,7 @@
                 <span class="input-group-text bg-white border-end-0 text-muted">
                     <i class="fas fa-search small"></i>
                 </span>
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Search Username or ID..." class="form-control border-start-0" style="width: 200px;">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search Username or ID..." class="form-control border-start-0">
             </div>
             <button type="submit" class="btn btn-primary px-3 fw-bold">Search</button>
             {% if search_query %}
@@ -41,7 +41,7 @@
                         <td class="px-4">
                             <div class="d-flex align-items-center">
                                 <div class="position-relative">
-                                    <img src="{{ user.profile.profile_pic.url }}" class="rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;" alt="P">
+                                    <img src="{{ user.profile.profile_pic.url }}" class="rounded-circle border" alt="P">
                                     {% if user.unread_count > 0 %}
                                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
                                             <span class="visually-hidden">New alerts</span>

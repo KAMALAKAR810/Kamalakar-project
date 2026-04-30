@@ -19,7 +19,7 @@
                             <label class="form-label fw-bold small text-uppercase text-muted mb-2">Select Market to Update</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-0"><i class="fas fa-store text-muted"></i></span>
-                                <select name="market_id" class="form-select form-select-lg border-light bg-light shadow-none" required style="font-size: 1rem;">
+                                <select name="market_id" class="form-select form-select-lg border-light bg-light shadow-none" required>
                                     <option value="">-- Search and Select Market --</option>
                                     {% for m in markets %}
                                         <option value="{{ m.id }}">{{ m.name }}</option>
@@ -35,7 +35,7 @@
                                         <i class="fas fa-sun"></i> OPEN SECTION
                                     </h6>
                                     <label class="form-label small text-muted text-uppercase fw-bold mb-2">Result (Patti-Single)</label>
-                                    <input type="text" name="open_result" class="form-control border-0 shadow-sm px-3 py-2" placeholder="e.g. 123-6" style="background: white;">
+                                    <input type="text" name="open_result" class="form-control border-0 shadow-sm px-3 py-2" placeholder="e.g. 123-6">
                                     <p class="small text-muted mt-2 mb-0 italic"><i class="fas fa-info-circle me-1"></i> Leave blank to skip Open update</p>
                                 </div>
                             </div>
@@ -46,7 +46,7 @@
                                         <i class="fas fa-moon"></i> CLOSE SECTION
                                     </h6>
                                     <label class="form-label small text-muted text-uppercase fw-bold mb-2">Result (Single-Patti)</label>
-                                    <input type="text" name="close_result" class="form-control border-0 shadow-sm px-3 py-2" placeholder="e.g. 7-601" style="background: white;">
+                                    <input type="text" name="close_result" class="form-control border-0 shadow-sm px-3 py-2" placeholder="e.g. 7-601">
                                     <p class="small text-muted mt-2 mb-0 italic"><i class="fas fa-info-circle me-1"></i> Leave blank to skip Close update</p>
                                 </div>
                             </div>

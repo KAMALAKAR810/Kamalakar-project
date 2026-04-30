@@ -34,19 +34,19 @@
 
         <div class="bet-form-group">
             <label>Enter Amounts for Numbers (0-9)</label>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px;">
+            <div>
                 {% for d in "0123456789"|make_list %}
-                <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                    <span style="font-weight: 800; font-size: 18px; width: 25px; color: var(--primary);">{{ d }}</span>
-                    <input type="number" data-digit="{{ d }}" class="bet-input-field" placeholder="Amount" min="5" style="width: 100%; border: none; background: transparent; font-weight: 600; outline: none;" readonly>
+                <div>
+                    <span>{{ d }}</span>
+                    <input type="number" data-digit="{{ d }}" class="bet-input-field" placeholder="Amount" min="5" readonly>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
-        <div style="margin: 25px 0; padding: 15px; background: #e6f3ff; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: 600; color: var(--primary);">Total Points:</span>
-            <span style="font-size: 20px; font-weight: 800; color: var(--dark);">₹<span id="total-val">0</span></span>
+        <div>
+            <span>Total Points:</span>
+            <span>₹<span id="total-val">0</span></span>
         </div>
 
         <button type="button" id="submit-btn" class="bet-submit-btn" onclick="submitBets()" disabled>Place Predictions</button>
@@ -55,10 +55,7 @@
 
 {{ markets_betting|json_script:"markets-betting-data" }}
 
-<style>
-    .bet-input-field::placeholder { color: #ccc; font-weight: 400; }
-    .bet-input-field:focus { color: var(--primary); }
-</style>
+
 
 <script>
     const MARKET_BETTING = JSON.parse(document.getElementById('markets-betting-data').textContent);

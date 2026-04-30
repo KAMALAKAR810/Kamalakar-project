@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="game-card" style="max-width: 900px;">
+<div class="game-card">
     <div class="game-header">
         <h1>{{ game_title }}</h1>
         <p>Place your predictions for the {{ game_title }} market</p>
@@ -14,7 +14,7 @@
     </div>
 
     <form id="bet-form">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
             <div class="bet-form-group">
                 <label for="market-select">Select Market</label>
                 <select id="market-select" class="bet-input" required>
@@ -36,15 +36,15 @@
 
         <div class="bet-form-group">
             <label>Enter Prediction Amounts</label>
-            <div style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: #fff;">
+            <div>
                 {% for digit, pattis in patti_groups.items %}
-                <div style="margin-bottom: 25px;">
-                    <h3 style="font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #e6f3ff;">Digit: {{ digit }}</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;">
+                <div>
+                    <h3>Digit: {{ digit }}</h3>
+                    <div>
                         {% for p in pattis %}
-                        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
-                            <span style="font-weight: 700; font-size: 13px; color: var(--dark);">{{ p }}</span>
-                            <input type="number" data-digit="{{ p }}" class="bet-input-field" placeholder="0" min="5" style="width: 100%; border: 1px solid var(--border); border-radius: 4px; background: #fff; font-weight: 600; text-align: center; font-size: 12px; padding: 5px;" readonly>
+                        <div>
+                            <span>{{ p }}</span>
+                            <input type="number" data-digit="{{ p }}" class="bet-input-field" placeholder="0" min="5" readonly>
                         </div>
                         {% endfor %}
                     </div>
@@ -53,9 +53,9 @@
             </div>
         </div>
 
-        <div style="margin: 25px 0; padding: 15px; background: #e6f3ff; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: 600; color: var(--primary);">Total Points:</span>
-            <span style="font-size: 20px; font-weight: 800; color: var(--dark);">₹<span id="total-val">0</span></span>
+        <div>
+            <span>Total Points:</span>
+            <span>₹<span id="total-val">0</span></span>
         </div>
 
         <button type="button" id="submit-btn" class="bet-submit-btn" onclick="submitBets()" disabled>Place Predictions</button>

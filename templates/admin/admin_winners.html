@@ -19,11 +19,11 @@
                 </div>
                 <div class="card-body p-4 text-center">
                     <div class="d-flex justify-content-center align-items-center gap-4">
-                        <div class="text-muted fw-bold" style="letter-spacing: 2px;">{{ latest_result.open_patti|default:"***" }}</div>
+                        <div class="text-muted fw-bold">{{ latest_result.open_patti|default:"***" }}</div>
                         <div class="h1 mb-0 fw-bold px-4 border-start border-end">
                             {% if latest_result.open_single %}{{ latest_result.open_single }}{% else %}*{% endif %}{% if latest_result.close_single %}{{ latest_result.close_single }}{% else %}*{% endif %}
                         </div>
-                        <div class="text-muted fw-bold" style="letter-spacing: 2px;">{{ latest_result.close_patti|default:"***" }}</div>
+                        <div class="text-muted fw-bold">{{ latest_result.close_patti|default:"***" }}</div>
                     </div>
                 </div>
             </div>
@@ -92,7 +92,7 @@
                         <td class="px-4 text-muted small">{{ w.created_at|date:"d M, H:i" }}</td>
                         <td>
                             <div class="fw-bold text-dark">{{ w.user.username }}</div>
-                            <div class="text-muted font-monospace" style="font-size: 0.7rem;">{{ w.user.profile.user_code }}</div>
+                            <div class="text-muted font-monospace">{{ w.user.profile.user_code }}</div>
                         </td>
                         <td><span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill small fw-bold">{{ w.game_type }}</span></td>
                         <td>
@@ -116,7 +116,7 @@
                         </td>
                         <td class="fw-bold">₹{{ w.amount }}</td>
                         <td class="px-4 text-end">
-                            <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold" style="font-size: 0.9rem;">
+                            <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold">
                                 ₹{{ w.win_amount }}
                             </span>
                         </td>

@@ -8,11 +8,11 @@
         </div>
     </div>
 
-    <div class="professional-card mx-auto" style="max-width: 860px;">
+    <div class="professional-card mx-auto">
         <form method="POST">
             {% csrf_token %}
 
-            <div class="admin-grid admin-grid-2" style="margin-bottom: 1.5rem;">
+            <div class="admin-grid admin-grid-2">
                 <div class="form-group">
                     <label>Admin PIN (6 Digits)</label>
                     <input type="password" name="admin_pin" maxlength="6" pattern="\d{6}" value="{{ profile.admin_pin }}" required class="bet-input" placeholder="123456">
@@ -25,19 +25,19 @@
                 </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 1.5rem;">
+            <div class="form-group">
                 <label>Security Answer</label>
                 <input type="text" name="admin_security_answer" value="{{ profile.admin_security_answer }}" required class="bet-input" placeholder="Enter answer">
                 <small class="input-help">Answers are case-sensitive.</small>
             </div>
 
-            <div class="form-group" style="margin-bottom: 1.5rem;">
+            <div class="form-group">
                 <label>WhatsApp Support Number</label>
                 <input type="text" name="support_whatsapp_number" value="{{ profile.support_whatsapp_number }}" class="bet-input" placeholder="918217228765">
                 <small class="input-help">Use international format without spaces. This powers the footer support icon and the User Home support button.</small>
             </div>
 
-            <div class="alert alert-professional alert-info" style="margin-bottom: 1.75rem;">
+            <div class="alert alert-professional alert-info">
                 <i class="fas fa-circle-info"></i>
                 <div>
                     <strong>Live link preview:</strong>

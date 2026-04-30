@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page-shell" style="text-align: center; padding: 100px 20px;">
-    <div style="background: white; padding: 50px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; border: 2px solid var(--danger);">
-        <i class="fas fa-user-lock" style="font-size: 80px; color: var(--danger); margin-bottom: 30px;"></i>
-        <h2 style="font-size: 32px; font-weight: 800; color: var(--dark); margin-bottom: 20px;">ACCOUNT LOCKED</h2>
-        <p style="color: var(--gray); font-size: 18px; line-height: 1.6; margin-bottom: 30px;">
+<div class="page-shell">
+    <div>
+        <i class="fas fa-user-lock"></i>
+        <h2>ACCOUNT LOCKED</h2>
+        <p>
             Too many failed login attempts detected. For your security, access from your IP has been temporarily suspended.
         </p>
-        <div style="background: #fff5f5; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
-            <p style="color: var(--danger); font-weight: 700; margin: 0;">
+        <div>
+            <p>
                 <i class="fas fa-clock"></i> PLEASE TRY AGAIN AFTER 1 HOUR
             </p>
         </div>
-        <a href="{% url 'login' %}" class="btn-gold" style="width: 100%; padding: 15px; text-decoration: none;">
+        <a href="{% url 'login' %}" class="btn-gold">
             RETURN TO LOGIN
         </a>
     </div>

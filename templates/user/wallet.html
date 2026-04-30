@@ -4,62 +4,62 @@
     <h2 class="page-title">Withdraw Points</h2>
     <p class="page-sub">Convert your game coins to INR (1 Coin = 1 INR)</p>
 
-    <div class="data-panel" style="max-width: 500px; margin: 0 auto; padding: 30px;">
-        <div style="text-align: center; margin-bottom: 25px; padding: 15px; background: #e6f3ff; border-radius: 12px;">
-            <span style="display: block; font-size: 14px; color: var(--primary); font-weight: 600;">Current Balance</span>
-            <span style="font-size: 32px; font-weight: 800; color: var(--dark);">₹{{ user.wallet.balance }}</span>
+    <div class="data-panel">
+        <div>
+            <span>Current Balance</span>
+            <span>₹{{ user.wallet.balance }}</span>
         </div>
 
         <form method="POST">
             {% csrf_token %}
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">User ID</label>
-                <input type="text" value="{{ user.profile.user_code }}" class="bet-input" readonly style="background: #f8f9fa;">
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" value="{{ user.profile.user_code }}" class="bet-input" readonly>
             </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Username</label>
-                <input type="text" value="{{ user.username }}" class="bet-input" readonly style="background: #f8f9fa;">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" value="{{ user.username }}" class="bet-input" readonly>
             </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Phone Number</label>
-                <input type="text" value="{{ user.profile.mobile }}" class="bet-input" readonly style="background: #f8f9fa;">
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" value="{{ user.profile.mobile }}" class="bet-input" readonly>
             </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Withdraw Amount (Coins) *</label>
+            <div class="form-group">
+                <label>Withdraw Amount (Coins) *</label>
                 <input type="number" name="amount" class="bet-input" placeholder="Min ₹300, Max ₹50000" min="300" max="50000" required>
-                <small style="color: #666;">Limit: 3 times per day</small>
+                <small>Limit: 3 times per day</small>
             </div>
 
-            <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
-                <p style="font-size: 13px; color: #856404; margin: 0;"><strong>Mandatory:</strong> "Name as per Bank" is strictly required. Please provide at least one additional detail (UPI ID, Mobile, or Account) for verification.</p>
+            <div>
+                <p><strong>Mandatory:</strong> "Name as per Bank" is strictly required. Please provide at least one additional detail (UPI ID, Mobile, or Account) for verification.</p>
             </div>
 
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Name as per Bank <span style="color: var(--danger);">*</span></label>
+            <div class="form-group">
+                <label>Name as per Bank <span>*</span></label>
                 <input type="text" name="bank_holder_name" class="bet-input" placeholder="Full name as in bank record" required>
             </div>
 
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Bank Name (Optional)</label>
+            <div class="form-group">
+                <label>Bank Name (Optional)</label>
                 <input type="text" name="bank_name" class="bet-input" placeholder="e.g. SBI, HDFC">
             </div>
 
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">UPI ID</label>
+            <div class="form-group">
+                <label>UPI ID</label>
                 <input type="text" name="upi_id" class="bet-input" placeholder="example@upi">
             </div>
 
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Mobile Number</label>
+            <div class="form-group">
+                <label>Mobile Number</label>
                 <input type="text" name="mobile_number" class="bet-input" placeholder="10-digit mobile number">
             </div>
 
-            <div class="form-group" style="margin-bottom: 25px;">
-                <label style="display: block; font-weight: 700; margin-bottom: 8px;">Bank Account Number</label>
+            <div class="form-group">
+                <label>Bank Account Number</label>
                 <input type="text" name="bank_account" class="bet-input" placeholder="Account number">
             </div>
 
-            <button type="submit" class="btn-gold" style="width: 100%; padding: 15px; font-size: 16px;">SUBMIT WITHDRAWAL REQUEST</button>
+            <button type="submit" class="btn-gold">SUBMIT WITHDRAWAL REQUEST</button>
         </form>
     </div>
 </div>
