@@ -2531,34 +2531,19 @@ def _get_telegram_admin_chat_id():
 
 
 # ---------------------------------------------------------------------------
-# send_telegram_message — fire-and-forget, thread-safe, PythonAnywhere-safe
-# ---------------------------------------------------------------------------
-# PythonAnywhere's WSGI workers are synchronous.  Running an async coroutine
-# inside a sync view (or blocking on requests.post) would stall the worker.
-# We push every outbound Telegram message onto a background daemon thread so
-# the HTTP response is returned to the user immediately (< 5 ms overhead).
+# send_telegram_message — fire-and-forget, thread-safe, production-safe
 # ---------------------------------------------------------------------------
 
 def send_telegram_message(text: str, chat_id: str = None, token: str = None) -> None:
     """
     Send a Telegram message in a background thread.
-
-    Args:
-        text:    Message body (HTML formatting supported).
-        chat_id: Destination chat/user ID.  Defaults to TELEGRAM_ADMIN_CHAT_ID.
-        token:   Bot token.  Defaults to TELEGRAM_BOT_TOKEN env var.
-
-    The function returns immediately; the actual HTTP call happens in a daemon
-    thread so it never blocks the Django request/response cycle.
+    Asynchronous using threading to prevent blocking the Django request/response cycle.
     """
     _token   = token   or _get_telegram_bot_token()
     _chat_id = chat_id or _get_telegram_admin_chat_id()
 
     if not _token or not _chat_id:
-        logger.warning(
-            "[TelegramNotify] Skipped — TELEGRAM_BOT_TOKEN or "
-            "TELEGRAM_ADMIN_CHAT_ID not configured."
-        )
+        logger.warning("[TelegramNotify] Skipped — Bot token or Admin Chat ID not configured.")
         return
 
     def _send():
@@ -2567,93 +2552,71 @@ def send_telegram_message(text: str, chat_id: str = None, token: str = None) -> 
             "chat_id":    _chat_id,
             "text":       text,
             "parse_mode": "HTML",
+            "disable_web_page_preview": True,
         }
         try:
-            resp = requests.post(url, json=payload, timeout=8)
+            resp = requests.post(url, json=payload, timeout=10)
             if not resp.ok:
-                logger.warning(
-                    "[TelegramNotify] API returned %s: %s",
-                    resp.status_code, resp.text[:200],
-                )
-        except requests.RequestException as exc:
-            logger.error("[TelegramNotify] Request failed: %s", exc)
+                logger.error(f"[TelegramNotify] API error {resp.status_code}: {resp.text[:200]}")
+        except Exception as e:
+            logger.error(f"[TelegramNotify] Exception during send: {str(e)}")
 
     import threading
-    t = threading.Thread(target=_send, daemon=True)
-    t.start()
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
 
 
 # ---------------------------------------------------------------------------
-# Telegram webhook — receives updates FROM Telegram
-# ---------------------------------------------------------------------------
-# PythonAnywhere note: async views require Django 3.1+ with ASGI.  On the
-# free/paid WSGI tier the async view is run via asyncio.run() by Django's
-# ASGIHandler.  If you are on a pure WSGI setup and async views are not
-# supported, replace the async def with a sync def and use
-# asyncio.run(application.process_update(update)) inside a try/except.
+# Telegram webhook — optimized for PythonAnywhere
 # ---------------------------------------------------------------------------
 
 @csrf_exempt
 def telegram_webhook(request):
     """
-    Receives Telegram webhook POST requests.
-
-    Design goals for PythonAnywhere / free-tier hosting:
-    - Always returns a 200 JSON response within milliseconds so Telegram
-      does not retry and does not mark the webhook as failing (503).
-    - Heavy processing (bot logic) is offloaded to a daemon thread so the
-      WSGI worker is freed immediately.
-    - @csrf_exempt is required — Telegram cannot send a Django CSRF token.
+    Receives Telegram webhook updates. Always returns 200 quickly to avoid 503.
     """
     if request.method != "POST":
-        return JsonResponse({"ok": False, "error": "Only POST allowed."}, status=405)
+        return JsonResponse({"ok": False, "error": "POST required"}, status=405)
 
+    # Return 200 immediately to Telegram (within 5s limit)
+    # This prevents 503 errors on slow processing
     token = _get_telegram_bot_token()
     if not token:
-        logger.error("[TelegramWebhook] TELEGRAM_BOT_TOKEN is not configured.")
-        # Return 200 so Telegram stops retrying — the error is on our side.
-        return JsonResponse({"ok": True, "warning": "Bot not configured."})
+        return JsonResponse({"ok": True, "description": "Token missing"})
 
-    # Parse body immediately (fast, in-thread)
     try:
         payload = json.loads(request.body.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        logger.warning("[TelegramWebhook] Invalid JSON payload: %s", exc)
-        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
+    except Exception as e:
+        logger.warning(f"[TelegramWebhook] JSON error: {e}")
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
 
-    # Offload bot processing to a background thread so we can return 200
-    # to Telegram within milliseconds (Telegram requires < 5 s response).
-    def _process():
+    # Process in background
+    def _process_background(data):
         import asyncio
+        from telegram import Update
+        from telegram.ext import Application
+        
         try:
-            from telegram import Update
-            from telegram.ext import Application
-
+            # For ptb v20+, we need an event loop
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-
-            async def _run():
-                app = Application.builder().token(token).build()
-                await app.initialize()
-                update = Update.de_json(payload, app.bot)
-                if update:
-                    await app.process_update(update)
-                await app.shutdown()
-
-            loop.run_until_complete(_run())
+            
+            async def _async_handle():
+                async with Application.builder().token(token).build() as app:
+                    update = Update.de_json(data, app.bot)
+                    if update:
+                        await app.process_update(update)
+            
+            loop.run_until_complete(_async_handle())
+            loop.close()
         except Exception:
-            logger.exception("[TelegramWebhook] Background processing failed.")
-        finally:
-            try:
-                loop.close()
-            except Exception:
-                pass
+            logger.exception("[TelegramWebhook] Background process error")
 
     import threading
-    threading.Thread(target=_process, daemon=True).start()
+    threading.Thread(target=_process_background, args=(payload,), daemon=True).start()
 
-    # Telegram only cares that we return 200 quickly.
     return JsonResponse({"ok": True})
+
 
 
 # --- Social Authentication Views ---
