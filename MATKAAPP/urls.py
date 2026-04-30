@@ -13,7 +13,7 @@ urlpatterns = [
     
     # --- Public Pages ---
     path("", views.landing, name="landing"),
-    path("home/", views.user_home, name="user_home"),
+    path("", views.landing, name="user_home"),
     path("display/", views.display, name="display"),
     path("error/", views.error, name="error"),
 

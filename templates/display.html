@@ -1,15 +1,67 @@
 {% load static %}
 
 <div class="display-section">
-    <div class="section-header d-flex justify-content-between align-items-center mb-4">
-        <h2 class="section-title m-0"><i class="fas fa-chart-line text-primary me-2"></i>Live Market Results</h2>
-        <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill">
-            <i class="fas fa-sync-alt fa-spin me-1"></i> Auto-updating
-        </span>
-    </div>
+    {% if not hide_header %}
+        <div class="section-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title m-0"><i class="fas fa-chart-line text-primary me-2"></i>Live Market Results</h2>
+            <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill">
+                <i class="fas fa-sync-alt fa-spin me-1"></i> Auto-updating
+            </span>
+        </div>
+    {% endif %}
 
-    <div class="market-results-grid">
-        {% for market in markets %}
+    <div class="market-results-grid{% if compact %} market-results-grid--compact{% endif %}">
+        {% if compact %}
+            {% for market in markets|slice:":6" %}
+                <div class="market-card" data-market-id="{{ market.id }}">
+                    <div class="market-card-header d-flex justify-content-between align-items-center">
+                        <span class="market-name fw-bold">{{ market.name }}</span>
+                        <span class="market-status" id="status-{{ market.id }}">
+                            <i class="fas fa-circle me-1"></i>
+                            <span class="status-text">Loading...</span>
+                        </span>
+                    </div>
+
+                    <div class="market-card-body text-center py-3">
+                        <div class="result-row d-flex justify-content-center align-items-center gap-2">
+                            <div class="result-patti fw-bold text-muted">{{ market.open_patti|default:"***" }}</div>
+                            <div class="result-jodi-wrapper px-3 py-1 rounded bg-light border">
+                                <div class="result-jodi fw-black display-6">
+                                    {% if market.open_single %}{{ market.open_single }}{% else %}*{% endif %}{% if market.close_single %}{{ market.close_single }}{% else %}*{% endif %}
+                                </div>
+                            </div>
+                            <div class="result-patti fw-bold text-muted">{{ market.close_patti|default:"***" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="countdown-section p-2 border-top bg-light-soft">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="countdown-box open-box text-center p-2 rounded border bg-white">
+                                    <small class="d-block text-uppercase fw-bold text-muted mb-1">
+                                        <i class="fas fa-sun text-warning me-1"></i> Open
+                                    </small>
+                                    <div class="countdown-timer open-session" id="open-timer-{{ market.id }}">
+                                        <span class="timer-text font-monospace fw-bold">--:--:--</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="countdown-box close-box text-center p-2 rounded border bg-white">
+                                    <small class="d-block text-uppercase fw-bold text-muted mb-1">
+                                        <i class="fas fa-moon text-primary me-1"></i> Close
+                                    </small>
+                                    <div class="countdown-timer close-session" id="close-timer-{{ market.id }}">
+                                        <span class="timer-text font-monospace fw-bold">--:--:--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            {% for market in markets %}
         <div class="market-card" data-market-id="{{ market.id }}">
             <div class="market-card-header d-flex justify-content-between align-items-center">
                 <span class="market-name fw-bold">{{ market.name }}</span>
@@ -61,7 +113,8 @@
                 <span><i class="far fa-clock me-1"></i>{{ market.close_end_time|date:"H:i"|default:"--" }}</span>
             </div>
         </div>
-        {% endfor %}
+            {% endfor %}
+        {% endif %}
     </div>
 </div>
 

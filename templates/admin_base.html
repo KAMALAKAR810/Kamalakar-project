@@ -792,10 +792,13 @@
         }
 
         @media (min-width: 768px) {
+            .col-md-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
             .col-md-3 { flex: 0 0 25%; max-width: 25%; }
             .col-md-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+            .col-md-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
             .col-md-6 { flex: 0 0 50%; max-width: 50%; }
             .col-md-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+            .col-md-12 { flex: 0 0 100%; max-width: 100%; }
         }
 
         @media (min-width: 992px) {
@@ -826,6 +829,30 @@
             background: var(--surface) !important;
             color: var(--text-soft);
             border-bottom: 1px solid var(--panel-border);
+        }
+
+        .user-avatar-img {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            object-fit: cover;
+            border: 1px solid var(--panel-border);
+            flex-shrink: 0;
+            display: inline-block;
+        }
+
+        .user-avatar-fallback {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 1px solid var(--panel-border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            flex-shrink: 0;
         }
 
         /* Buttons and Interactive Elements */
@@ -1511,10 +1538,6 @@
                 </a>
             </div>
 
-            <div class="sidebar-support">
-                <strong>Private support link</strong>
-                <p>Shared WhatsApp actions now read from Admin Security settings and open a direct private chat.</p>
-            </div>
         </aside>
 
         <div class="admin-main">
@@ -1541,11 +1564,11 @@
 
                     <div class="profile-menu-wrap" id="profile-menu-wrap">
                         <button type="button" class="admin-profile-toggle" id="profile-menu-toggle" aria-expanded="false">
-                            {% if user.profile.profile_pic %}
+                            {% if user.profile.profile_pic and user.profile.profile_pic.name != 'profile_pics/default.png' %}
                                 <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}" class="admin-avatar"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             {% endif %}
-                            <div class="admin-avatar" {% if user.profile.profile_pic %}style="display:none;"{% endif %}>
+                            <div class="admin-avatar" {% if user.profile.profile_pic and user.profile.profile_pic.name != 'profile_pics/default.png' %}style="display:none;"{% endif %}>
                                 {{ user.username|slice:":1"|upper }}
                             </div>
                             <div class="admin-info">

@@ -6,18 +6,18 @@
 
 <!-- Welcome Banner -->
 <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-blue-700 
-            p-8 mb-8 text-white gradient-animate shadow-xl">
+            p-6 mb-6 text-white gradient-animate shadow-xl">
     <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
     <div class="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full translate-y-1/3 -translate-x-1/4"></div>
     
     <div class="relative z-10">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h2 class="text-3xl font-bold mb-2">Welcome back, {{ user.username }}! 👋</h2>
-                <p class="text-white/80 text-lg">Here's what's happening with your platform today.</p>
+                <h2 class="text-2xl font-bold mb-2">Welcome back, {{ user.username }}!</h2>
+                <p class="text-white/80 text-base">Here's what's happening with your platform today.</p>
             </div>
             <div class="flex gap-3">
-                <a href="{% url 'declare_result' %}" class="px-6 py-3 bg-white text-blue-600 rounded-xl 
+                <a href="{% url 'declare_result' %}" class="px-4 py-2 bg-white text-blue-600 rounded-xl 
                     font-semibold hover:bg-blue-50 transition-colors shadow-lg inline-flex items-center gap-2">
                     <i class="fas fa-bolt"></i>
                     Quick Action
@@ -28,20 +28,20 @@
 </div>
 
 <!-- Stats Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <!-- Total Users Card -->
-    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+    <div class="stat-card bg-white rounded-2xl p-4 shadow-sm border border-dark-100 animate-on-scroll">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-dark-500 text-sm font-medium mb-1">Total Users</p>
-                <h3 class="text-3xl font-bold text-dark-800">{{ total_users }}</h3>
+                <h3 class="text-2xl font-bold text-dark-800">{{ total_users }}</h3>
                 <div class="flex items-center gap-1 mt-2 text-green-600 text-sm">
                     <i class="fas fa-arrow-up"></i>
                     <span class="font-semibold">12%</span>
                     <span class="text-dark-400">this month</span>
                 </div>
             </div>
-            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 
                         flex items-center justify-center text-white text-xl shadow-lg shadow-blue-200">
                 <i class="fas fa-users"></i>
             </div>
@@ -49,18 +49,18 @@
     </div>
 
     <!-- Today's Collection Card -->
-    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+    <div class="stat-card bg-white rounded-2xl p-4 shadow-sm border border-dark-100 animate-on-scroll">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-dark-500 text-sm font-medium mb-1">Today's Collection</p>
-                <h3 class="text-3xl font-bold text-dark-800">₹{{ today_collection }}</h3>
+                <h3 class="text-2xl font-bold text-dark-800">₹{{ today_collection }}</h3>
                 <div class="flex items-center gap-1 mt-2 text-green-600 text-sm">
                     <i class="fas fa-arrow-up"></i>
                     <span class="font-semibold">8.3%</span>
                     <span class="text-dark-400">vs yesterday</span>
                 </div>
             </div>
-            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-400 to-green-600 
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 
                         flex items-center justify-center text-white text-xl shadow-lg shadow-green-200">
                 <i class="fas fa-coins"></i>
             </div>
@@ -68,18 +68,18 @@
     </div>
 
     <!-- Today's Payouts Card -->
-    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+    <div class="stat-card bg-white rounded-2xl p-4 shadow-sm border border-dark-100 animate-on-scroll">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-dark-500 text-sm font-medium mb-1">Today's Payouts</p>
-                <h3 class="text-3xl font-bold text-dark-800">₹{{ today_payouts }}</h3>
+                <h3 class="text-2xl font-bold text-dark-800">₹{{ today_payouts }}</h3>
                 <div class="flex items-center gap-1 mt-2 text-orange-600 text-sm">
                     <i class="fas fa-arrow-down"></i>
                     <span class="font-semibold">3.2%</span>
                     <span class="text-dark-400">payout rate</span>
                 </div>
             </div>
-            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 
                         flex items-center justify-center text-white text-xl shadow-lg shadow-orange-200">
                 <i class="fas fa-hand-holding-usd"></i>
             </div>
@@ -87,11 +87,11 @@
     </div>
 
     <!-- Net P/L Card -->
-    <div class="stat-card bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
+    <div class="stat-card bg-white rounded-2xl p-4 shadow-sm border border-dark-100 animate-on-scroll">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-dark-500 text-sm font-medium mb-1">Today's Net P/L</p>
-                <h3 class="text-3xl font-bold {% if today_profit >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                <h3 class="text-2xl font-bold {% if today_profit >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
                     ₹{{ today_profit }}
                 </h3>
                 <div class="flex items-center gap-1 mt-2 {% if today_profit >= 0 %}text-green-600{% else %}text-red-600{% endif %} text-sm">
@@ -100,7 +100,7 @@
                     <span class="text-dark-400">today</span>
                 </div>
             </div>
-            <div class="w-14 h-14 rounded-xl bg-gradient-to-br {% if today_profit >= 0 %}from-emerald-400 to-emerald-600 shadow-emerald-200{% else %}from-red-400 to-red-600 shadow-red-200{% endif %} 
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br {% if today_profit >= 0 %}from-emerald-400 to-emerald-600 shadow-emerald-200{% else %}from-red-400 to-red-600 shadow-red-200{% endif %} 
                         flex items-center justify-center text-white text-xl shadow-lg">
                 <i class="fas fa-chart-line"></i>
             </div>
@@ -109,7 +109,7 @@
 </div>
 
 <!-- Market Results Section -->
-<div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100 mb-8 animate-on-scroll">
+<div class="bg-white rounded-2xl p-5 shadow-sm border border-dark-100 mb-6 animate-on-scroll">
     <div class="flex items-center justify-between mb-6">
         <h3 class="text-lg font-bold text-dark-800">
             <i class="fas fa-clock text-blue-500 mr-2"></i>

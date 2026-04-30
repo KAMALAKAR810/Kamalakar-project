@@ -41,13 +41,19 @@
                         <td class="px-4">
                             <div style="display:flex;align-items:center;gap:.75rem;">
                                 <div style="position:relative;flex-shrink:0;">
-                                    <img src="{{ user.profile.profile_pic.url }}"
-                                         style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--panel-border);"
-                                         alt="{{ user.username }}"
-                                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                                    <div style="display:none;width:40px;height:40px;border-radius:50%;background:var(--primary-soft);color:var(--primary);font-weight:800;align-items:center;justify-content:center;">
-                                        {{ user.username|slice:":1"|upper }}
-                                    </div>
+                                    {% if user.profile.profile_pic and user.profile.profile_pic.name != 'profile_pics/default.png' %}
+                                        <img src="{{ user.profile.profile_pic.url }}"
+                                             style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--panel-border);"
+                                             alt="{{ user.username }}"
+                                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                        <div style="display:none;width:40px;height:40px;border-radius:50%;background:var(--primary-soft);color:var(--primary);font-weight:800;align-items:center;justify-content:center;">
+                                            {{ user.username|slice:":1"|upper }}
+                                        </div>
+                                    {% else %}
+                                        <div style="width:40px;height:40px;border-radius:50%;background:var(--primary-soft);color:var(--primary);font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--panel-border);">
+                                            {{ user.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
                                     {% if user.unread_count > 0 %}
                                         <span style="position:absolute;top:-3px;right:-3px;width:12px;height:12px;background:var(--danger);border-radius:50%;border:2px solid #fff;"></span>
                                     {% endif %}

@@ -37,11 +37,11 @@
                     {% for profile in profiles %}
                     <tr>
                         <td class="px-4 mobile-card-top" data-label="Profile">
-                            {% if profile.profile_pic %}
-                                <img src="{{ profile.profile_pic.url }}" class="rounded-circle border shadow-sm" alt="P">
+                            {% if profile.profile_pic and profile.profile_pic.name != 'profile_pics/default.png' %}
+                                <img src="{{ profile.profile_pic.url }}" class="user-avatar-img" alt="{{ profile.user.username }}">
                             {% else %}
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm">
-                                    <i class="fas fa-user"></i>
+                                <div class="user-avatar-fallback">
+                                    {{ profile.user.username|slice:":1"|upper }}
                                 </div>
                             {% endif %}
                         </td>

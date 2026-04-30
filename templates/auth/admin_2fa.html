@@ -1,6 +1,3 @@
-<head>
-    
-</head>
 {% extends "admin_base.html" %}
 
 {% block content %}
@@ -18,7 +15,7 @@
         <button onclick="switchTab('security_question')" id="btn-question" class="btn-tab" type="button">Question</button>
     </div>
 
-    <form id="form-pin" method="POST" class="admin-2fa-form">
+    <form id="form-pin" method="POST" class="admin-2fa-form" style="display:{% if active_auth_type == 'pin' %}grid{% else %}none{% endif %};">
         {% csrf_token %}
         <input type="hidden" name="auth_type" value="pin">
         <div>
@@ -38,7 +35,7 @@
         <button type="submit" class="btn-gold">Verify PIN</button>
     </form>
 
-    <form id="form-security_question" method="POST" class="admin-2fa-form">
+    <form id="form-security_question" method="POST" class="admin-2fa-form" style="display:{% if active_auth_type == 'security_question' %}grid{% else %}none{% endif %};">
         {% csrf_token %}
         <input type="hidden" name="auth_type" value="security_question">
         <div>
@@ -83,5 +80,9 @@
             activeBtn.classList.add('active');
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        switchTab('{{ active_auth_type }}');
+    });
 </script>
 {% endblock %}

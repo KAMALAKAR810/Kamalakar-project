@@ -2,9 +2,15 @@
 {% block content %}
 <div class="chat-container">
     <div class="chat-header">
-        <img src="{{ other_user.profile.profile_pic.url }}" alt="P">
+        <div class="chat-avatar">
+            {% if other_user.profile.profile_pic and other_user.profile.profile_pic.name != 'profile_pics/default.png' %}
+                <img src="{{ other_user.profile.profile_pic.url }}" alt="{{ other_user.username }}">
+            {% else %}
+                {{ other_user.username|slice:":1"|upper }}
+            {% endif %}
+        </div>
         <div>
-            <span>{{ other_user.first_name }}</span><br>
+            <span>{{ other_user.first_name|default:other_user.username }}</span><br>
             <small style="font-weight:400;font-size:11px;">@{{ other_user.username }}</small>
         </div>
     </div>

@@ -7,118 +7,84 @@
 
 {% block content %}
 <section class="auth-shell">
-    <div class="auth-layout">
-        <aside class="auth-panel" aria-hidden="true">
-            <div class="auth-mark">
-                <img src="{% static 'logo.jpeg' %}" alt="Change Life With Numbers">
-                <strong>Change Life With Numbers</strong>
+    <div class="auth-card">
+        <div class="auth-card-inner">
+            <div class="auth-eyebrow">
+                <i class="fas fa-user-plus"></i>
+                Sign Up
             </div>
-            <h1>Create a professional account experience.</h1>
-            <p>
-                Register once, verify your email OTP, and access a cleaner, more responsive
-                website experience across mobile and desktop.
-            </p>
-            <ul class="auth-points">
-                <li>
-                    <i class="fas fa-envelope"></i>
-                    <div>Email OTP verification helps keep account creation controlled and secure.</div>
-                </li>
-                <li>
-                    <i class="fas fa-id-card"></i>
-                    <div>Profile, wallet, history, and notifications stay connected to one account.</div>
-                </li>
-                <li>
-                    <i class="fas fa-mobile-screen-button"></i>
-                    <div>The signup form is optimized to feel clean and usable on smaller screens.</div>
-                </li>
-            </ul>
-        </aside>
+            <div class="auth-header">
+                <h2>Create your account</h2>
+                <p class="auth-subtitle">Enter your details to register.</p>
+            </div>
 
-        <div class="auth-card">
-            <div class="auth-card-inner">
-                <div class="auth-eyebrow">
-                    <i class="fas fa-user-plus"></i>
-                    Sign Up
+            <form method="post" enctype="multipart/form-data" class="auth-form" id="register-form">
+                {% csrf_token %}
+
+                <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="reg-name">Full name</label>
+                        <input class="control" type="text" name="name" id="reg-name" placeholder="Enter full name" value="{{ name|default:'' }}" required autocomplete="name">
+                    </div>
+
+                    <div class="field">
+                        <label for="reg-username">Username</label>
+                        <input class="control" type="text" name="username" id="reg-username" placeholder="Choose a username" value="{{ username|default:'' }}" required autocomplete="username">
+                    </div>
+
+                    <div class="field">
+                        <label for="reg-email">Email</label>
+                        <input class="control" type="email" name="email" id="reg-email" placeholder="you@example.com" value="{{ email|default:'' }}" required autocomplete="email">
+                    </div>
+
+                    <div class="field">
+                        <label for="reg-mobile">Mobile number</label>
+                        <input class="control" type="tel" name="mobile" id="reg-mobile" placeholder="10-digit mobile number" value="{{ mobile|default:'' }}" required autocomplete="tel">
+                    </div>
+
+                    <div class="field">
+                        <label for="reg-password">Password</label>
+                        <div class="password-wrapper">
+                            <input class="control" type="password" name="password" id="reg-password" placeholder="Create a password" required autocomplete="new-password">
+                            <i class="fas fa-eye toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Show password"></i>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="reg-password-confirm">Confirm password</label>
+                        <div class="password-wrapper">
+                            <input class="control" type="password" name="password2" id="reg-password-confirm" placeholder="Re-enter password" required autocomplete="new-password">
+                            <i class="fas fa-eye toggle-password" id="togglePasswordConfirm" role="button" tabindex="0" aria-label="Show confirm password"></i>
+                        </div>
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="reg-profile-pic">Profile picture</label>
+                        <input class="control file-control" type="file" name="profile_pic" id="reg-profile-pic" accept="image/*">
+                    </div>
                 </div>
-                <div class="auth-header">
-                    <h2>Create your account</h2>
-                    <p class="auth-subtitle">Enter your details below to register and continue with email OTP verification.</p>
+
+                <div class="recaptcha-wrap">
+                    <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
                 </div>
 
-                <form method="post" enctype="multipart/form-data" class="auth-form" id="register-form">
-                    {% csrf_token %}
+                <div class="check-row">
+                    <input type="checkbox" id="terms_agree" name="terms_agree" required>
+                    <label for="terms_agree">
+                        I agree to the Terms and Conditions.
+                    </label>
+                </div>
 
-                    <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
+                <button type="submit" class="auth-btn">Create Account</button>
+            </form>
+        </div>
 
-                    <div class="form-grid">
-                        <div class="field">
-                            <label for="reg-name">Full name</label>
-                            <input class="control" type="text" name="name" id="reg-name" placeholder="Enter full name" value="{{ name|default:'' }}" required autocomplete="name">
-                        </div>
-
-                        <div class="field">
-                            <label for="reg-username">Username</label>
-                            <input class="control" type="text" name="username" id="reg-username" placeholder="Choose a username" value="{{ username|default:'' }}" required autocomplete="username">
-                        </div>
-
-                        <div class="field">
-                            <label for="reg-email">Email</label>
-                            <input class="control" type="email" name="email" id="reg-email" placeholder="you@example.com" value="{{ email|default:'' }}" required autocomplete="email">
-                            <div class="hint">Use a real email address because OTP verification is required.</div>
-                        </div>
-
-                        <div class="field">
-                            <label for="reg-mobile">Mobile number</label>
-                            <input class="control" type="tel" name="mobile" id="reg-mobile" placeholder="10-digit mobile number" value="{{ mobile|default:'' }}" required autocomplete="tel">
-                        </div>
-
-                        <div class="field">
-                            <label for="reg-password">Password</label>
-                            <div class="password-wrapper">
-                                <input class="control" type="password" name="password" id="reg-password" placeholder="Create a password" required autocomplete="new-password">
-                                <i class="fas fa-eye toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Show password"></i>
-                            </div>
-                        </div>
-
-                        <div class="field">
-                            <label for="reg-password-confirm">Confirm password</label>
-                            <div class="password-wrapper">
-                                <input class="control" type="password" name="password2" id="reg-password-confirm" placeholder="Re-enter password" required autocomplete="new-password">
-                                <i class="fas fa-eye toggle-password" id="togglePasswordConfirm" role="button" tabindex="0" aria-label="Show confirm password"></i>
-                            </div>
-                        </div>
-
-                        <div class="field span-2">
-                            <label for="reg-profile-pic">Profile picture</label>
-                            <input class="control file-control" type="file" name="profile_pic" id="reg-profile-pic" accept="image/*">
-                            <div class="hint">Optional. You can add or change this later.</div>
-                        </div>
-                    </div>
-
-                    <div class="auth-note">
-                        After signup, an OTP is sent to your email and must be verified before the account is completed.
-                    </div>
-
-                    <div class="recaptcha-wrap">
-                        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
-                    </div>
-
-                    <div class="check-row">
-                        <input type="checkbox" id="terms_agree" name="terms_agree" required>
-                        <label for="terms_agree">
-                            I agree to the <a href="javascript:void(0)" onclick="openTerms()">Terms and Conditions</a>.
-                        </label>
-                    </div>
-
-                    <button type="submit" class="auth-btn">Create Account</button>
-                </form>
-            </div>
-
-            <div class="auth-footer">
-                Already have an account? <a href="{% url 'login' %}">Sign in</a>
-                <span>&middot;</span>
-                <a href="{% url 'landing' %}">Home</a>
-            </div>
+        <div class="auth-footer">
+            Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            <span>&middot;</span>
+            <a href="{% url 'landing' %}">Home</a>
         </div>
     </div>
 </section>

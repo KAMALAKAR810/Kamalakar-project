@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 # FIX: Renamed import to 'db_transaction' to avoid name collision with the
 # local variable 'transaction' used inside place_bet and the Transaction model.
@@ -43,9 +44,12 @@ def admin_2fa_view(request):
         return redirect('admin_summary')
     
     profile = request.user.profile
+    active_auth_type = "pin"
     
     if request.method == 'POST':
         auth_type = request.POST.get('auth_type')
+        if auth_type in {"pin", "security_question"}:
+            active_auth_type = auth_type
         
         if auth_type == 'pin':
             pin = request.POST.get('pin')
@@ -67,6 +71,7 @@ def admin_2fa_view(request):
             
     return render(request, 'auth/admin_2fa.html', {
         'profile': profile,
+        "active_auth_type": active_auth_type,
         'page_title': 'Admin 2FA Verification'
     })
 
@@ -468,13 +473,19 @@ def _market_timer_payload(market):
 
 def landing(request):
     safe_next = _get_safe_next_url(request)
+    home_url = reverse("user_home")
 
     if request.session.get("captcha_verified"):
-        if request.user.is_authenticated:
-            if request.user.is_superuser:
-                return redirect("admin_summary")
+        if request.user.is_authenticated and request.user.is_superuser:
+            return redirect("admin_summary")
+
+        if safe_next and safe_next != home_url:
             return redirect(safe_next)
-        return redirect(safe_next)
+
+        return render(request, 'user/user_home.html', {
+            'markets': Market.objects.all(),
+            'page_title': 'Home',
+        })
 
     if request.method == "POST":
         recaptcha_response = (request.POST.get("g-recaptcha-response") or "").strip()
@@ -748,6 +759,7 @@ def register_view(request):
         psw2 = request.POST.get('password2') or ''
         mob = request.POST.get('mobile') or ''
         terms_agree = request.POST.get('terms_agree')
+        profile_pic = request.FILES.get("profile_pic")
 
         if not terms_agree:
             messages.error(request, "You must accept the terms and conditions to create an account.")
@@ -815,13 +827,21 @@ def register_view(request):
                 'name': name, 'username': user_n, 'email': email_raw, 'mobile': mob
             }))
 
-        # Store data in session instead of creating user
+        profile_pic_name = ""
+        if profile_pic:
+            safe_name = os.path.basename(getattr(profile_pic, "name", "upload")).replace(" ", "_")
+            profile_pic_name = default_storage.save(
+                f"profile_pics/{secrets.token_hex(16)}_{safe_name}",
+                profile_pic,
+            )
+
         request.session['pending_registration_data'] = {
             'username': user_n,
             'password': psw,
             'name': name,
             'email': email_norm,
             'mobile': mobile_digits,
+            'profile_pic_name': profile_pic_name,
         }
         
         try:
@@ -919,6 +939,9 @@ def verify_email_otp_view(request):
                     profile.email = reg_data['email']
                     profile.is_email_verified = True
                     profile.email_verified_at = timezone.now()
+                    profile_pic_name = (reg_data.get("profile_pic_name") or "").strip()
+                    if profile_pic_name:
+                        profile.profile_pic = profile_pic_name
                     profile.save()
 
                     # Notify admin on Telegram

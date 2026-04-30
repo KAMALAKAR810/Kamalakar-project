@@ -16,16 +16,23 @@ def admin_ui_context(request):
     context = {}
 
     if hasattr(request, "user") and request.user.is_authenticated:
+        try:
+            wallet_balance = request.user.wallet.balance
+        except Exception:
+            wallet_balance = 0
+
         unread_count = Message.objects.filter(receiver=request.user, is_read=False).count()
         if request.user.is_superuser:
             context.update({
                 "new_users": Profile.objects.filter(is_new=True).exists(),
                 "unread_msgs": unread_count,
+                "wallet_balance": wallet_balance,
             })
         else:
             context.update({
                 "unread_notifs": Notification.objects.filter(user=request.user, is_read=False).count(),
                 "unread_msgs": unread_count,
+                "wallet_balance": wallet_balance,
             })
 
     # Cache the admin WhatsApp number to avoid a DB hit on every request
