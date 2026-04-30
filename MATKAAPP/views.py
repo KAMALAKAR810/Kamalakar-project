@@ -559,10 +559,6 @@ def login_view(request):
                 response = JsonResponse({'status': 'success'})
                 return _set_device_cookie(response, device_id)
             
-<<<<<<< HEAD
-=======
-            # Admins land on the admin dashboard
->>>>>>> 11445e8 (try1)
             if user.is_superuser:
                 next_url = request.GET.get('next') or 'admin_summary'
             else:
