@@ -4,65 +4,72 @@
 {% extends "admin_base.html" %}
 
 {% block content %}
-<div class="container-fluid px-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="h3 mb-1 fw-bold text-dark">Market-Wise & Date-Wise Report</h2>
-            <p class="text-muted small mb-0">Analyze user activity and profitability across markets</p>
+<div class="page-shell slide-in">
+
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h1 class="page-title"><i class="fas fa-chart-column"></i> Reports</h1>
+            <p class="page-sub">Market-wise &amp; date-wise profitability analysis</p>
+        </div>
+        <div class="page-toolbar-actions">
+            <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <form method="GET" class="row g-3 align-items-end">
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Date</label>
-                    <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+    <div class="professional-card mb-4">
+        <form method="GET">
+            <div class="row" style="gap:.75rem 0;">
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date }}">
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Market</label>
-                    <select name="market" class="form-select form-select-sm">
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Market</label>
+                    <select name="market" class="form-select">
                         <option value="">All Markets</option>
                         {% for m in markets %}
                             <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-uppercase text-muted">User</label>
-                    <select name="user" class="form-select form-select-sm">
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">User</label>
+                    <select name="user" class="form-select">
                         <option value="">All Users</option>
                         {% for u in all_users %}
                             <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-12 col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
-                        <i class="fas fa-file-invoice me-1"></i> Generate Report
+                <div class="col-sm-6 col-md-3" style="display:flex;align-items:flex-end;gap:.5rem;">
+                    <button type="submit" class="btn btn-primary-gradient btn-sm w-100">
+                        <i class="fas fa-file-invoice me-1"></i> Generate
                     </button>
-                    <a href="{% url 'admin_report' %}" class="btn btn-light border btn-sm w-100 fw-bold">
-                        Reset
-                    </a>
+                    <a href="{% url 'admin_report' %}" class="btn btn-outline-secondary btn-sm w-100">Reset</a>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <div class="card border-0 shadow-sm overflow-hidden">
-        <div class="card-header bg-white py-3 border-0">
-            <h5 class="mb-0 fw-bold text-primary">Filtered Individual User Data</h5>
+    <div class="professional-card" style="padding:0;overflow:hidden;">
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--panel-border);">
+            <h5 style="margin:0;font-weight:800;color:var(--primary);">Filtered User Data</h5>
         </div>
         <div class="table-responsive">
             <table class="table professional-table responsive-admin-table align-middle mb-0">
-                <thead class="bg-light">
+                <thead>
                     <tr>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">User ID</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">User Name</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Total Betted</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Total Won</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Current Balance</th>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Net P/L</th>
+                        <th class="px-4">User ID</th>
+                        <th>Username</th>
+                        <th>Total Betted</th>
+                        <th>Total Won</th>
+                        <th>Balance</th>
+                        <th class="px-4 text-end">Net P/L</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,17 +77,22 @@
                         {% for data in report_data %}
                         <tr>
                             <td class="px-4 fw-bold text-primary" data-label="User ID">{{ data.user_code }}</td>
-                            <td data-label="User Name">{{ data.user.username }}</td>
-                            <td class="fw-bold" data-label="Total Betted">Rs {{ data.total_betted }}</td>
-                            <td class="fw-bold text-success" data-label="Total Won">Rs {{ data.total_won }}</td>
-                            <td class="fw-bold" data-label="Current Balance">Rs {{ data.balance }}</td>
+                            <td data-label="Username">{{ data.user.username }}</td>
+                            <td class="fw-bold" data-label="Total Betted">₹{{ data.total_betted }}</td>
+                            <td class="fw-bold text-success" data-label="Total Won">₹{{ data.total_won }}</td>
+                            <td class="fw-bold" data-label="Balance">₹{{ data.balance }}</td>
                             <td class="px-4 text-end fw-bold" data-label="Net P/L">
                                 {% if data.total_won == data.total_betted %}
-                                    <span class="text-muted small">----</span>
+                                    <span class="text-muted small">—</span>
                                 {% else %}
                                     <span class="{% if data.net_pl > 0 %}text-success{% elif data.net_pl < 0 %}text-danger{% else %}text-dark{% endif %}">
+<<<<<<< HEAD
                                         Rs {{ data.net_pl }}
                                         <small class="d-block text-uppercase">
+=======
+                                        ₹{{ data.net_pl }}
+                                        <small class="d-block text-uppercase" style="font-size:.65rem;">
+>>>>>>> 11445e8 (try1)
                                             {% if data.net_pl > 0 %}Profit{% elif data.net_pl < 0 %}Loss{% else %}Break-even{% endif %}
                                         </small>
                                     </span>
@@ -91,10 +103,8 @@
                     {% else %}
                         <tr>
                             <td colspan="6" class="text-center py-5 text-muted">
-                                <div class="mb-3 opacity-25">
-                                    <i class="fas fa-chart-pie fa-4x"></i>
-                                </div>
-                                <h5 class="fw-bold">No Data Available</h5>
+                                <i class="fas fa-chart-pie" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
+                                <strong>No Data Available</strong>
                                 <p class="small mb-0">No data found for the selected criteria.</p>
                             </td>
                         </tr>
@@ -103,14 +113,10 @@
             </table>
         </div>
     </div>
+
 </div>
 
-<div class="d-flex justify-content-center gap-3 mt-4 mb-5">
-    <button onclick="exportCurrentPage()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-file-export me-2"></i> Export to CSV
-    </button>
-    <button onclick="window.print()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-print me-2"></i> Print Page
-    </button>
-</div>
+<script>
+function exportCurrentPage() { alert("Exporting to CSV…"); }
+</script>
 {% endblock %}

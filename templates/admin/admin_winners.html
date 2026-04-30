@@ -2,17 +2,18 @@
     
 </head>
 {% extends "admin_base.html" %}
-
 {% block content %}
-<div class="container-fluid px-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="h3 mb-1 fw-bold text-dark">Winners (PASS) List</h2>
-            <p class="text-muted small mb-0">Track all winning bets and payouts</p>
+<div class="page-shell slide-in">
+
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h1 class="page-title"><i class="fas fa-trophy"></i> Winners List</h1>
+            <p class="page-sub">Track all winning bets and payouts</p>
         </div>
     </div>
 
     {% if latest_result %}
+<<<<<<< HEAD
     <div class="row mb-4">
         <div class="col-12 col-md-6 col-lg-4 mx-auto">
             <div class="card border-0 shadow-sm overflow-hidden">
@@ -30,107 +31,123 @@
                     </div>
                 </div>
             </div>
+=======
+    <div class="professional-card mb-4" style="max-width:420px;margin-left:auto;margin-right:auto;text-align:center;">
+        <div style="background:linear-gradient(135deg,var(--primary),#365cff);color:#fff;padding:1rem 1.25rem;border-radius:.85rem .85rem 0 0;display:flex;justify-content:space-between;align-items:center;margin:-1.5rem -1.5rem 1.25rem;">
+            <span style="font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;">{{ latest_result.name }}</span>
+            <span class="badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:.72rem;">RESULT DECLARED</span>
+        </div>
+        <div style="display:flex;justify-content:center;align-items:center;gap:1.5rem;padding:.5rem 0 1rem;">
+            <span style="font-weight:700;letter-spacing:2px;color:var(--text-faint);">{{ latest_result.open_patti|default:"***" }}</span>
+            <span style="font-size:2.2rem;font-weight:900;padding:0 1rem;border-left:2px solid var(--panel-border);border-right:2px solid var(--panel-border);">
+                {% if latest_result.open_single %}{{ latest_result.open_single }}{% else %}*{% endif %}{% if latest_result.close_single %}{{ latest_result.close_single }}{% else %}*{% endif %}
+            </span>
+            <span style="font-weight:700;letter-spacing:2px;color:var(--text-faint);">{{ latest_result.close_patti|default:"***" }}</span>
+>>>>>>> 11445e8 (try1)
         </div>
     </div>
     {% endif %}
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <form method="GET" class="row g-3 align-items-end">
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Date</label>
-                    <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}" onchange="this.form.submit()">
+    <!-- Filters -->
+    <div class="professional-card mb-4">
+        <form method="GET">
+            <div class="row" style="gap:.75rem 0;">
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date }}" onchange="this.form.submit()">
                 </div>
-                <div class="col-12 col-md-2">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Game Type</label>
-                    <select name="game_type" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="ALL" {% if selected_game_type == 'ALL' %}selected{% endif %}>-- All Types --</option>
-                        <option value="SINGLE" {% if selected_game_type == 'SINGLE' %}selected{% endif %}>SINGLE</option>
-                        <option value="JODI" {% if selected_game_type == 'JODI' %}selected{% endif %}>JODI</option>
-                        <option value="SINGLE_PATTI" {% if selected_game_type == 'SINGLE_PATTI' %}selected{% endif %}>SINGLE PATTI</option>
-                        <option value="DOUBLE_PATTI" {% if selected_game_type == 'DOUBLE_PATTI' %}selected{% endif %}>DOUBLE PATTI</option>
-                        <option value="TRIPLE_PATTI" {% if selected_game_type == 'TRIPLE_PATTI' %}selected{% endif %}>TRIPLE PATTI</option>
+                <div class="col-sm-6 col-md-2">
+                    <label class="form-label">Game Type</label>
+                    <select name="game_type" class="form-select" onchange="this.form.submit()">
+                        <option value="ALL" {% if selected_game_type == 'ALL' %}selected{% endif %}>All Types</option>
+                        <option value="SINGLE"        {% if selected_game_type == 'SINGLE' %}selected{% endif %}>SINGLE</option>
+                        <option value="JODI"          {% if selected_game_type == 'JODI' %}selected{% endif %}>JODI</option>
+                        <option value="SINGLE_PATTI"  {% if selected_game_type == 'SINGLE_PATTI' %}selected{% endif %}>SINGLE PATTI</option>
+                        <option value="DOUBLE_PATTI"  {% if selected_game_type == 'DOUBLE_PATTI' %}selected{% endif %}>DOUBLE PATTI</option>
+                        <option value="TRIPLE_PATTI"  {% if selected_game_type == 'TRIPLE_PATTI' %}selected{% endif %}>TRIPLE PATTI</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Market</label>
-                    <select name="market" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="ALL" {% if selected_market_id == 'ALL' %}selected{% endif %}>-- All Markets --</option>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Market</label>
+                    <select name="market" class="form-select" onchange="this.form.submit()">
+                        <option value="ALL" {% if selected_market_id == 'ALL' %}selected{% endif %}>All Markets</option>
                         {% for m in markets %}
                             <option value="{{ m.id }}" {% if selected_market_id == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-12 col-md-2">
-                    <label class="form-label small fw-bold text-uppercase text-muted">Section</label>
-                    <select name="session" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="ALL" {% if selected_session == 'ALL' %}selected{% endif %}>-- All Sections --</option>
-                        <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN</option>
+                <div class="col-sm-6 col-md-2">
+                    <label class="form-label">Section</label>
+                    <select name="session" class="form-select" onchange="this.form.submit()">
+                        <option value="ALL"   {% if selected_session == 'ALL' %}selected{% endif %}>All Sections</option>
+                        <option value="OPEN"  {% if selected_session == 'OPEN' %}selected{% endif %}>OPEN</option>
                         <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-2">
-                    <a href="{% url 'winners_list' %}" class="btn btn-light border btn-sm w-100 fw-bold">RESET</a>
+                <div class="col-sm-6 col-md-2" style="display:flex;align-items:flex-end;">
+                    <a href="{% url 'winners_list' %}" class="btn btn-outline-secondary w-100">RESET</a>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <div class="card border-0 shadow-sm overflow-hidden">
+    <!-- Table -->
+    <div class="professional-card" style="padding:0;overflow:hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table professional-table align-middle mb-0">
+                <thead>
                     <tr>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">Date & Time</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">User (ID)</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Game Type</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Admin Result</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Bet Amt</th>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Winning Amt</th>
+                        <th class="px-4">Date &amp; Time</th>
+                        <th>User</th>
+                        <th>Game Type</th>
+                        <th>Result</th>
+                        <th>Bet Amt</th>
+                        <th class="px-4 text-end">Winning Amt</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for w in winners %}
                     <tr>
-                        <td class="px-4 text-muted small">{{ w.created_at|date:"d M, H:i" }}</td>
+                        <td class="px-4 small text-muted">{{ w.created_at|date:"d M, H:i" }}</td>
                         <td>
+<<<<<<< HEAD
                             <div class="fw-bold text-dark">{{ w.user.username }}</div>
                             <div class="text-muted font-monospace">{{ w.user.profile.user_code }}</div>
+=======
+                            <div class="fw-bold">{{ w.user.username }}</div>
+                            <div class="small text-muted font-monospace">{{ w.user.profile.user_code }}</div>
+>>>>>>> 11445e8 (try1)
                         </td>
-                        <td><span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill small fw-bold">{{ w.game_type }}</span></td>
                         <td>
-                            <span class="fw-bold text-dark">
-                                {% if w.game_type == 'SINGLE' %}
-                                    {% if w.session == 'OPEN' %}
-                                        {{ w.market.open_single|default:"*" }}
-                                    {% else %}
-                                        {{ w.market.close_single|default:"*" }}
-                                    {% endif %}
-                                {% elif w.game_type == 'JODI' %}
-                                    {% if w.market.open_single %}{{ w.market.open_single }}{% else %}*{% endif %}{% if w.market.close_single %}{{ w.market.close_single }}{% else %}*{% endif %}
-                                {% else %}
-                                    {% if w.session == 'OPEN' %}
-                                        {{ w.market.open_patti|default:"***" }}
-                                    {% else %}
-                                        {{ w.market.close_patti|default:"***" }}
-                                    {% endif %}
-                                {% endif %}
-                            </span>
+                            <span class="badge badge-success">{{ w.game_type }}</span>
+                        </td>
+                        <td class="fw-bold">
+                            {% if w.game_type == 'SINGLE' %}
+                                {% if w.session == 'OPEN' %}{{ w.market.open_single|default:"*" }}
+                                {% else %}{{ w.market.close_single|default:"*" }}{% endif %}
+                            {% elif w.game_type == 'JODI' %}
+                                {% if w.market.open_single %}{{ w.market.open_single }}{% else %}*{% endif %}{% if w.market.close_single %}{{ w.market.close_single }}{% else %}*{% endif %}
+                            {% else %}
+                                {% if w.session == 'OPEN' %}{{ w.market.open_patti|default:"***" }}
+                                {% else %}{{ w.market.close_patti|default:"***" }}{% endif %}
+                            {% endif %}
                         </td>
                         <td class="fw-bold">₹{{ w.amount }}</td>
                         <td class="px-4 text-end">
+<<<<<<< HEAD
                             <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold">
                                 ₹{{ w.win_amount }}
                             </span>
+=======
+                            <span class="badge badge-success" style="font-size:.9rem;padding:.5rem .9rem;">₹{{ w.win_amount }}</span>
+>>>>>>> 11445e8 (try1)
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="6" class="text-center py-5 text-muted">
-                            <div class="mb-3 opacity-25">
-                                <i class="fas fa-trophy fa-4x"></i>
-                            </div>
-                            <h5 class="fw-bold">No Winners Found</h5>
+                            <i class="fas fa-trophy" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
+                            <strong>No Winners Found</strong>
                             <p class="small mb-0">No winning records match your current filters.</p>
                         </td>
                     </tr>
@@ -139,6 +156,6 @@
             </table>
         </div>
     </div>
+
 </div>
 {% endblock %}
-

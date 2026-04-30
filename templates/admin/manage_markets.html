@@ -30,13 +30,10 @@
                         <label class="form-label">Market Name</label>
                         <input type="text" name="name" class="form-control form-control-lg" placeholder="e.g. KALYAN" required>
                     </div>
-                    
                     <div class="mb-4">
                         <label class="form-label" for="collection-date">Collection Date *</label>
-                        <input type="datetime-local" id="collection-date" name="collection_date" 
-                               class="form-control" required>
+                        <input type="datetime-local" id="collection-date" name="collection_date" class="form-control" required>
                     </div>
-
                     <div class="row g-4 mb-5">
                         <div class="col-sm-6">
                             <label class="form-label">Open Timer Starts</label>
@@ -57,7 +54,6 @@
                             <input type="number" name="close_duration_minutes" class="form-control" min="1" step="1" placeholder="120" required>
                         </div>
                     </div>
-
                     <button type="submit" class="btn btn-primary-gradient btn-lg w-100 py-3">
                         <i class="fas fa-save me-2"></i>SAVE NEW MARKET
                     </button>
@@ -139,69 +135,35 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 11445e8 (try1)
 <script>
 (function () {
-    /**
-     * Admin market countdown — server-persisted.
-     *
-     * Each countdown element carries its end_time in a data-end attribute
-     * (ISO-8601, set by Django at render time).  The JS simply counts down
-     * to that absolute timestamp, so the timer is correct after any page
-     * refresh.  A background poll re-syncs end_time values every 10 s so
-     * that a timer reset by the admin is reflected immediately.
-     */
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     function formatCountdown(endTimeStr, declared) {
-        if (declared === '1' || declared === true) {
-            return { text: 'Result Declared', cssClass: 'ended' };
-        }
-        if (!endTimeStr) {
-            return { text: 'Not set', cssClass: 'ended' };
-        }
-
+        if (declared === '1' || declared === true) return { text: 'Result Declared', cssClass: 'ended' };
+        if (!endTimeStr) return { text: 'Not set', cssClass: 'ended' };
         const endTime = new Date(endTimeStr);
-        if (isNaN(endTime.getTime())) {
-            return { text: 'Invalid time', cssClass: 'ended' };
-        }
-
+        if (isNaN(endTime.getTime())) return { text: 'Invalid time', cssClass: 'ended' };
         const diff = endTime - Date.now();
-        if (diff <= 0) {
-            return { text: 'Expired', cssClass: 'ended' };
-        }
-
-        const h = Math.floor(diff / 3_600_000);
-        const m = Math.floor((diff % 3_600_000) / 60_000);
-        const s = Math.floor((diff % 60_000) / 1_000);
+        if (diff <= 0) return { text: 'Expired', cssClass: 'ended' };
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
         const text = [h, m, s].map(function (n) { return String(n).padStart(2, '0'); }).join(':');
-        const expiring = diff <= 10 * 60_000;
-
-        return { text: text, cssClass: expiring ? 'expiring' : '' };
+        return { text: text, cssClass: diff <= 600000 ? 'expiring' : '' };
     }
-
-    // ── Tick ─────────────────────────────────────────────────────────────────
 
     function tick() {
         document.querySelectorAll('.admin-countdown').forEach(function (el) {
-            const endTimeStr = el.dataset.end;
-            const declared   = el.dataset.declared;
-            const isOpen     = el.classList.contains('open-countdown');
-            const info       = formatCountdown(endTimeStr, declared);
-
+            const info = formatCountdown(el.dataset.end, el.dataset.declared);
+            const isOpen = el.classList.contains('open-countdown');
             el.textContent = info.text;
-            // Preserve the session-colour class, only toggle state classes.
-            el.className = 'admin-countdown fw-bold font-monospace '
-                         + (isOpen ? 'open-countdown' : 'close-countdown')
-                         + ' ' + info.cssClass;
+            el.className = 'admin-countdown fw-bold font-monospace ' + (isOpen ? 'open-countdown' : 'close-countdown') + ' ' + info.cssClass;
         });
     }
-
-    // ── Server sync ───────────────────────────────────────────────────────────
-    // Re-fetches end_time from the DB so that a timer reset by the admin
-    // (in another tab or by another admin) is reflected without a page reload.
 
     function syncFromServer() {
         fetch('/api/market-timing/', { credentials: 'same-origin' })
@@ -210,7 +172,6 @@
                 data.forEach(function (apiMarket) {
                     var openEl  = document.getElementById('admin-open-'  + apiMarket.id);
                     var closeEl = document.getElementById('admin-close-' + apiMarket.id);
-
                     if (openEl && apiMarket.open) {
                         if (apiMarket.open.end_time) openEl.dataset.end = apiMarket.open.end_time;
                         openEl.dataset.declared = apiMarket.open.declared ? '1' : '0';
@@ -220,14 +181,11 @@
                         closeEl.dataset.declared = apiMarket.close.declared ? '1' : '0';
                     }
                 });
-                tick(); // repaint immediately after sync
+                tick();
             })
-            .catch(function (err) {
-                console.warn('[AdminTimer] Server sync failed:', err);
-            });
+            .catch(function (err) { console.warn('[AdminTimer] Server sync failed:', err); });
     }
 
-    // ── Bootstrap ─────────────────────────────────────────────────────────────
     tick();
     setInterval(tick, 1000);
     setInterval(syncFromServer, 10000);

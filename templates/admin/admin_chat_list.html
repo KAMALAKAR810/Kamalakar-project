@@ -3,12 +3,26 @@
 </head>
 {% extends "admin_base.html" %}
 {% block content %}
-<div class="container-fluid px-0">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <h2 class="h3 mb-1 fw-bold text-dark">Admin Chat Support</h2>
-            <p class="text-muted small mb-0">Message users and provide real-time support</p>
+<div class="page-shell slide-in">
+
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h1 class="page-title"><i class="fas fa-comments"></i> Admin Chat Support</h1>
+            <p class="page-sub">Message users and provide real-time support</p>
         </div>
+        <div class="page-toolbar-actions">
+            <form method="GET" style="display:flex;gap:.5rem;align-items:center;">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Search username or ID…" class="form-control" style="width:200px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                {% if search_query %}
+                    <a href="{% url 'admin_chat_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+<<<<<<< HEAD
         
         <form method="GET" class="d-flex gap-2">
             <div class="input-group">
@@ -22,61 +36,71 @@
                 <a href="{% url 'admin_chat_list' %}" class="btn btn-light border">Clear</a>
             {% endif %}
         </form>
+=======
+>>>>>>> 11445e8 (try1)
     </div>
 
-    <div class="card border-0 shadow-sm overflow-hidden">
+    <div class="professional-card" style="padding:0;overflow:hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table professional-table align-middle mb-0">
+                <thead>
                     <tr>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">User Profile</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Username</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted text-center">User ID</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Phone Number</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Last Message</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted text-center">Status</th>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Actions</th>
+                        <th class="px-4">User</th>
+                        <th>Username</th>
+                        <th class="text-center">User ID</th>
+                        <th>Phone</th>
+                        <th>Last Message</th>
+                        <th class="text-center">Status</th>
+                        <th class="px-4 text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
                     <tr>
                         <td class="px-4">
+<<<<<<< HEAD
                             <div class="d-flex align-items-center">
                                 <div class="position-relative">
                                     <img src="{{ user.profile.profile_pic.url }}" class="rounded-circle border" alt="P">
+=======
+                            <div style="display:flex;align-items:center;gap:.75rem;">
+                                <div style="position:relative;flex-shrink:0;">
+                                    <img src="{{ user.profile.profile_pic.url }}"
+                                         style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--panel-border);"
+                                         alt="{{ user.username }}"
+                                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                    <div style="display:none;width:40px;height:40px;border-radius:50%;background:var(--primary-soft);color:var(--primary);font-weight:800;align-items:center;justify-content:center;">
+                                        {{ user.username|slice:":1"|upper }}
+                                    </div>
+>>>>>>> 11445e8 (try1)
                                     {% if user.unread_count > 0 %}
-                                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                                            <span class="visually-hidden">New alerts</span>
-                                        </span>
+                                        <span style="position:absolute;top:-3px;right:-3px;width:12px;height:12px;background:var(--danger);border-radius:50%;border:2px solid #fff;"></span>
                                     {% endif %}
                                 </div>
-                                <span class="ms-3 fw-bold text-dark">{{ user.first_name }}</span>
+                                <span class="fw-bold">{{ user.first_name|default:user.username }}</span>
                             </div>
                         </td>
-                        <td><span class="text-muted small">{{ user.username }}</span></td>
+                        <td class="small text-muted">{{ user.username }}</td>
                         <td class="text-center">
-                            <span class="badge bg-light text-dark border font-monospace px-2 py-1">{{ user.profile.user_code }}</span>
+                            <span class="badge" style="background:#f1f5f9;color:#334155;border:1px solid rgba(148,163,184,.3);font-family:monospace;padding:.35rem .65rem;">
+                                {{ user.profile.user_code }}
+                            </span>
                         </td>
-                        <td><span class="text-muted small">{{ user.profile.mobile }}</span></td>
-                        <td>
-                            <div class="small text-muted">
-                                {{ user.last_message_at|date:"d M, H:i"|default:"No messages" }}
-                            </div>
-                        </td>
+                        <td class="small text-muted">{{ user.profile.mobile }}</td>
+                        <td class="small text-muted">{{ user.last_message_at|date:"d M, H:i"|default:"No messages" }}</td>
                         <td class="text-center">
                             {% if user.unread_count > 0 %}
-                                <span class="badge bg-danger-subtle text-danger px-3 rounded-pill">
-                                    <i class="fas fa-envelope me-1"></i> {{ user.unread_count }} NEW
+                                <span class="badge-status badge-status-danger">
+                                    <i class="fas fa-envelope"></i> {{ user.unread_count }} NEW
                                 </span>
                             {% else %}
-                                <span class="badge bg-success-subtle text-success px-3 rounded-pill">
-                                    <i class="fas fa-check-double me-1"></i> READ
+                                <span class="badge-status badge-status-success">
+                                    <i class="fas fa-check-double"></i> READ
                                 </span>
                             {% endif %}
                         </td>
                         <td class="px-4 text-end">
-                            <a href="{% url 'admin_chat_user' user.id %}" class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm">
+                            <a href="{% url 'admin_chat_user' user.id %}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-comments me-1"></i> CHAT
                             </a>
                         </td>
@@ -84,10 +108,8 @@
                     {% empty %}
                     <tr>
                         <td colspan="7" class="text-center py-5 text-muted">
-                            <div class="mb-3 opacity-25">
-                                <i class="fas fa-comments fa-4x"></i>
-                            </div>
-                            <h5 class="fw-bold">No Chat History</h5>
+                            <i class="fas fa-comments" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
+                            <strong>No Chat History</strong>
                             <p class="small mb-0">Search for a user or go to User Management to start a conversation.</p>
                         </td>
                     </tr>
@@ -96,16 +118,15 @@
             </table>
         </div>
     </div>
-</div>
 
-<!-- Bottom Actions -->
-<div class="d-flex justify-content-center gap-3 mt-4 mb-5">
-    <button onclick="exportCurrentPage()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-file-export me-2"></i> EXPORT TO CSV
-    </button>
-    <button onclick="window.print()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-print me-2"></i> PRINT PAGE
-    </button>
+    <div style="display:flex;justify-content:center;gap:.75rem;margin-top:1.5rem;margin-bottom:2rem;">
+        <button onclick="exportCurrentPage()" class="btn btn-outline-secondary">
+            <i class="fas fa-file-export me-2"></i> Export to CSV
+        </button>
+        <button onclick="window.print()" class="btn btn-outline-secondary">
+            <i class="fas fa-print me-2"></i> Print Page
+        </button>
+    </div>
+
 </div>
 {% endblock %}
-

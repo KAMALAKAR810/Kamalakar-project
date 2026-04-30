@@ -4,16 +4,19 @@
 {% extends "admin_base.html" %}
 {% block content %}
 <div class="page-shell slide-in">
+
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h1 class="page-title"><i class="fas fa-bullhorn"></i> Declare Market Result</h1>
+            <p class="page-sub">Official panel for result declaration and automatic winner calculation</p>
+        </div>
+    </div>
+
     <div class="row">
-        <div class="col-xl-8 mx-auto">
-            <div class="mb-4">
-                <h2 class="page-title mb-1">
-                    <i class="fas fa-bullhorn text-primary me-2"></i> Declare Market Result
-                </h2>
-                <p class="page-sub">Official panel for result declaration and automatic winner calculation</p>
-            </div>
+        <div class="col-lg-8 mx-auto">
 
             <div class="professional-card">
+<<<<<<< HEAD
                 <div class="card-body p-4 p-md-5">
                     <form method="POST">
                         {% csrf_token %}
@@ -53,29 +56,62 @@
                                     <p class="small text-muted mt-2 mb-0 italic"><i class="fas fa-info-circle me-1"></i> Leave blank to skip Close update</p>
                                 </div>
                             </div>
+=======
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label class="form-label">Select Market</label>
+                        <select name="market_id" class="form-select" required>
+                            <option value="">-- Select Market --</option>
+                            {% for m in markets %}
+                                <option value="{{ m.id }}">{{ m.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="admin-grid admin-grid-2" style="margin-bottom:1.5rem;">
+                        <div style="padding:1.25rem;border-radius:1rem;border-left:4px solid var(--warning);background:#fffbeb;">
+                            <h6 style="font-weight:800;color:var(--warning);margin:0 0 .75rem;display:flex;align-items:center;gap:.5rem;">
+                                <i class="fas fa-sun"></i> OPEN SECTION
+                            </h6>
+                            <label class="form-label">Result (Patti-Single)</label>
+                            <input type="text" name="open_result" class="form-control" placeholder="e.g. 123-6">
+                            <small class="input-help"><i class="fas fa-info-circle"></i> Leave blank to skip Open update</small>
                         </div>
 
-                        <div class="alert alert-professional alert-warning mb-4">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <div class="small">
-                                <span class="fw-bold d-block mb-1">IMPORTANT NOTICE:</span>
-                                Declaring result will automatically process all bets for this market. 
-                                Winners will be credited to their wallets after system verification.
-                            </div>
+                        <div style="padding:1.25rem;border-radius:1rem;border-left:4px solid var(--primary);background:#eff4ff;">
+                            <h6 style="font-weight:800;color:var(--primary);margin:0 0 .75rem;display:flex;align-items:center;gap:.5rem;">
+                                <i class="fas fa-moon"></i> CLOSE SECTION
+                            </h6>
+                            <label class="form-label">Result (Single-Patti)</label>
+                            <input type="text" name="close_result" class="form-control" placeholder="e.g. 7-601">
+                            <small class="input-help"><i class="fas fa-info-circle"></i> Leave blank to skip Close update</small>
+>>>>>>> 11445e8 (try1)
                         </div>
+                    </div>
 
-                        <button type="submit" class="btn btn-primary-gradient btn-lg w-100 py-3 fw-bold shadow rounded-pill border-0 mt-2">
-                            <i class="fas fa-check-circle me-2"></i> PUBLISH RESULTS & NOTIFY WINNERS
-                        </button>
-                    </form>
-                </div>
+                    <div class="alert alert-professional" style="background:#fff8e1;border-color:rgba(217,119,6,.25);margin-bottom:1.5rem;">
+                        <i class="fas fa-exclamation-triangle" style="color:var(--warning);"></i>
+                        <div>
+                            <strong style="display:block;margin-bottom:.25rem;">IMPORTANT NOTICE</strong>
+                            <span class="small">Declaring result will automatically process all bets for this market.
+                            Winners will be credited to their wallets after system verification.</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-gradient btn-lg w-100">
+                        <i class="fas fa-check-circle me-2"></i> PUBLISH RESULTS &amp; NOTIFY WINNERS
+                    </button>
+                </form>
             </div>
 
-            <div class="mt-4 text-center">
-                <a href="{% url 'manage_markets' %}" class="btn btn-link text-muted text-decoration-none small">
+            <div style="text-align:center;margin-top:1.25rem;">
+                <a href="{% url 'manage_markets' %}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-arrow-left me-1"></i> Back to Market Management
                 </a>
             </div>
+
         </div>
     </div>
 </div>

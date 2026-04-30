@@ -3,14 +3,21 @@
 </head>
 {% extends "base.html" %}
 {% block content %}
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 11445e8 (try1)
 <div class="chat-container">
     <div class="chat-header">
         <img src="{{ other_user.profile.profile_pic.url }}" alt="P">
         <div>
             <span>{{ other_user.first_name }}</span><br>
+<<<<<<< HEAD
             <small>@{{ other_user.username }}</small>
+=======
+            <small style="font-weight:400;font-size:11px;">@{{ other_user.username }}</small>
+>>>>>>> 11445e8 (try1)
         </div>
     </div>
     
@@ -38,7 +45,11 @@
                     <div class="message-time">
                         {{ msg.created_at|date:"H:i" }}
                         {% if msg.sender == user %}
+<<<<<<< HEAD
                             <i class="fas fa-check-double"></i>
+=======
+                            <i class="fas fa-check-double {% if msg.is_read %}msg-read{% else %}msg-unread{% endif %}"></i>
+>>>>>>> 11445e8 (try1)
                         {% endif %}
                     </div>
                 </div>
@@ -50,12 +61,20 @@
         {% csrf_token %}
         
         {% if user.is_superuser %}
+<<<<<<< HEAD
         <div>
+=======
+        <div class="chat-auto-delete-row">
+>>>>>>> 11445e8 (try1)
             <label class="switch">
                 <input type="checkbox" name="auto_delete">
                 <span class="slider"></span>
             </label>
+<<<<<<< HEAD
             <span>AUTO-DELETE (30 MIN)</span>
+=======
+            <span class="chat-auto-delete-label">AUTO-DELETE (30 MIN)</span>
+>>>>>>> 11445e8 (try1)
         </div>
         {% endif %}
 
@@ -63,13 +82,20 @@
             <label for="image-upload" class="icon-btn">
                 <i class="fas fa-paperclip"></i>
             </label>
+<<<<<<< HEAD
             <input type="file" name="image" id="image-upload" accept="image/*">
             
+=======
+            <input type="file" name="image" id="image-upload" class="d-none" accept="image/*">
+>>>>>>> 11445e8 (try1)
             <input type="text" name="content" id="chat-content" class="chat-input" placeholder="Type a message...">
-            
             <button type="submit" class="send-btn"><i class="fa fa-paper-plane"></i></button>
         </div>
+<<<<<<< HEAD
         <div id="file-preview">
+=======
+        <div id="file-preview" class="chat-file-preview">
+>>>>>>> 11445e8 (try1)
             <i class="fas fa-image"></i> Image selected: <span id="file-name"></span>
         </div>
     </form>

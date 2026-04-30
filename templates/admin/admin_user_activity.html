@@ -4,57 +4,70 @@
 {% extends "admin_base.html" %}
 
 {% block content %}
-<div class="container-fluid px-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="h3 mb-1 fw-bold text-dark">User Activity Log</h2>
-            <p class="text-muted small mb-0">Monitor system actions and security logs</p>
+<div class="page-shell slide-in">
+
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h1 class="page-title"><i class="fas fa-list-check"></i> Activity Log</h1>
+            <p class="page-sub">Monitor system actions and security logs</p>
+        </div>
+        <div class="page-toolbar-actions">
+            <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm overflow-hidden">
+    <div class="professional-card" style="padding:0;overflow:hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table professional-table align-middle mb-0">
+                <thead>
                     <tr>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted">User</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted text-center">User ID</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Activity Type</th>
-                        <th class="border-0 py-3 small text-uppercase text-muted">Description</th>
-                        <th class="border-0 px-4 py-3 small text-uppercase text-muted text-end">Date & Time</th>
+                        <th class="px-4">User</th>
+                        <th class="text-center">User ID</th>
+                        <th>Activity Type</th>
+                        <th>Description</th>
+                        <th class="px-4 text-end">Date &amp; Time</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for act in activities %}
                     <tr>
                         <td class="px-4">
+<<<<<<< HEAD
                             <div class="d-flex align-items-center">
                                 <div class="bg-light rounded-circle p-2 me-2 d-flex align-items-center justify-content-center">
                                     <i class="fas fa-user-shield text-primary small"></i>
+=======
+                            <div style="display:flex;align-items:center;gap:.6rem;">
+                                <div style="width:32px;height:32px;border-radius:50%;background:#eff4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="fas fa-user-shield" style="color:var(--primary);font-size:.75rem;"></i>
+>>>>>>> 11445e8 (try1)
                                 </div>
                                 <span class="fw-bold">{{ act.user.username }}</span>
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-light text-dark border font-monospace px-2 py-1">{{ act.user.profile.user_code }}</span>
+                            <span class="badge" style="background:#f1f5f9;color:#334155;border:1px solid rgba(148,163,184,.3);font-family:monospace;padding:.35rem .65rem;">
+                                {{ act.user.profile.user_code }}
+                            </span>
                         </td>
                         <td>
-                            <span class="badge {% if act.activity_type == 'BET_DELETE' %}bg-danger-subtle text-danger{% elif act.activity_type == 'CLEANUP' %}bg-info-subtle text-info{% else %}bg-secondary-subtle text-secondary{% endif %} px-3 py-2 rounded-pill small fw-bold">
+                            <span class="badge-status {% if act.activity_type == 'BET_DELETE' %}badge-status-danger{% elif act.activity_type == 'CLEANUP' %}badge-status-pending{% else %}badge-status-success{% endif %}">
                                 {{ act.activity_type }}
                             </span>
                         </td>
-                        <td><span class="text-muted small">{{ act.description }}</span></td>
-                        <td class="px-4 text-end">
-                            <span class="small text-muted">{{ act.created_at|date:"d M Y, H:i:s" }}</span>
-                        </td>
+                        <td class="small text-muted">{{ act.description }}</td>
+                        <td class="px-4 text-end small text-muted">{{ act.created_at|date:"d M Y, H:i:s" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="5" class="text-center py-5 text-muted">
-                            <div class="mb-3 opacity-25">
-                                <i class="fas fa-history fa-4x"></i>
-                            </div>
-                            <h5 class="fw-bold">No Activity Logs</h5>
+                            <i class="fas fa-history" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
+                            <strong>No Activity Logs</strong>
                             <p class="small mb-0">No system activities have been recorded yet.</p>
                         </td>
                     </tr>
@@ -63,16 +76,10 @@
             </table>
         </div>
     </div>
+
 </div>
 
-<!-- Bottom Actions -->
-<div class="d-flex justify-content-center gap-3 mt-4 mb-5">
-    <button onclick="exportCurrentPage()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-file-export me-2"></i> EXPORT TO CSV
-    </button>
-    <button onclick="window.print()" class="btn btn-outline-secondary px-4 fw-bold">
-        <i class="fas fa-print me-2"></i> PRINT PAGE
-    </button>
-</div>
+<script>
+function exportCurrentPage() { alert("Exporting to CSV…"); }
+</script>
 {% endblock %}
-

@@ -5,12 +5,19 @@
 {% load static %}
 
 {% block content %}
+<<<<<<< HEAD
 
 
 <div class="auth-container">
   <div class="auth-card">
     <div>
         <i class="fas fa-envelope-open-text"></i>
+=======
+<div class="auth-container">
+  <div class="otp-card">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <i class="fas fa-envelope-open-text" style="font-size: 48px; color: var(--primary);"></i>
+>>>>>>> 11445e8 (try1)
     </div>
     <h2>Verify Email</h2>
     <p class="auth-subtitle">
@@ -22,6 +29,7 @@
       <input
         type="text"
         name="otp"
+        class="otp-input"
         inputmode="numeric"
         autocomplete="one-time-code"
         placeholder="000000"
@@ -30,7 +38,7 @@
         required
         autofocus
       >
-      <button type="submit" class="auth-btn">Verify Account</button>
+      <button type="submit" class="otp-btn">Verify Account</button>
     </form>
 
     <div class="resend-container">

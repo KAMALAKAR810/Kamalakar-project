@@ -3,23 +3,26 @@
 </head>
 {% extends "base.html" %}
 {% block content %}
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 11445e8 (try1)
 <div class="payment-shell">
     <h2>Add Wallet Points</h2>
-    <div class="form-group">
+    <div class="payment-form-group">
         <label>Username</label>
         <input type="text" value="{{ username }}" readonly>
     </div>
-    <div class="form-group">
+    <div class="payment-form-group">
         <label>User ID</label>
         <input type="text" value="{{ user_code }}" readonly>
     </div>
-    <div class="form-group">
+    <div class="payment-form-group">
         <label>Mobile Number</label>
         <input type="text" value="{{ mobile }}" readonly>
     </div>
-    <div class="form-group">
+    <div class="payment-form-group">
         <label>Amount to Pay (₹)</label>
         <input type="number" id="pay-amount" placeholder="Enter amount e.g. 1000" min="100">
     </div>
@@ -27,8 +30,13 @@
     <form id="amount-form" method="POST" action="{% url 'payment' %}">
         {% csrf_token %}
         <input type="hidden" name="amount" id="hidden-amount">
+<<<<<<< HEAD
         <button type="submit" class="gold-btn">
             GENERATE QR & PAY
+=======
+        <button type="submit" class="gold-btn" style="width:100%;margin-top:15px;">
+            GENERATE QR &amp; PAY
+>>>>>>> 11445e8 (try1)
         </button>
     </form>
 </div>

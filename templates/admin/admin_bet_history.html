@@ -4,22 +4,22 @@
 {% extends "admin_base.html" %}
 {% block content %}
 <div class="page-shell slide-in">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="page-title mb-1">
-                <i class="fas fa-history text-primary me-2"></i> User Bet History
-            </h2>
+
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h1 class="page-title"><i class="fas fa-history"></i> User Bet History</h1>
             <p class="page-sub">Comprehensive list of all user bets across markets</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'admin_bet_history' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+        <div class="page-toolbar-actions">
+            <a href="{% url 'admin_bet_history' %}" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-sync-alt me-1"></i> Refresh
             </a>
         </div>
     </div>
 
-    <!-- Filters Section -->
+    <!-- Filters -->
     <div class="professional-card mb-4">
+<<<<<<< HEAD
         <div class="card-body p-4">
             <form method="GET" class="row g-3 align-items-end">
                 <div class="col-12 col-md-3">
@@ -29,42 +29,64 @@
                 <div class="col-12 col-md-3">
                     <label class="form-label small fw-bold text-uppercase text-muted mb-2">Market</label>
                     <select name="market" class="form-select form-select-sm border-0 shadow-sm px-3">
+=======
+        <form method="GET">
+            <div class="row" style="gap:.75rem 0;">
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Market</label>
+                    <select name="market" class="form-select">
+>>>>>>> 11445e8 (try1)
                         <option value="">All Markets</option>
                         {% for m in markets %}
                             <option value="{{ m.id }}" {% if selected_market == m.id|stringformat:"s" %}selected{% endif %}>{{ m.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
+<<<<<<< HEAD
                 <div class="col-12 col-md-2">
                     <label class="form-label small fw-bold text-uppercase text-muted mb-2">Section</label>
                     <select name="session" class="form-select form-select-sm border-0 shadow-sm px-3">
+=======
+                <div class="col-sm-6 col-md-2">
+                    <label class="form-label">Section</label>
+                    <select name="session" class="form-select">
+>>>>>>> 11445e8 (try1)
                         <option value="">All Sections</option>
-                        <option value="OPEN" {% if selected_session == 'OPEN' %}selected{% endif %}>Open</option>
+                        <option value="OPEN"  {% if selected_session == 'OPEN' %}selected{% endif %}>Open</option>
                         <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>Close</option>
                     </select>
                 </div>
+<<<<<<< HEAD
                 <div class="col-12 col-md-2">
                     <label class="form-label small fw-bold text-uppercase text-muted mb-2">User</label>
                     <select name="user" class="form-select form-select-sm border-0 shadow-sm px-3">
+=======
+                <div class="col-sm-6 col-md-2">
+                    <label class="form-label">User</label>
+                    <select name="user" class="form-select">
+>>>>>>> 11445e8 (try1)
                         <option value="">All Users</option>
                         {% for u in all_users %}
                             <option value="{{ u.id }}" {% if selected_user == u.id|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-12 col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold rounded-pill shadow-sm">
+                <div class="col-sm-6 col-md-2" style="display:flex;align-items:flex-end;gap:.5rem;">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
                         <i class="fas fa-filter me-1"></i> Filter
                     </button>
-                    <a href="{% url 'admin_bet_history' %}" class="btn btn-light border-0 btn-sm w-100 fw-bold rounded-pill shadow-sm">
-                        Reset
-                    </a>
+                    <a href="{% url 'admin_bet_history' %}" class="btn btn-outline-secondary btn-sm w-100">Reset</a>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <div class="professional-card overflow-hidden">
+    <!-- Table -->
+    <div class="professional-card" style="padding:0;overflow:hidden;">
         <div class="table-responsive">
             <table class="table professional-table align-middle mb-0">
                 <thead>
@@ -86,39 +108,49 @@
                             <span class="fw-bold text-primary">{{ bet.user.profile.user_code }}</span>
                         </td>
                         <td>
+<<<<<<< HEAD
                             <div class="d-flex align-items-center">
                                 <div class="bg-light rounded-circle p-2 me-2 d-flex align-items-center justify-content-center shadow-sm">
                                     <i class="fas fa-user text-muted small"></i>
+=======
+                            <div style="display:flex;align-items:center;gap:.6rem;">
+                                <div style="width:32px;height:32px;border-radius:50%;background:#eff4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="fas fa-user" style="color:var(--primary);font-size:.75rem;"></i>
+>>>>>>> 11445e8 (try1)
                                 </div>
-                                <span class="fw-medium">{{ bet.user.username }}</span>
+                                <span class="fw-bold">{{ bet.user.username }}</span>
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-info-subtle text-info rounded-pill px-3 border border-info-subtle">{{ bet.market.name }}</span>
+                            <span class="badge" style="background:rgba(14,165,233,.12);color:#0ea5e9;border:1px solid rgba(14,165,233,.25);border-radius:999px;padding:.35rem .75rem;">
+                                {{ bet.market.name }}
+                            </span>
                         </td>
                         <td class="small text-muted">{{ bet.created_at|date:"d M Y, H:i" }}</td>
                         <td>
-                            <span class="badge {% if bet.session == 'OPEN' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} rounded-pill px-3 border border-{% if bet.session == 'OPEN' %}success{% else %}warning{% endif %}-subtle">
-                                {{ bet.session }}
-                            </span>
+                            {% if bet.session == 'OPEN' %}
+                                <span class="badge badge-success">OPEN</span>
+                            {% else %}
+                                <span class="badge" style="background:rgba(217,119,6,.12);color:var(--warning);border:1px solid rgba(217,119,6,.25);border-radius:999px;padding:.35rem .75rem;">CLOSE</span>
+                            {% endif %}
                         </td>
-                        <td><span class="badge bg-dark text-white rounded-pill px-3">{{ bet.number }}</span></td>
-                        <td class="fw-bold text-dark">₹{{ bet.amount }}</td>
+                        <td>
+                            <span class="badge" style="background:#0f172a;color:#fff;border-radius:999px;padding:.35rem .75rem;">{{ bet.number }}</span>
+                        </td>
+                        <td class="fw-bold">₹{{ bet.amount }}</td>
                         <td class="px-4">
                             <span class="badge-status {% if bet.status == 'WIN' %}badge-status-success{% elif bet.status == 'LOSS' %}badge-status-danger{% else %}badge-status-pending{% endif %}">
-                                <i class="fas {% if bet.status == 'WIN' %}fa-check-circle{% elif bet.status == 'LOSS' %}fa-times-circle{% else %}fa-clock{% endif %} me-1"></i>
+                                <i class="fas {% if bet.status == 'WIN' %}fa-check-circle{% elif bet.status == 'LOSS' %}fa-times-circle{% else %}fa-clock{% endif %}"></i>
                                 {{ bet.status }}
                             </span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5">
-                            <div class="py-4">
-                                <i class="fas fa-search fa-4x mb-3 text-light-emphasis opacity-25"></i>
-                                <h5 class="text-muted fw-normal">No bet history found</h5>
-                                <p class="text-muted small mb-0">Try adjusting your filters or check back later</p>
-                            </div>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fas fa-search" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
+                            <strong>No bet history found</strong>
+                            <p class="small mb-0">Try adjusting your filters or check back later</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -126,5 +158,6 @@
             </table>
         </div>
     </div>
+
 </div>
 {% endblock %}

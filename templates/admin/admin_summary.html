@@ -5,6 +5,7 @@
 {% load static %}
 
 {% block content %}
+<<<<<<< HEAD
 <div class="row g-4 mb-4">
     <div class="col-12 col-sm-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
@@ -79,135 +80,177 @@
         </div>
     </div>
 </div>
+=======
+<div class="page-shell slide-in">
+>>>>>>> 11445e8 (try1)
 
-<div class="row g-4">
-    <!-- Main Actions -->
-    <div class="col-12 col-lg-8">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0 fw-bold">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'declare_result' %}" class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-bullhorn d-block mb-2 fs-4"></i>
-                            Declare Result
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'admin_withdrawal_management' %}" class="btn btn-outline-danger w-100 py-3 position-relative">
-                            <i class="fas fa-money-bill-wave d-block mb-2 fs-4"></i>
-                            Withdrawals
-                            {% if pending_withdrawals %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                {{ pending_withdrawals }}
-                            </span>
-                            {% endif %}
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'admin_user_management' %}" class="btn btn-outline-info w-100 py-3">
-                            <i class="fas fa-user-plus d-block mb-2 fs-4"></i>
-                            New Users
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'admin_security_settings' %}" class="btn btn-outline-dark w-100 py-3">
-                            <i class="fas fa-shield-alt d-block mb-2 fs-4"></i>
-                            Security
-                        </a>
-                    </div>
+    <!-- Stats Row -->
+    <div class="admin-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:1.5rem;">
+
+        <div class="professional-card border-top-primary" style="padding:1.25rem;">
+            <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:.75rem;">
+                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="small text-muted fw-bold uppercase tracking-wider">Total Users</div>
+                    <div style="font-size:1.6rem;font-weight:900;line-height:1;">{{ total_users }}</div>
                 </div>
             </div>
+            <div class="progress" style="height:4px;"><div class="progress-bar" style="width:100%;"></div></div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold">Recent Transactions</h5>
-                <a href="{% url 'admin_report' %}" class="btn btn-sm btn-light">View All</a>
+        <div class="professional-card border-top-success" style="padding:1.25rem;">
+            <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:.75rem;">
+                <div class="stat-icon success"><i class="fas fa-coins"></i></div>
+                <div>
+                    <div class="small text-muted fw-bold uppercase tracking-wider">Today's Collection</div>
+                    <div style="font-size:1.6rem;font-weight:900;line-height:1;">₹{{ today_collection }}</div>
+                </div>
             </div>
-            <div class="card-body p-0">
+            <div class="progress" style="height:4px;"><div class="progress-bar bg-success" style="width:100%;"></div></div>
+        </div>
+
+        <div class="professional-card border-top-warning" style="padding:1.25rem;">
+            <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:.75rem;">
+                <div class="stat-icon warning"><i class="fas fa-hand-holding-usd"></i></div>
+                <div>
+                    <div class="small text-muted fw-bold uppercase tracking-wider">Today's Payouts</div>
+                    <div style="font-size:1.6rem;font-weight:900;line-height:1;">₹{{ today_payouts }}</div>
+                </div>
+            </div>
+            <div class="progress" style="height:4px;"><div class="progress-bar bg-warning" style="width:100%;"></div></div>
+        </div>
+
+        <div class="professional-card {% if today_profit >= 0 %}border-top-success{% else %}border-top-danger{% endif %}" style="padding:1.25rem;">
+            <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:.75rem;">
+                <div class="stat-icon {% if today_profit >= 0 %}success{% else %}danger{% endif %}"><i class="fas fa-chart-line"></i></div>
+                <div>
+                    <div class="small text-muted fw-bold uppercase tracking-wider">Net P/L</div>
+                    <div style="font-size:1.6rem;font-weight:900;line-height:1;" class="{% if today_profit >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ today_profit }}</div>
+                </div>
+            </div>
+            <div class="progress" style="height:4px;"><div class="progress-bar {% if today_profit >= 0 %}bg-success{% else %}bg-danger{% endif %}" style="width:100%;"></div></div>
+        </div>
+
+    </div>
+
+    <!-- Main Grid -->
+    <div class="admin-grid admin-grid-2" style="align-items:start;">
+
+        <!-- Left: Quick Actions + Transactions -->
+        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+            <div class="professional-card">
+                <h5 style="font-weight:800;margin:0 0 1rem;">Quick Actions</h5>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;">
+                    <a href="{% url 'declare_result' %}" class="btn btn-outline-primary" style="flex-direction:column;gap:.4rem;padding:1rem;">
+                        <i class="fas fa-bullhorn" style="font-size:1.4rem;"></i>
+                        <span>Declare Result</span>
+                    </a>
+                    <a href="{% url 'admin_withdrawal_management' %}" class="btn btn-outline-danger" style="flex-direction:column;gap:.4rem;padding:1rem;position:relative;">
+                        <i class="fas fa-money-bill-wave" style="font-size:1.4rem;"></i>
+                        <span>Withdrawals</span>
+                        {% if pending_withdrawals %}
+                            <span style="position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:50%;width:20px;height:20px;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;">{{ pending_withdrawals }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'admin_user_management' %}" class="btn btn-outline-secondary" style="flex-direction:column;gap:.4rem;padding:1rem;">
+                        <i class="fas fa-user-plus" style="font-size:1.4rem;"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{% url 'admin_security_settings' %}" class="btn btn-outline-secondary" style="flex-direction:column;gap:.4rem;padding:1rem;">
+                        <i class="fas fa-shield-alt" style="font-size:1.4rem;"></i>
+                        <span>Security</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="professional-card" style="padding:0;overflow:hidden;">
+                <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--panel-border);display:flex;justify-content:space-between;align-items:center;">
+                    <h5 style="font-weight:800;margin:0;">Recent Transactions</h5>
+                    <a href="{% url 'admin_report' %}" class="btn btn-outline-secondary btn-sm">View All</a>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
+                    <table class="table professional-table align-middle mb-0">
+                        <thead>
                             <tr>
-                                <th class="ps-4">User</th>
+                                <th class="px-4">User</th>
                                 <th>Type</th>
                                 <th>Amount</th>
-                                <th class="pe-4 text-end">Time</th>
+                                <th class="px-4 text-end">Time</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for txn in recent_txns %}
                             <tr>
+<<<<<<< HEAD
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-secondary-subtle rounded-circle d-flex align-items-center justify-content-center me-2">
                                             <i class="fas fa-user text-secondary small"></i>
+=======
+                                <td class="px-4">
+                                    <div style="display:flex;align-items:center;gap:.6rem;">
+                                        <div style="width:30px;height:30px;border-radius:50%;background:#eff4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="fas fa-user" style="color:var(--primary);font-size:.7rem;"></i>
+>>>>>>> 11445e8 (try1)
                                         </div>
-                                        <span class="fw-medium">{{ txn.wallet.user.username }}</span>
+                                        <span class="fw-bold">{{ txn.wallet.user.username }}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill 
-                                        {% if txn.txn_type == 'WIN' %}bg-success-subtle text-success
-                                        {% elif txn.txn_type == 'BET' %}bg-primary-subtle text-primary
-                                        {% elif txn.txn_type == 'DEPOSIT' %}bg-warning-subtle text-warning
-                                        {% else %}bg-danger-subtle text-danger{% endif %}">
+                                    <span class="badge-status {% if txn.txn_type == 'WIN' %}badge-status-success{% elif txn.txn_type == 'BET' %}badge-status-pending{% elif txn.txn_type == 'DEPOSIT' %}badge-warning{% else %}badge-status-danger{% endif %}">
                                         {{ txn.txn_type }}
                                     </span>
                                 </td>
-                                <td><span class="fw-bold">₹{{ txn.amount }}</span></td>
-                                <td class="pe-4 text-end text-muted small">{{ txn.created_at|date:"H:i" }}</td>
+                                <td class="fw-bold">₹{{ txn.amount }}</td>
+                                <td class="px-4 text-end small text-muted">{{ txn.created_at|date:"H:i" }}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4" class="text-center py-4 text-muted">No transactions recorded today</td></tr>
+                            <tr><td colspan="4" class="text-center py-4 text-muted">No transactions today</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Sidebar Info -->
-    <div class="col-12 col-lg-4">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0 fw-bold">Market Performance</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for item in market_summary %}
-                    <div class="list-group-item py-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold">{{ item.market__name }}</span>
-                            <span class="badge bg-primary-subtle text-primary rounded-pill">{{ item.game_type }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>{{ item.count }} Bets</span>
-                            <span class="fw-bold text-dark">₹{{ item.total_amount }}</span>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="p-4 text-center text-muted">No market data available for today</div>
-                    {% endfor %}
+        </div>
+
+        <!-- Right: Market Performance + Cleanup -->
+        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+            <div class="professional-card" style="padding:0;overflow:hidden;">
+                <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--panel-border);">
+                    <h5 style="font-weight:800;margin:0;">Market Performance</h5>
                 </div>
+                {% for item in market_summary %}
+                <div style="padding:.85rem 1.25rem;border-bottom:1px solid var(--panel-border);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;">
+                        <span class="fw-bold">{{ item.market__name }}</span>
+                        <span class="badge-status badge-status-pending">{{ item.game_type }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;" class="small text-muted">
+                        <span>{{ item.count }} Bets</span>
+                        <span class="fw-bold text-dark">₹{{ item.total_amount }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="padding:2rem;text-align:center;" class="text-muted">No market data for today</div>
+                {% endfor %}
             </div>
-        </div>
 
-        <div class="card border-0 shadow-sm border-start border-danger border-4">
-            <div class="card-body">
-                <h6 class="card-title fw-bold text-danger mb-2"><i class="fas fa-trash-alt me-2"></i> System Cleanup</h6>
-                <p class="card-text small text-muted mb-3">Permanently delete data older than 30 days to optimize system performance.</p>
+            <div class="professional-card border-top-danger">
+                <h5 style="font-weight:800;color:var(--danger);margin:0 0 .5rem;"><i class="fas fa-trash-alt me-2"></i>System Cleanup</h5>
+                <p class="small text-muted" style="margin-bottom:1rem;">Permanently delete data older than 30 days to optimise performance.</p>
                 <form method="POST" onsubmit="return confirm('ARE YOU ABSOLUTELY SURE? This cannot be undone.')">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="cleanup_30days">
-                    <button type="submit" class="btn btn-danger btn-sm w-100">Run 30-Day Cleanup</button>
+                    <button type="submit" class="btn btn-danger w-100">Run 30-Day Cleanup</button>
                 </form>
             </div>
+
         </div>
+
     </div>
+
 </div>
 {% endblock %}

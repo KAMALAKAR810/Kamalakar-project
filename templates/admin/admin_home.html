@@ -1,0 +1,20 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block content %}
+{# admin_home redirects to admin_summary in views.py — this template is a fallback only #}
+<div class="page-shell slide-in">
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h1 class="page-title"><i class="fas fa-house"></i> Admin Home</h1>
+            <p class="page-sub">Redirecting to dashboard…</p>
+        </div>
+    </div>
+    <div class="professional-card text-center" style="padding:3rem;">
+        <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);margin-bottom:1rem;display:block;"></i>
+        <p class="text-muted">Taking you to the dashboard…</p>
+        <a href="{% url 'admin_summary' %}" class="btn btn-primary-gradient mt-2">Go to Dashboard</a>
+    </div>
+</div>
+<script>window.location.replace("{% url 'admin_summary' %}");</script>
+{% endblock %}

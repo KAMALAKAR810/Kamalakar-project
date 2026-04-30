@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <head>
     
 </head>
@@ -176,3 +177,136 @@
  </section> 
   
  {% endblock %} 
+=======
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+{% if user.is_authenticated and user.is_superuser %}
+<div class="admin-banner">
+    <i class="fas fa-shield-alt"></i>
+    You are logged in as <strong>Super Admin</strong>.
+    <a href="{% url 'admin_summary' %}" class="admin-banner-link">
+        Go to Admin Dashboard <i class="fas fa-arrow-right"></i>
+    </a>
+</div>
+{% endif %}
+
+<section class="hero-section">
+    <h1>Predict. Win. <span>Prosper.</span></h1>
+    <p>
+        Welcome to <strong>ChangeLifeWithNumbers</strong>, the most secure and
+        trusted platform for your number game predictions. Start your journey today!
+    </p>
+    <div class="cta-buttons">
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn-gold">Create Free Account</a>
+        {% else %}
+            <a href="#how-to-play" class="btn-gold">How to Play</a>
+        {% endif %}
+        <a href="{{ support_whatsapp_url }}" target="_blank" rel="noopener" class="btn-gold btn-gold-outline">
+            <i class="fab fa-whatsapp"></i> Contact Support
+        </a>
+    </div>
+</section>
+
+<section id="how-to-play" class="faq-section">
+    <div class="section-header">
+        <h2>How to Play</h2>
+    </div>
+    <div class="info-card">
+        <ol class="how-to-list">
+            <li><strong>Login to your account:</strong> Ensure you are logged in to access the betting markets.</li>
+            <li><strong>Add Balance:</strong> Go to the <a href="{% url 'payment' %}" class="link-primary">Payment</a> page to add points to your wallet.</li>
+            <li><strong>Select a Game:</strong> Choose from Single, Jodi, or Patti games from the navigation menu.</li>
+            <li><strong>Choose Market &amp; Session:</strong> Select your preferred market (e.g., Kalyan) and session (Open or Close).</li>
+            <li><strong>Enter Numbers &amp; Amounts:</strong> Enter the amount you want to bet against your chosen numbers.</li>
+            <li><strong>Place Prediction:</strong> Click on "Place Predictions" to confirm your bet.</li>
+            <li><strong>Check History:</strong> Monitor your bets and winnings in the <a href="{% url 'bet_history' %}" class="link-primary">History</a> section.</li>
+        </ol>
+    </div>
+</section>
+
+<div class="info-grid">
+
+    <div class="info-card info-card-full">
+        <h2><i class="fas fa-bullhorn"></i> NOTICE BOARD</h2>
+        <h3 class="notice-heading notice-heading-primary">🎯 Market Game Rates</h3>
+        <ul class="notice-list">
+            <li class="notice-item">• Single: 10 × 90</li>
+            <li class="notice-item">• Jodi: 10 × 900</li>
+            <li class="notice-item">• Single Patti: 1400</li>
+            <li class="notice-item">• Double Patti: 2800</li>
+            <li class="notice-item">• Triple Patti: 3000</li>
+        </ul>
+        <h3 class="notice-heading notice-heading-danger">⚠️ General Instructions</h3>
+        <ul class="notice-list">
+            <li class="notice-item">• Minimum Deposit: ₹100</li>
+            <li class="notice-item">• Minimum Withdrawal: ₹100</li>
+            <li class="notice-item">• Markets will close 10 minutes before the result announcement time.</li>
+            <li class="notice-item">• Once a bet is placed, it can be modified up to 3 times only.</li>
+            <li class="notice-item">• For queries, contact the Admin via Chat or WhatsApp only.</li>
+            <li class="notice-item notice-item-danger">• ❌ Do not call the Admin.</li>
+            <li class="notice-item">• After payment via QR code, share the screenshot on WhatsApp or Chat.</li>
+            <li class="notice-item">• Points will be credited after successful payment verification.</li>
+            <li class="notice-item">• Winning amount will be credited within 2 hours after market closure.</li>
+            <li class="notice-item">• Any holiday or timing changes will be updated here.</li>
+        </ul>
+    </div>
+
+    <div class="info-card info-card-full info-card-hindi">
+        <h2><i class="fas fa-bullhorn"></i> सूचना बोर्ड</h2>
+        <h3 class="notice-heading notice-heading-primary">🎯 मार्केट गेम रेट्स</h3>
+        <ul class="notice-list">
+            <li class="notice-item notice-item-subtle">• सिंगल: 10 × 90</li>
+            <li class="notice-item notice-item-subtle">• जोड़ी: 10 × 900</li>
+            <li class="notice-item notice-item-subtle">• सिंगल पत्ती: 1400</li>
+            <li class="notice-item notice-item-subtle">• डबल पत्ती: 2800</li>
+            <li class="notice-item notice-item-subtle">• ट्रिपल पत्ती: 3000</li>
+        </ul>
+        <h3 class="notice-heading notice-heading-danger">⚠️ सामान्य निर्देश</h3>
+        <ul class="notice-list">
+            <li class="notice-item">• न्यूनतम जमा (Deposit): ₹100</li>
+            <li class="notice-item">• न्यूनतम निकासी (Withdrawal): ₹100</li>
+            <li class="notice-item">• मार्केट रिजल्ट घोषित होने से 10 मिनट पहले बंद हो जाएगा।</li>
+            <li class="notice-item">• एक बार बेट लगाने के बाद, इसे अधिकतम 3 बार ही बदला जा सकता है।</li>
+            <li class="notice-item">• केवल चैट या व्हाट्सएप के माध्यम से एडमिन से संपर्क करें।</li>
+            <li class="notice-item notice-item-danger">• ❌ एडमिन को कॉल न करें।</li>
+            <li class="notice-item">• QR कोड से भुगतान के बाद स्क्रीनशॉट शेयर करें।</li>
+            <li class="notice-item">• जीत की राशि 2 घंटे के भीतर वॉलेट में जुड़ जाएगी।</li>
+        </ul>
+    </div>
+
+</div>
+
+<section>
+    <div class="section-header">
+        <h2>Live Market Results</h2>
+        <a href="{% url 'display' %}" class="view-all">View All Markets <i class="fas fa-arrow-right"></i></a>
+    </div>
+    {% include "display.html" %}
+</section>
+
+<section class="faq-section">
+    <div class="section-header">
+        <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="info-grid">
+        <div class="faq-item">
+            <h3>Is ChangeLifeWithNumbers safe?</h3>
+            <p>Yes. We use industry-standard encryption and professional-grade security protocols to protect your data and transactions.</p>
+        </div>
+        <div class="faq-item">
+            <h3>How do I start playing?</h3>
+            <p>Register for a free account, add points to your wallet via our secure payment gateway, and start predicting on any active market.</p>
+        </div>
+        <div class="faq-item">
+            <h3>What are the support hours?</h3>
+            <p>Our support team is available 24/7 via the in-app chat or WhatsApp to assist you with any queries.</p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+>>>>>>> 11445e8 (try1)
