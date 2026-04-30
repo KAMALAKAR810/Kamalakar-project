@@ -1146,29 +1146,12 @@ def reset_market_timer_api(request, market_id):
 
 
 def user_home(request):
-<<<<<<< HEAD
-=======
-    """
-    Unified home page for both regular users and admins.
-    - Regular users see the game home with markets, notice board, FAQ.
-    - Admins see the same page but with an admin dashboard link in the nav.
-    """
->>>>>>> 11445e8 (try1)
+    
     return render(request, 'user/user_home.html', {
         'markets': Market.objects.all(),
         'page_title': 'Home',
     })
 
-
-<<<<<<< HEAD
-=======
-@user_passes_test(lambda u: u.is_superuser)
-def admin_home(request):
-    # Kept for URL backward-compatibility — redirects to admin dashboard
-    return redirect('admin_summary')
-
-
->>>>>>> 11445e8 (try1)
 def error(request):
     return render(request, 'errors/error.html')
 
