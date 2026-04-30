@@ -1,15 +1,7 @@
-<head>
-    
-</head>
 {% extends "base.html" %}
 {% load static %}
 
 {% block content %}
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 11445e8 (try1)
 <section class="auth-shell">
     <div class="auth-layout">
         <aside class="auth-panel" aria-hidden="true">
@@ -85,102 +77,6 @@
         loginPasswordToggle.addEventListener('click', toggleLoginPassword);
         loginPasswordToggle.addEventListener('keydown', function (event) {
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleLoginPassword.call(this); }
-        });
-    }
-</script>
-{% endblock %}
-    <div class="auth-layout">
-        <aside class="auth-panel" aria-hidden="true">
-            <div class="auth-mark">
-                <img src="{% static 'logo.jpeg' %}" alt="Change Life With Numbers">
-                <strong>Change Life With Numbers</strong>
-            </div>
-            <h1>Welcome back.</h1>
-            <p>
-                Sign in to continue with your account, wallet, activity, and predictions
-                in one clean and secure place.
-            </p>
-            <ul class="auth-points">
-                <li>
-                    <i class="fas fa-shield-halved"></i>
-                    <div>Rate limiting and account lockout protect against brute-force attacks — no CAPTCHA friction needed.</div>
-                </li>
-                <li>
-                    <i class="fas fa-wallet"></i>
-                    <div>Quick access to wallet balance, betting history, and notifications after sign in.</div>
-                </li>
-                <li>
-                    <i class="fas fa-mobile-screen-button"></i>
-                    <div>Responsive layout that stays clear and usable on mobile and desktop.</div>
-                </li>
-            </ul>
-        </aside>
-
-        <div class="auth-card">
-            <div class="auth-card-inner">
-                <div class="auth-eyebrow">
-                    <i class="fas fa-lock"></i>
-                    Sign In
-                </div>
-                <div class="auth-header">
-                    <h2>Access your account</h2>
-                    <p class="auth-subtitle">Enter your username or email and your password to continue.</p>
-                </div>
-
-                <form method="post" class="auth-form" id="login-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
-                    <input type="hidden" name="device_id" value="">
-
-                    <div class="field">
-                        <label for="login-username">Username or email</label>
-                        <input class="control" type="text" name="username" id="login-username" placeholder="Enter username or email" required autofocus autocomplete="username">
-                    </div>
-
-                    <div class="field">
-                        <label for="login-password">Password</label>
-                        <div class="password-wrapper">
-                            <input class="control" type="password" name="password" id="login-password" placeholder="Enter password" required autocomplete="current-password">
-                            <i class="fas fa-eye toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Show password"></i>
-                        </div>
-                    </div>
-
-                    <div class="auth-note">
-                        <i class="fas fa-shield-halved"></i>
-                        This page is protected by rate limiting and account lockout — no CAPTCHA required.
-                        Use your registered username or email and password to sign in.
-                    </div>
-
-                    <button type="submit" class="auth-btn">Sign In</button>
-                </form>
-            </div>
-
-            <div class="auth-footer">
-                New here? <a href="{% url 'register' %}">Create your account</a>
-                <span>&middot;</span>
-                <a href="{% url 'landing' %}">Home</a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<script>
-    const loginPasswordToggle = document.getElementById('togglePassword');
-    const loginPasswordInput = document.getElementById('login-password');
-
-    if (loginPasswordToggle && loginPasswordInput) {
-        const toggleLoginPassword = function () {
-            const nextType = loginPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            loginPasswordInput.setAttribute('type', nextType);
-            this.classList.toggle('fa-eye-slash');
-        };
-
-        loginPasswordToggle.addEventListener('click', toggleLoginPassword);
-        loginPasswordToggle.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                toggleLoginPassword.call(this);
-            }
         });
     }
 </script>

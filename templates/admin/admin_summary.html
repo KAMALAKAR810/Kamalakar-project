@@ -1,88 +1,8 @@
-<head>
-    
-</head>
 {% extends 'admin_base.html' %}
 {% load static %}
 
 {% block content %}
-<<<<<<< HEAD
-<div class="row g-4 mb-4">
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-primary-subtle text-primary rounded-3 p-3 me-3">
-                        <i class="fas fa-users fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Total Users</h6>
-                        <h4 class="card-title mb-0 fw-bold">{{ total_users }}</h4>
-                    </div>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-success-subtle text-success rounded-3 p-3 me-3">
-                        <i class="fas fa-coins fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Today's Collection</h6>
-                        <h4 class="card-title mb-0 fw-bold">₹{{ today_collection }}</h4>
-                    </div>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar bg-success" role="progressbar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-warning-subtle text-warning rounded-3 p-3 me-3">
-                        <i class="fas fa-hand-holding-usd fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Today's Payouts</h6>
-                        <h4 class="card-title mb-0 fw-bold">₹{{ today_payouts }}</h4>
-                    </div>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar bg-warning" role="progressbar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="{% if today_profit >= 0 %}bg-info-subtle text-info{% else %}bg-danger-subtle text-danger{% endif %} rounded-3 p-3 me-3">
-                        <i class="fas fa-chart-line fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Today's Net P/L</h6>
-                        <h4 class="card-title mb-0 fw-bold">₹{{ today_profit }}</h4>
-                    </div>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar {% if today_profit >= 0 %}bg-info{% else %}bg-danger{% endif %}" role="progressbar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-=======
 <div class="page-shell slide-in">
->>>>>>> 11445e8 (try1)
 
     <!-- Stats Row -->
     <div class="admin-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:1.5rem;">
@@ -182,17 +102,10 @@
                         <tbody>
                             {% for txn in recent_txns %}
                             <tr>
-<<<<<<< HEAD
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-secondary-subtle rounded-circle d-flex align-items-center justify-content-center me-2">
-                                            <i class="fas fa-user text-secondary small"></i>
-=======
                                 <td class="px-4">
                                     <div style="display:flex;align-items:center;gap:.6rem;">
                                         <div style="width:30px;height:30px;border-radius:50%;background:#eff4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                             <i class="fas fa-user" style="color:var(--primary);font-size:.7rem;"></i>
->>>>>>> 11445e8 (try1)
                                         </div>
                                         <span class="fw-bold">{{ txn.wallet.user.username }}</span>
                                     </div>

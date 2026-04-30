@@ -1,6 +1,3 @@
-<head>
-    
-</head>
 {% extends "admin_base.html" %}
 
 {% block content %}
@@ -86,13 +83,8 @@
                                     <span class="text-muted small">—</span>
                                 {% else %}
                                     <span class="{% if data.net_pl > 0 %}text-success{% elif data.net_pl < 0 %}text-danger{% else %}text-dark{% endif %}">
-<<<<<<< HEAD
-                                        Rs {{ data.net_pl }}
-                                        <small class="d-block text-uppercase">
-=======
                                         ₹{{ data.net_pl }}
                                         <small class="d-block text-uppercase" style="font-size:.65rem;">
->>>>>>> 11445e8 (try1)
                                             {% if data.net_pl > 0 %}Profit{% elif data.net_pl < 0 %}Loss{% else %}Break-even{% endif %}
                                         </small>
                                     </span>

@@ -1,6 +1,3 @@
-<head>
-    
-</head>
 {% extends "admin_base.html" %}
 {% block content %}
 <div class="page-shell slide-in">
@@ -13,25 +10,6 @@
     </div>
 
     {% if latest_result %}
-<<<<<<< HEAD
-    <div class="row mb-4">
-        <div class="col-12 col-md-6 col-lg-4 mx-auto">
-            <div class="card border-0 shadow-sm overflow-hidden">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
-                    <span class="fw-bold small text-uppercase">{{ latest_result.name }}</span>
-                    <span class="badge bg-white text-primary small">RESULT DECLARED</span>
-                </div>
-                <div class="card-body p-4 text-center">
-                    <div class="d-flex justify-content-center align-items-center gap-4">
-                        <div class="text-muted fw-bold">{{ latest_result.open_patti|default:"***" }}</div>
-                        <div class="h1 mb-0 fw-bold px-4 border-start border-end">
-                            {% if latest_result.open_single %}{{ latest_result.open_single }}{% else %}*{% endif %}{% if latest_result.close_single %}{{ latest_result.close_single }}{% else %}*{% endif %}
-                        </div>
-                        <div class="text-muted fw-bold">{{ latest_result.close_patti|default:"***" }}</div>
-                    </div>
-                </div>
-            </div>
-=======
     <div class="professional-card mb-4" style="max-width:420px;margin-left:auto;margin-right:auto;text-align:center;">
         <div style="background:linear-gradient(135deg,var(--primary),#365cff);color:#fff;padding:1rem 1.25rem;border-radius:.85rem .85rem 0 0;display:flex;justify-content:space-between;align-items:center;margin:-1.5rem -1.5rem 1.25rem;">
             <span style="font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;">{{ latest_result.name }}</span>
@@ -43,7 +21,6 @@
                 {% if latest_result.open_single %}{{ latest_result.open_single }}{% else %}*{% endif %}{% if latest_result.close_single %}{{ latest_result.close_single }}{% else %}*{% endif %}
             </span>
             <span style="font-weight:700;letter-spacing:2px;color:var(--text-faint);">{{ latest_result.close_patti|default:"***" }}</span>
->>>>>>> 11445e8 (try1)
         </div>
     </div>
     {% endif %}
@@ -110,13 +87,8 @@
                     <tr>
                         <td class="px-4 small text-muted">{{ w.created_at|date:"d M, H:i" }}</td>
                         <td>
-<<<<<<< HEAD
-                            <div class="fw-bold text-dark">{{ w.user.username }}</div>
-                            <div class="text-muted font-monospace">{{ w.user.profile.user_code }}</div>
-=======
                             <div class="fw-bold">{{ w.user.username }}</div>
                             <div class="small text-muted font-monospace">{{ w.user.profile.user_code }}</div>
->>>>>>> 11445e8 (try1)
                         </td>
                         <td>
                             <span class="badge badge-success">{{ w.game_type }}</span>
@@ -134,13 +106,7 @@
                         </td>
                         <td class="fw-bold">₹{{ w.amount }}</td>
                         <td class="px-4 text-end">
-<<<<<<< HEAD
-                            <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold">
-                                ₹{{ w.win_amount }}
-                            </span>
-=======
                             <span class="badge badge-success" style="font-size:.9rem;padding:.5rem .9rem;">₹{{ w.win_amount }}</span>
->>>>>>> 11445e8 (try1)
                         </td>
                     </tr>
                     {% empty %}
