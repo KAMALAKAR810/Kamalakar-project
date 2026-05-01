@@ -93,6 +93,7 @@
 
     <nav class="nav-bar">
         <div class="container nav-container">
+            <a href="{% url 'user_home' %}" class="nav-link">Home</a>
             <a href="{% url 'single_game' %}" class="nav-link">Single</a>
             <a href="{% url 'jodi_game' %}" class="nav-link">Jodi</a>
             <a href="{% url 'single_pathi' %}" class="nav-link">Single Patti</a>
@@ -203,9 +204,44 @@
     })();
 
     // Simple Toast/Modal functions
+    function pushToast(message, type) {
+        const overlay = document.getElementById('msg-overlay');
+        if (!overlay) {
+            return;
+        }
+        const safeType = (type || 'info').toLowerCase();
+        const iconHtml = safeType === 'success'
+            ? '<i class="fas fa-check"></i>'
+            : safeType === 'error'
+                ? '<i class="fas fa-xmark"></i>'
+                : safeType === 'warning'
+                    ? '<i class="fas fa-triangle-exclamation"></i>'
+                    : '<i class="fas fa-circle-info"></i>';
+
+        const toast = document.createElement('div');
+        toast.className = `alert-toast ${safeType}`;
+        toast.innerHTML = `
+            <div class="alert-icon">${iconHtml}</div>
+            <div class="alert-content">
+                <div class="alert-msg"></div>
+            </div>
+        `;
+        toast.querySelector('.alert-msg').textContent = message || '';
+        overlay.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('toast-hide');
+            setTimeout(() => toast.remove(), 350);
+        }, 4500);
+    }
+
+    window.pushToast = pushToast;
+
     function showModal(title, text, type, callback) {
-        alert(title + ": " + text); // Simple fallback
-        if(callback) callback();
+        const msg = title ? `${title}: ${text}` : (text || '');
+        pushToast(msg, type || 'info');
+        if (callback) {
+            setTimeout(callback, 900);
+        }
     }
     function showLoading(show) {
         // Simple loading toggle

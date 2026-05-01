@@ -119,7 +119,7 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
 .upcoming { color: var(--warning); }
 
 /* 6. Forms & Auth */
-.auth-shell { min-height: 80vh; display: grid; place-items: center; padding: 2rem 1rem; }
+.auth-shell { min-height: 80vh; display: grid; place-items: center; padding: 2rem 1rem; background: radial-gradient(1200px 500px at 20% 10%, rgba(0,102,204,0.18), transparent 60%), radial-gradient(1000px 500px at 85% 20%, rgba(255,153,0,0.16), transparent 55%), linear-gradient(180deg, #f8fafc, #eef2ff 60%, #f8fafc); }
 .auth-card { max-width: 450px; width: 100%; background: white; padding: 2.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
 .form-group { margin-bottom: 1.25rem; }
 .form-label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.85rem; }
@@ -167,9 +167,9 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
 .received { align-self: flex-start; background: white; }
 
 /* 8. Toasts & Modals */
-#msg-overlay { position: fixed; top: 5.25rem; right: 1.5rem; z-index: 2000; display: grid; gap: 0.75rem; pointer-events: none; }
-.alert-toast { background: white; padding: 1rem; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 0.75rem; pointer-events: auto; animation: slideIn 0.3s ease-out; min-width: 300px; }
-@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+#msg-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; display: grid; gap: 0.75rem; pointer-events: none; width: min(420px, calc(100vw - 2rem)); }
+.alert-toast { background: white; padding: 1rem; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 0.75rem; pointer-events: auto; animation: toastPop 0.18s ease-out; width: 100%; }
+@keyframes toastPop { from { transform: translateY(8px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 .alert-icon { width: 36px; height: 36px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(148,163,184,0.35); background: rgba(241,245,249,0.9); color: var(--primary); }
 .alert-content { display: grid; gap: 0.25rem; min-width: 0; }
 .alert-msg { color: var(--dark); font-weight: 800; font-size: 0.92rem; line-height: 1.35; word-break: break-word; }
@@ -211,6 +211,52 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
 .payment-form-group label { display: block; font-weight: 800; font-size: 0.85rem; margin-bottom: 0.35rem; color: var(--dark); }
 .gold-btn { background: var(--secondary); color: var(--white) !important; font-weight: 900; border-radius: var(--radius-md); padding: 0.8rem 1rem; }
 .gold-btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
+
+.qr-container-full { max-width: 760px; margin: 0 auto; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-lg); display: grid; gap: 1rem; text-align: center; }
+.qr-container-full h2 { font-weight: 900; margin: 0; }
+.qr-amount { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1rem; border-radius: 999px; border: 1px solid var(--border); background: rgba(0,102,204,0.08); color: var(--primary); font-weight: 900; width: fit-content; margin: 0 auto; }
+.qr-box { display: grid; place-items: center; padding: 1rem; border-radius: var(--radius-lg); border: 1px solid var(--border); background: rgba(248, 250, 252, 0.9); }
+.qr-box img { width: 250px; max-width: 100%; height: auto; border-radius: 14px; background: var(--white); }
+.qr-actions { display: grid; gap: 0.5rem; justify-items: center; }
+.qr-actions p { margin: 0; color: var(--gray); font-weight: 700; font-size: 0.9rem; }
+.payment-steps { display: grid; gap: 0.75rem; text-align: left; }
+.step-item { display: grid; grid-template-columns: 42px 1fr; gap: 0.75rem; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: rgba(248, 250, 252, 0.85); }
+.step-num { width: 42px; height: 42px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,102,204,0.10); color: var(--primary); font-weight: 900; border: 1px solid rgba(0,102,204,0.20); }
+.step-text { color: var(--dark); font-weight: 750; line-height: 1.4; }
+.utr-input-group { display: grid; gap: 0.6rem; text-align: left; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); box-shadow: var(--shadow-sm); }
+.utr-input-group label { font-weight: 900; font-size: 0.9rem; color: var(--dark); }
+.utr-input-group label span { color: var(--danger); }
+.utr-input-group .btn-gold { width: 100%; }
+
+.restricted-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.62); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 1rem; }
+.restricted-overlay > div, .restricted-overlay { color: var(--white); }
+.restricted-overlay i { font-size: 2rem; margin-bottom: 0.75rem; }
+.restricted-overlay h3 { font-weight: 900; margin: 0 0 0.35rem; }
+.restricted-overlay p { margin: 0 0 1rem; color: rgba(255,255,255,0.85); max-width: 420px; }
+.restricted-overlay .btn-gold { padding: 0.85rem 1rem; border-radius: 14px; }
+
+.withdraw-shell { max-width: 980px; margin: 0 auto; }
+.withdraw-head { display: grid; gap: 1rem; grid-template-columns: 1fr auto; align-items: start; margin-bottom: 1rem; }
+.balance-card { min-width: 260px; border: 1px solid var(--border); background: var(--white); border-radius: var(--radius-xl); padding: 1rem; box-shadow: var(--shadow-md); display: grid; gap: 0.35rem; }
+.balance-label { color: var(--gray); font-weight: 800; font-size: 0.85rem; }
+.balance-amount { font-weight: 1000; font-size: 1.8rem; color: var(--dark); letter-spacing: 0.02em; }
+.balance-meta { color: var(--gray); font-weight: 700; font-size: 0.85rem; }
+.withdraw-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.25rem; box-shadow: var(--shadow-md); }
+.withdraw-card h3 { font-weight: 1000; margin: 0 0 0.75rem; font-size: 1.05rem; }
+.info-box { border: 1px solid rgba(255,193,7,0.35); background: rgba(255,193,7,0.14); border-radius: var(--radius-lg); padding: 0.9rem; color: #7c2d12; font-weight: 750; }
+.withdraw-form { display: grid; gap: 0.9rem; }
+.withdraw-form small { color: var(--gray); font-weight: 700; }
+
+.home-shell { padding: 1.25rem 0; }
+.home-info { margin: 1.25rem 0 2rem; }
+.home-info-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.home-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.25rem; box-shadow: var(--shadow-md); display: grid; gap: 0.75rem; }
+.home-card h3 { margin: 0; font-weight: 1000; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem; }
+.home-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.home-list li { padding: 0.6rem 0.75rem; border-radius: 14px; border: 1px solid var(--border); background: rgba(248,250,252,0.85); font-weight: 750; color: var(--dark); }
+.home-list li strong { font-weight: 1000; }
+.home-note { color: var(--gray); font-weight: 750; font-size: 0.92rem; margin: 0; }
+.home-link { color: var(--primary); font-weight: 900; text-decoration: underline; }
 
 .notif-item { display: flex; gap: 0.9rem; padding: 0.9rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); margin-bottom: 0.75rem; }
 .notif-item.unread { background: rgba(0, 102, 204, 0.06); border-color: rgba(0, 102, 204, 0.22); }
@@ -268,6 +314,7 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
   .header-inner { flex-direction: column; text-align: center; }
   .nav-link { font-size: 0.7rem; padding: 0.75rem; }
   .auth-card { padding: 1.5rem; }
-  #msg-overlay { right: 0.75rem; left: 0.75rem; top: 5.25rem; }
-  .alert-toast { min-width: auto; width: 100%; }
+  #msg-overlay { width: calc(100vw - 1.5rem); }
+  .withdraw-head { grid-template-columns: 1fr; }
+  .balance-card { min-width: 0; }
 }

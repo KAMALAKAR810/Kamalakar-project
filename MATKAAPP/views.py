@@ -141,8 +141,8 @@ def wallet_view(request):
             messages.error(request, "Please provide at least one additional detail (UPI ID, Mobile Number, or Bank Account) along with your Bank Holder Name.")
             return redirect('wallet')
 
-        if amount < 300:
-            messages.error(request, "Minimum withdrawal amount is ₹300.")
+        if amount < 500:
+            messages.error(request, "Minimum withdrawal amount is ₹500.")
             return redirect('wallet')
         
         if amount > 50000:
@@ -2301,8 +2301,8 @@ def payment_page(request):
                 messages.error(request, "Invalid amount format.")
                 return redirect('payment')
 
-            if amount < 100:
-                messages.error(request, "Minimum deposit amount is ₹100.")
+            if amount < 500:
+                messages.error(request, "Minimum deposit amount is ₹500.")
                 return redirect('payment')
             
             # Get UPI config
@@ -2325,8 +2325,8 @@ def payment_page(request):
         if not utr_number or len(utr_number) < 10:
             return JsonResponse({'status': 'error', 'message': 'Please enter a valid 12-digit UTR.'})
             
-        if amount < 100:
-            return JsonResponse({'status': 'error', 'message': 'Minimum amount is ₹100.'})
+        if amount < 500:
+            return JsonResponse({'status': 'error', 'message': 'Minimum amount is ₹500.'})
             
         # Check if UTR already exists
         if DepositRequest.objects.filter(utr_number=utr_number).exists():

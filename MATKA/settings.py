@@ -323,6 +323,12 @@ DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL",
     "ChangeLifeWithNumbers <changelifewithnumbers@gmail.com>",
 )
+
+if EMAIL_PROVIDER == "gmail" and EMAIL_HOST_USER:
+    DEFAULT_FROM_EMAIL = os.getenv(
+        "DEFAULT_FROM_EMAIL",
+        f"ChangeLifeWithNumbers <{EMAIL_HOST_USER}>",
+    )
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
 
 # In local development, default to console backend if SMTP isn't configured.

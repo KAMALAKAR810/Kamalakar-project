@@ -4,13 +4,13 @@
     <h2>Complete Your Payment</h2>
     <p>Do not close or refresh this page until finished.</p>
 
-    <div>₹{{ amount }}</div>
+    <div class="qr-amount">Amount: ₹{{ amount }}</div>
 
     <div class="qr-box">
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ upi_url|urlencode }}" alt="Payment QR">
     </div>
 
-    <div>
+    <div class="qr-actions">
         <a href="{{ upi_url }}" class="btn-gold">
             <i class="fas fa-mobile-alt"></i> PAY VIA UPI APP
         </a>

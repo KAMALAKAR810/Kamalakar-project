@@ -15,6 +15,7 @@
 </div>
 {% endif %}
 
+<div class="home-shell">
 <section class="hero-section text-center py-5">
     <h1 class="display-4 fw-black text-primary mb-3">Predict. Win. <span class="text-secondary">Prosper.</span></h1>
     <p class="text-muted lead mb-4">
@@ -25,7 +26,7 @@
         {% if not user.is_authenticated %}
             <a href="{% url 'register' %}" class="btn btn-gold btn-lg">Create Free Account</a>
         {% else %}
-            <a href="#how-to-play" class="btn btn-gold btn-lg">How to Play</a>
+            <a href="#site-info" class="btn btn-gold btn-lg">Site Info</a>
         {% endif %}
         <a href="{{ support_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-lg">
             <i class="fab fa-whatsapp me-2"></i> Contact Support
@@ -33,64 +34,62 @@
     </div>
 </section>
 
-<section id="how-to-play" class="py-5">
-    <div class="section-header mb-4">
-        <h2 class="fw-black text-primary">How to Play</h2>
-    </div>
-    <div class="card">
-        <ol class="list-group list-group-numbered border-0">
-            <li class="list-group-item border-0 bg-transparent py-3"><strong>Login:</strong> Access your account to view markets.</li>
-            <li class="list-group-item border-0 bg-transparent py-3"><strong>Add Balance:</strong> Visit <a href="{% url 'payment' %}" class="text-primary fw-bold">Wallet</a> to add points.</li>
-            <li class="list-group-item border-0 bg-transparent py-3"><strong>Select Game:</strong> Choose Single, Jodi, or Patti.</li>
-            <li class="list-group-item border-0 bg-transparent py-3"><strong>Pick Market:</strong> Choose market and session (Open/Close).</li>
-            <li class="list-group-item border-0 bg-transparent py-3"><strong>Predict:</strong> Enter your numbers and bet amounts.</li>
-            <li class="list-group-item border-0 bg-transparent py-3"><strong>Confirm:</strong> Place your predictions and wait for results.</li>
-        </ol>
+<section id="site-info" class="home-info">
+    <div class="home-info-grid">
+        <div class="home-card">
+            <h3>🎯 Market Game Rates</h3>
+            <ul class="home-list">
+                <li><strong>Single:</strong> ₹10 × 90</li>
+                <li><strong>Jodi:</strong> ₹10 × 900</li>
+                <li><strong>Single Patti:</strong> ₹1400</li>
+                <li><strong>Double Patti:</strong> ₹2800</li>
+                <li><strong>Triple Patti:</strong> ₹3000</li>
+            </ul>
+        </div>
+
+        <div class="home-card">
+            <h3>⚠️ General Instructions</h3>
+            <ul class="home-list">
+                <li><strong>Minimum Deposit:</strong> ₹500</li>
+                <li><strong>Minimum Withdrawal:</strong> ₹500</li>
+                <li>Markets close 10 minutes before result announcement (Open Time)</li>
+                <li>Bets can be modified up to 3 times only after placing</li>
+                <li>For any queries or suggestions, contact Admin via Chat or WhatsApp only</li>
+                <li><strong>❌ Do not call the Admin</strong></li>
+            </ul>
+        </div>
+
+        <div class="home-card">
+            <h3>💰 How Our Site Works</h3>
+            <p class="home-note"><strong>➤ Add Points</strong></p>
+            <ul class="home-list">
+                <li>Watch: <a class="home-link" href="#">🎥 How to Add Points (Video Link)</a></li>
+                <li>After payment via QR code, enter the correct UTR number</li>
+                <li>Or share payment screenshot via WhatsApp or Chat</li>
+                <li>Points will be credited after successful verification</li>
+            </ul>
+        </div>
+
+        <div class="home-card">
+            <h3>🎮 How to Play</h3>
+            <ul class="home-list">
+                <li>Watch: <a class="home-link" href="#">🎥 How to Play (Video Link)</a></li>
+                <li>Always check your betting history after placing a bet for confirmation</li>
+                <li>Winning amount will be credited to your wallet within 2 hours after market closure</li>
+            </ul>
+        </div>
+
+        <div class="home-card">
+            <h3>💸 Withdrawal Process</h3>
+            <ul class="home-list">
+                <li>Watch: <a class="home-link" href="#">🎥 Withdrawal Process (Video Link)</a></li>
+                <li>Submit withdrawal request through the website</li>
+                <li>Provide correct details: UPI ID / Mobile Number / Bank Account</li>
+                <li>Account Holder Name is mandatory</li>
+            </ul>
+        </div>
     </div>
 </section>
-
-<div class="row g-4 mb-5">
-    <div class="col-md-6">
-        <div class="card h-100 border-top border-4 border-primary">
-            <h2 class="h4 fw-black mb-3"><i class="fas fa-bullhorn text-primary me-2"></i>NOTICE BOARD</h2>
-            <h3 class="h6 fw-bold text-primary text-uppercase mb-2">🎯 Market Game Rates</h3>
-            <ul class="list-unstyled mb-4 small">
-                <li class="py-1 border-bottom">• Single: 10 × 90</li>
-                <li class="py-1 border-bottom">• Jodi: 10 × 900</li>
-                <li class="py-1 border-bottom">• Single Patti: 1400</li>
-                <li class="py-1 border-bottom">• Double Patti: 2800</li>
-                <li class="py-1 border-bottom">• Triple Patti: 3000</li>
-            </ul>
-            <h3 class="h6 fw-bold text-danger text-uppercase mb-2">⚠️ General Instructions</h3>
-            <ul class="list-unstyled small">
-                <li class="py-1">• Min Deposit/Withdrawal: ₹100</li>
-                <li class="py-1">• Markets close 10 mins before result.</li>
-                <li class="py-1">• Modification limit: 3 times.</li>
-                <li class="py-1 text-danger fw-bold">• ❌ Do not call Admin. Use Chat/WhatsApp.</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card h-100 border-top border-4 border-primary">
-            <h2 class="h4 fw-black mb-3"><i class="fas fa-bullhorn text-primary me-2"></i>सूचना बोर्ड</h2>
-            <h3 class="h6 fw-bold text-primary text-uppercase mb-2">🎯 मार्केट गेम रेट्स</h3>
-            <ul class="list-unstyled mb-4 small">
-                <li class="py-1 border-bottom">• सिंगल: 10 × 90</li>
-                <li class="py-1 border-bottom">• जोड़ी: 10 × 900</li>
-                <li class="py-1 border-bottom">• सिंगल पत्ती: 1400</li>
-                <li class="py-1 border-bottom">• डबल पत्ती: 2800</li>
-                <li class="py-1 border-bottom">• ट्रिपल पत्ती: 3000</li>
-            </ul>
-            <h3 class="h6 fw-bold text-danger text-uppercase mb-2">⚠️ सामान्य निर्देश</h3>
-            <ul class="list-unstyled small">
-                <li class="py-1">• न्यूनतम जमा/निकासी: ₹100</li>
-                <li class="py-1">• मार्केट रिजल्ट से 10 मिनट पहले बंद होगा।</li>
-                <li class="py-1 text-danger fw-bold">• ❌ एडमिन को कॉल न करें। केवल चैट/व्हाट्सएप का उपयोग करें।</li>
-            </ul>
-        </div>
-    </div>
-</div>
 
 <section class="mb-5">
     <div class="section-header d-flex justify-between align-center mb-4">
@@ -100,30 +99,5 @@
     {% include "display.html" with compact=True hide_header=True %}
 </section>
 
-<section class="py-5 bg-white rounded-lg p-4">
-    <div class="section-header mb-4 text-center">
-        <h2 class="fw-black text-primary">Frequently Asked Questions</h2>
-    </div>
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="p-3">
-                <h3 class="h6 fw-bold mb-2">Is it safe?</h3>
-                <p class="small text-muted">Yes, we use professional-grade security protocols to protect your transactions.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="p-3">
-                <h3 class="h6 fw-bold mb-2">How to start?</h3>
-                <p class="small text-muted">Register, add points to your wallet, and start predicting on any active market.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="p-3">
-                <h3 class="h6 fw-bold mb-2">Support hours?</h3>
-                <p class="small text-muted">Our support team is available 24/7 via in-app chat or WhatsApp.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
+</div>
 {% endblock %}

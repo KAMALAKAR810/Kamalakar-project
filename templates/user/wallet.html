@@ -1,62 +1,65 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page-shell">
-    <h2 class="page-title">Withdraw Points</h2>
-    <p class="page-sub">Convert your game coins to INR (1 Coin = 1 INR)</p>
-
-    <div class="data-panel">
+<div class="page-shell withdraw-shell">
+    <div class="withdraw-head">
         <div>
-            <span>Current Balance</span>
-            <span>₹{{ user.wallet.balance }}</span>
+            <h2 class="page-title">Withdraw Points</h2>
+            <p class="page-sub">Convert your wallet points to INR (1 Point = 1 INR)</p>
+            <p class="home-note">Minimum Withdrawal: ₹500 · Maximum: ₹50000 · Limit: 3 times/day</p>
         </div>
 
-        <form method="POST">
+        <div class="balance-card">
+            <div class="balance-label">Current Balance</div>
+            <div class="balance-amount">₹{{ wallet_balance|default_if_none:"0.00" }}</div>
+            <div class="balance-meta">Withdrawals are processed after verification.</div>
+        </div>
+    </div>
+
+    <div class="withdraw-card">
+        <h3>Withdrawal Request</h3>
+        <div class="info-box">Mandatory: Account Holder Name is strictly required. Please provide at least one additional detail (UPI ID, Mobile Number, or Bank Account) for verification.</div>
+
+        <form method="POST" class="withdraw-form">
             {% csrf_token %}
-            <div class="form-group">
-                <label>User ID</label>
-                <input type="text" value="{{ user.profile.user_code }}" class="bet-input" readonly>
-            </div>
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" value="{{ user.username }}" class="bet-input" readonly>
-            </div>
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="text" value="{{ user.profile.mobile }}" class="bet-input" readonly>
-            </div>
-            <div class="form-group">
-                <label>Withdraw Amount (Coins) *</label>
-                <input type="number" name="amount" class="bet-input" placeholder="Min ₹300, Max ₹50000" min="300" max="50000" required>
-                <small>Limit: 3 times per day</small>
-            </div>
 
-            <div>
-                <p><strong>Mandatory:</strong> "Name as per Bank" is strictly required. Please provide at least one additional detail (UPI ID, Mobile, or Account) for verification.</p>
-            </div>
-
-            <div class="form-group">
-                <label>Name as per Bank <span>*</span></label>
-                <input type="text" name="bank_holder_name" class="bet-input" placeholder="Full name as in bank record" required>
-            </div>
-
-            <div class="form-group">
-                <label>Bank Name (Optional)</label>
-                <input type="text" name="bank_name" class="bet-input" placeholder="e.g. SBI, HDFC">
-            </div>
-
-            <div class="form-group">
-                <label>UPI ID</label>
-                <input type="text" name="upi_id" class="bet-input" placeholder="example@upi">
-            </div>
-
-            <div class="form-group">
-                <label>Mobile Number</label>
-                <input type="text" name="mobile_number" class="bet-input" placeholder="10-digit mobile number">
-            </div>
-
-            <div class="form-group">
-                <label>Bank Account Number</label>
-                <input type="text" name="bank_account" class="bet-input" placeholder="Account number">
+            <div class="form-grid">
+                <div class="field">
+                    <label>User ID</label>
+                    <input type="text" value="{{ user.profile.user_code }}" class="control" readonly>
+                </div>
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" value="{{ user.username }}" class="control" readonly>
+                </div>
+                <div class="field">
+                    <label>Phone Number</label>
+                    <input type="text" value="{{ user.profile.mobile }}" class="control" readonly>
+                </div>
+                <div class="field">
+                    <label>Withdraw Amount (Points) <span>*</span></label>
+                    <input type="number" name="amount" class="control" placeholder="Min ₹500, Max ₹50000" min="500" max="50000" required>
+                    <div class="hint">Limit: 3 times per day</div>
+                </div>
+                <div class="field span-2">
+                    <label>Name as per Bank <span>*</span></label>
+                    <input type="text" name="bank_holder_name" class="control" placeholder="Full name as in bank record" required>
+                </div>
+                <div class="field">
+                    <label>UPI ID</label>
+                    <input type="text" name="upi_id" class="control" placeholder="example@upi">
+                </div>
+                <div class="field">
+                    <label>Mobile Number</label>
+                    <input type="text" name="mobile_number" class="control" placeholder="10-digit mobile number">
+                </div>
+                <div class="field span-2">
+                    <label>Bank Name (Optional)</label>
+                    <input type="text" name="bank_name" class="control" placeholder="e.g. SBI, HDFC">
+                </div>
+                <div class="field span-2">
+                    <label>Bank Account Number</label>
+                    <input type="text" name="bank_account" class="control" placeholder="Account number">
+                </div>
             </div>
 
             <button type="submit" class="btn-gold">SUBMIT WITHDRAWAL REQUEST</button>
