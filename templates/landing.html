@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_head %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endblock %}
+
 {% block content %}
 <section class="verify-shell">
     <div class="verify-card">
@@ -8,39 +12,31 @@
         <div class="verify-title">Verification</div>
         <div class="verify-subtitle">Please verify to enter the website.</div>
 
-        <form method="post" class="verify-form" id="human-verify-form">
+        <form method="post" class="verify-form" id="landing-gate-form">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next }}">
-            <input type="hidden" name="human_verified" id="human_verified" value="0">
-
-            <label class="verify-check">
-                <input type="checkbox" id="human-check">
-                <span class="verify-box"><i class="fas fa-check"></i></span>
-                <span class="verify-label">I am not a robber</span>
-            </label>
-
-            <button type="submit" class="btn btn-primary w-100" id="verify-btn" disabled>
-                Continue
-            </button>
+            <div class="recaptcha-wrap">
+                <div
+                    class="g-recaptcha"
+                    data-sitekey="{{ recaptcha_site_key }}"
+                    data-callback="submitLandingGate"
+                ></div>
+            </div>
         </form>
     </div>
 </section>
 
 <script>
-    (function () {
-        const check = document.getElementById('human-check');
-        const hidden = document.getElementById('human_verified');
-        const btn = document.getElementById('verify-btn');
-        if (!check || !hidden || !btn) return;
-
-        function sync() {
-            const ok = !!check.checked;
-            hidden.value = ok ? '1' : '0';
-            btn.disabled = !ok;
+    function submitLandingGate() {
+        const form = document.getElementById('landing-gate-form');
+        if (!form || form.classList.contains('is-submitting')) {
+            return;
         }
 
-        check.addEventListener('change', sync);
-        sync();
-    })();
+        form.classList.add('is-submitting');
+        window.setTimeout(function () {
+            form.submit();
+        }, 120);
+    }
 </script>
 {% endblock %}

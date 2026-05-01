@@ -226,15 +226,15 @@
                 let label, cssClass;
 
                 if (market.close.declared) {
-                    label = 'Closed'; cssClass = 'closed';
+                    label = 'Result Declared'; cssClass = 'closed';
                 } else if (closeEnd && now >= closeEnd.getTime()) {
-                    label = 'Closing…'; cssClass = 'closed';
+                    label = 'Market Closed'; cssClass = 'closed';
                 } else if (openEnd && now >= openEnd.getTime() && !market.open.declared) {
-                    label = 'Open Now'; cssClass = 'open';
+                    label = 'Live'; cssClass = 'open';
                 } else if (openEnd && now < openEnd.getTime()) {
                     label = 'Upcoming'; cssClass = 'upcoming';
                 } else {
-                    label = 'Active'; cssClass = 'open';
+                    label = 'Live'; cssClass = 'open';
                 }
 
                 statusEl.classList.remove('open', 'closed', 'upcoming', 'market-pill--declared', 'market-pill--live');

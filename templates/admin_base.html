@@ -1596,14 +1596,6 @@
                     <i class="fas fa-user-shield"></i><span>Admin Panel</span>
                 </a>
                 {% endif %}
-
-                <div class="sidebar-section-label">Navigation</div>
-                <a href="{% url 'user_home' %}" class="nav-link {% if request.resolver_match.url_name == 'user_home' %}active{% endif %}">
-                    <i class="fas fa-globe"></i><span>User Home</span>
-                </a>
-                <a href="{% url 'logout' %}" class="nav-link" style="color:rgba(248,113,113,.9);">
-                    <i class="fas fa-right-from-bracket"></i><span>Logout</span>
-                </a>
             </div>
 
         </aside>

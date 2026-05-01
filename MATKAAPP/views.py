@@ -215,7 +215,8 @@ def wallet_view(request):
 @login_required
 def wallet_history_view(request):
     """User can see their wallet transactions and withdrawal status."""
-    transactions = Transaction.objects.filter(wallet=request.user.wallet).order_by('-created_at')
+    wallet, _ = Wallet.objects.get_or_create(user=request.user)
+    transactions = Transaction.objects.filter(wallet=wallet).order_by('-created_at')
     withdrawals = WithdrawalRequest.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'user/wallet_history.html', {
         'transactions': transactions,
@@ -488,19 +489,20 @@ def landing(request):
         })
 
     if request.method == "POST":
-        verified = (request.POST.get("human_verified") or "").strip() == "1"
-        if verified:
+        recaptcha_response = (request.POST.get("g-recaptcha-response") or "").strip()
+        if _verify_recaptcha_response(request, recaptcha_response):
             request.session["captcha_verified"] = True
             request.session["captcha_verified_at"] = timezone.now().isoformat()
             return redirect(_get_safe_next_url(request))
 
-        messages.error(request, "Please verify before entering the website.")
+        messages.error(request, "Please complete the verification before entering the website.")
 
     return render(
         request,
         "landing.html",
         {
             "page_title": "Verification",
+            "recaptcha_site_key": getattr(settings, "RECAPTCHA_SITE_KEY", ""),
             "next": safe_next,
         },
     )
@@ -627,7 +629,7 @@ def _is_disposable_email(email):
         # Use a reliable list. Downloading every time is slow, but following user's logic.
         # In a real app, we'd cache this or use a library.
         url = 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf'
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=1.5)
         if response.status_code == 200:
             disposable_domains = response.text.splitlines()
             return domain in [d.strip().lower() for d in disposable_domains if d.strip()]
@@ -710,17 +712,22 @@ def _send_email_otp(profile: Profile = None, email: str = None):
         </div>
         """
         
+        from_email = (
+            getattr(settings, "DEFAULT_FROM_EMAIL", "") 
+            or getattr(settings, "EMAIL_HOST_USER", "") 
+            or "no-reply@changelifewithnumbers.local"
+        )
         send_mail(
             subject="Your Verification Code - Changelifewithnumbers",
             message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
+            from_email=from_email,
             recipient_list=[target_email],
             fail_silently=False,
             html_message=html_message
         )
         return ttl
     except Exception as e:
-        print(f"Gmail SMTP Error: {str(e)}")
+        logger.exception("Email OTP send failed")
         # Surface a clean user-facing error.
         raise ValidationError(
             f"Unable to send verification email. Please try again in a moment."

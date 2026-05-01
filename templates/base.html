@@ -93,30 +93,15 @@
 
     <nav class="nav-bar">
         <div class="container nav-container">
-            <a href="{% url 'user_home' %}" class="nav-link">Home</a>
             <a href="{% url 'single_game' %}" class="nav-link">Single</a>
             <a href="{% url 'jodi_game' %}" class="nav-link">Jodi</a>
-            <div class="dropdown nav-dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Patti
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{% url 'single_pathi' %}">Single Patti</a></li>
-                    <li><a class="dropdown-item" href="{% url 'double_pathi' %}">Double Patti</a></li>
-                    <li><a class="dropdown-item" href="{% url 'tripple_pathi' %}">Triple Patti</a></li>
-                </ul>
-            </div>
+            <a href="{% url 'single_pathi' %}" class="nav-link">Single Patti</a>
+            <a href="{% url 'double_pathi' %}" class="nav-link">Double Patti</a>
+            <a href="{% url 'tripple_pathi' %}" class="nav-link">Triple Patti</a>
             <a href="{% url 'bet_history' %}" class="nav-link">History</a>
-            <div class="dropdown nav-dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Wallet
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{% url 'wallet_history' %}">Wallet History</a></li>
-                    <li><a class="dropdown-item" href="{% url 'payment' %}">Add Balance</a></li>
-                    <li><a class="dropdown-item" href="{% url 'wallet' %}">Withdraw</a></li>
-                </ul>
-            </div>
+            <a href="{% url 'wallet_history' %}" class="nav-link">Wallet History</a>
+            <a href="{% url 'payment' %}" class="nav-link">Add Balance</a>
+            <a href="{% url 'wallet' %}" class="nav-link">Withdraw</a>
             {% if user.is_superuser %}
                 <a href="{% url 'admin_summary' %}" class="nav-link admin-link">Admin Panel</a>
             {% endif %}
@@ -130,8 +115,20 @@
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert-toast {{ message.tags }}">
-                        <i class="fas fa-info-circle text-primary"></i>
-                        <div class="alert-msg">{{ message }}</div>
+                        <div class="alert-icon">
+                            {% if 'success' in message.tags %}
+                                <i class="fas fa-check"></i>
+                            {% elif 'error' in message.tags %}
+                                <i class="fas fa-xmark"></i>
+                            {% elif 'warning' in message.tags %}
+                                <i class="fas fa-triangle-exclamation"></i>
+                            {% else %}
+                                <i class="fas fa-circle-info"></i>
+                            {% endif %}
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-msg">{{ message }}</div>
+                        </div>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -150,21 +147,10 @@
             <div class="footer-links">
                 <h3>Quick Links</h3>
                 <ul>
-                    <li><a href="{% url 'user_home' %}">Home</a></li>
                     <li><a href="{% url 'display' %}">Live Results</a></li>
                     <li><a href="{% url 'payment' %}">Add Balance</a></li>
                     <li><a href="{% url 'wallet_history' %}">Wallet History</a></li>
                     <li><a href="{% url 'chat' %}">Support Chat</a></li>
-                </ul>
-            </div>
-            <div class="footer-links">
-                <h3>Games</h3>
-                <ul>
-                    <li><a href="{% url 'single_game' %}">Single</a></li>
-                    <li><a href="{% url 'jodi_game' %}">Jodi</a></li>
-                    <li><a href="{% url 'single_pathi' %}">Single Patti</a></li>
-                    <li><a href="{% url 'double_pathi' %}">Double Patti</a></li>
-                    <li><a href="{% url 'tripple_pathi' %}">Triple Patti</a></li>
                 </ul>
             </div>
         </div>
