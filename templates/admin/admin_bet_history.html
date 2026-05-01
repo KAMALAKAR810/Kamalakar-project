@@ -8,6 +8,12 @@
             <p class="page-sub">Comprehensive list of all user bets across markets</p>
         </div>
         <div class="page-toolbar-actions">
+            <button type="button" onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+            <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
             <a href="{% url 'admin_bet_history' %}" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-sync-alt me-1"></i> Refresh
             </a>

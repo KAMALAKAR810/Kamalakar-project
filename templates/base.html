@@ -80,6 +80,17 @@
                         {% endif %}
                     </a>
 
+                    <div class="user-chip" title="{{ user.username }}">
+                        <div class="user-chip-avatar">
+                            {% if user.profile.profile_pic and user.profile.profile_pic.name != 'profile_pics/default.png' %}
+                                <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                {{ user.username|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="user-chip-name">{{ user.username }}</div>
+                    </div>
+
                     <a href="{% url 'logout' %}" class="icon-btn" title="Logout">
                         <i class="fas fa-right-from-bracket"></i>
                     </a>
@@ -112,30 +123,37 @@
 
 <main class="main-content">
     <div class="container">
-        <div id="msg-overlay">
-            {% if messages %}
+        {% if messages %}
+            <script>
+                window.__serverMessages = window.__serverMessages || [];
                 {% for message in messages %}
-                    <div class="alert-toast {{ message.tags }}">
-                        <div class="alert-icon">
-                            {% if 'success' in message.tags %}
-                                <i class="fas fa-check"></i>
-                            {% elif 'error' in message.tags %}
-                                <i class="fas fa-xmark"></i>
-                            {% elif 'warning' in message.tags %}
-                                <i class="fas fa-triangle-exclamation"></i>
-                            {% else %}
-                                <i class="fas fa-circle-info"></i>
-                            {% endif %}
-                        </div>
-                        <div class="alert-content">
-                            <div class="alert-msg">{{ message }}</div>
-                        </div>
-                        <button type="button" class="alert-close" aria-label="Close" onclick="this.closest('.alert-toast').remove()">
-                            <i class="fas fa-xmark"></i>
-                        </button>
-                    </div>
+                    window.__serverMessages.push({
+                        text: "{{ message|escapejs }}",
+                        tags: "{{ message.tags|default:''|escapejs }}"
+                    });
                 {% endfor %}
-            {% endif %}
+            </script>
+        {% endif %}
+
+        <div id="notify-overlay" class="notify-overlay" aria-hidden="true">
+            <div id="notify-modal" class="notify-modal is-info" role="dialog" aria-modal="true">
+                <div class="notify-header">
+                    <h3 class="notify-title" id="notify-title">Notification</h3>
+                    <button type="button" class="notify-x" id="notify-x" aria-label="Close">
+                        <i class="fas fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="notify-body">
+                    <div class="notify-icon" id="notify-icon">
+                        <i class="fas fa-circle-info"></i>
+                    </div>
+                    <h2 class="notify-heading" id="notify-heading"></h2>
+                    <p class="notify-sub" id="notify-sub"></p>
+                </div>
+                <div class="notify-footer">
+                    <button type="button" class="notify-btn" id="notify-btn">OK</button>
+                </div>
+            </div>
         </div>
         {% block content %}{% endblock %}
     </div>
@@ -206,68 +224,112 @@
         // need the market data. In this project, we'll keep it simple.
     })();
 
-    // Simple Toast/Modal functions
-    function pushToast(message, type) {
-        const overlay = document.getElementById('msg-overlay');
-        if (!overlay) {
-            return;
-        }
-        const safeType = (type || 'info').toLowerCase();
-        const iconHtml = safeType === 'success'
-            ? '<i class="fas fa-check"></i>'
-            : safeType === 'error'
-                ? '<i class="fas fa-xmark"></i>'
-                : safeType === 'warning'
-                    ? '<i class="fas fa-triangle-exclamation"></i>'
-                    : '<i class="fas fa-circle-info"></i>';
-
-        const toast = document.createElement('div');
-        toast.className = `alert-toast ${safeType}`;
-        toast.innerHTML = `
-            <div class="alert-icon">${iconHtml}</div>
-            <div class="alert-content">
-                <div class="alert-msg"></div>
-            </div>
-            <button type="button" class="alert-close" aria-label="Close">
-                <i class="fas fa-xmark"></i>
-            </button>
-        `;
-        toast.querySelector('.alert-msg').textContent = message || '';
-        const closeBtn = toast.querySelector('.alert-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => toast.remove());
-        }
-        overlay.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.add('toast-hide');
-            setTimeout(() => toast.remove(), 350);
-        }, 4000);
-    }
-
-    window.pushToast = pushToast;
-
-    function showModal(title, text, type, callback) {
-        const msg = title ? `${title}: ${text}` : (text || '');
-        pushToast(msg, type || 'info');
-        if (callback) {
-            setTimeout(callback, 900);
-        }
-    }
-    function showLoading(show) {
-        // Simple loading toggle
+    function _typeFromTags(tags) {
+        const t = (tags || '').toLowerCase();
+        if (t.includes('success')) return 'success';
+        if (t.includes('error') || t.includes('danger')) return 'error';
+        if (t.includes('warning')) return 'warning';
+        return 'info';
     }
 
     (function () {
-        const overlay = document.getElementById('msg-overlay');
-        if (!overlay) return;
-        const toasts = Array.from(overlay.querySelectorAll('.alert-toast'));
-        toasts.forEach((toast) => {
-            setTimeout(() => {
-                toast.classList.add('toast-hide');
-                setTimeout(() => toast.remove(), 350);
+        const overlay = document.getElementById('notify-overlay');
+        const modal = document.getElementById('notify-modal');
+        const titleEl = document.getElementById('notify-title');
+        const headingEl = document.getElementById('notify-heading');
+        const subEl = document.getElementById('notify-sub');
+        const iconEl = document.getElementById('notify-icon');
+        const closeBtn = document.getElementById('notify-x');
+        const okBtn = document.getElementById('notify-btn');
+
+        if (!overlay || !modal || !titleEl || !headingEl || !subEl || !iconEl || !closeBtn || !okBtn) {
+            return;
+        }
+
+        const queue = [];
+        let activeTimer = null;
+        let showing = false;
+
+        function _applyType(type) {
+            modal.classList.remove('is-success', 'is-error', 'is-warning', 'is-info');
+            modal.classList.add(type === 'success' ? 'is-success' : type === 'error' ? 'is-error' : type === 'warning' ? 'is-warning' : 'is-info');
+
+            const icon = type === 'success'
+                ? 'fa-check'
+                : type === 'error'
+                    ? 'fa-xmark'
+                    : type === 'warning'
+                        ? 'fa-triangle-exclamation'
+                        : 'fa-circle-info';
+            iconEl.innerHTML = `<i class="fas ${icon}"></i>`;
+        }
+
+        function _showNext() {
+            if (showing) return;
+            const next = queue.shift();
+            if (!next) return;
+
+            showing = true;
+            if (activeTimer) window.clearTimeout(activeTimer);
+
+            const type = _typeFromTags(next.type || next.tags || 'info');
+            _applyType(type);
+
+            titleEl.textContent = next.title || (type === 'success' ? 'Success' : type === 'error' ? 'Error' : type === 'warning' ? 'Warning' : 'Notification');
+            headingEl.textContent = next.message || next.text || '';
+            subEl.textContent = next.sub || '';
+            subEl.style.display = subEl.textContent ? 'block' : 'none';
+
+            overlay.classList.add('open');
+            overlay.setAttribute('aria-hidden', 'false');
+
+            activeTimer = window.setTimeout(function () {
+                closeNotice();
             }, 4000);
+        }
+
+        function closeNotice() {
+            if (activeTimer) window.clearTimeout(activeTimer);
+            overlay.classList.remove('open');
+            overlay.setAttribute('aria-hidden', 'true');
+            showing = false;
+            window.setTimeout(_showNext, 120);
+        }
+
+        function openNotice(title, message, type, sub) {
+            queue.push({ title: title, message: message, type: type, sub: sub });
+            _showNext();
+        }
+
+        closeBtn.addEventListener('click', closeNotice);
+        okBtn.addEventListener('click', closeNotice);
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeNotice();
         });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) closeNotice();
+        });
+
+        window.pushToast = function (message, type) {
+            openNotice(null, message, type || 'info', '');
+        };
+
+        window.showModal = function (title, text, type, callback) {
+            openNotice(title || null, text || '', type || 'info', '');
+            if (callback) {
+                window.setTimeout(callback, 700);
+            }
+        };
+
+        const boot = window.__serverMessages || [];
+        boot.forEach(function (m) {
+            openNotice(null, m.text || '', _typeFromTags(m.tags), '');
+        });
+        window.__serverMessages = [];
     })();
+    function showLoading(show) {
+        // Simple loading toggle
+    }
 </script>
 {% block extra_js %}{% endblock %}
 </body>

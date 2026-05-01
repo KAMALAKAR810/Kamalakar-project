@@ -12,9 +12,17 @@
                     </h2>
                     <p class="page-sub">Create and oversee Matka game markets and their active timings.</p>
                 </div>
-                <a href="{% url 'market_history' %}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
-                    <i class="fas fa-history me-2"></i>VIEW HISTORY
-                </a>
+                <div class="d-inline-flex gap-2 flex-wrap">
+                    <button type="button" onclick="exportCurrentPage()" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-file-export me-2"></i>EXPORT
+                    </button>
+                    <button type="button" onclick="window.print()" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-print me-2"></i>PRINT
+                    </button>
+                    <a href="{% url 'market_history' %}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-history me-2"></i>VIEW HISTORY
+                    </a>
+                </div>
             </div>
 
             <div class="professional-card border-0 mb-5">
@@ -149,54 +157,51 @@
     </div>
 </div>
 
-<div id="marketEditModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h3 class="text-lg font-bold text-gray-800">Update Market</h3>
-            <button type="button" onclick="toggleMarketModal(false)" class="text-gray-400 hover:text-gray-600 transition" aria-label="Close">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+<div id="marketEditModal" class="notify-overlay" style="display:none;" aria-hidden="true">
+    <div class="notify-modal is-info" style="max-width:780px;" role="dialog" aria-modal="true">
+        <div class="notify-header">
+            <h3 class="notify-title">Update Market</h3>
+            <button type="button" onclick="toggleMarketModal(false)" class="notify-x" aria-label="Close">
+                <i class="fas fa-xmark"></i>
             </button>
         </div>
 
-        <form method="POST" class="p-6 grid gap-4">
+        <form method="POST" style="padding:1rem 1.1rem;display:grid;gap:0.9rem;">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_market">
             <input type="hidden" name="market_id" id="edit-market-id">
 
-            <div class="grid gap-2">
-                <label class="font-semibold text-gray-700">Market Name</label>
-                <input type="text" name="name" id="edit-name" class="form-control" required>
-            </div>
-
-            <div class="grid gap-2">
-                <label class="font-semibold text-gray-700">Collection Date</label>
-                <input type="datetime-local" name="collection_date" id="edit-collection" class="form-control" required>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="grid gap-2">
-                    <label class="font-semibold text-gray-700">Open Timer Starts</label>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Market Name</label>
+                    <input type="text" name="name" id="edit-name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Collection Date</label>
+                    <input type="datetime-local" name="collection_date" id="edit-collection" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Open Timer Starts</label>
                     <input type="datetime-local" name="open_start_time" id="edit-open-start" class="form-control">
                 </div>
-                <div class="grid gap-2">
-                    <label class="font-semibold text-gray-700">Open Duration (Minutes)</label>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Open Duration (Minutes)</label>
                     <input type="number" name="open_duration_minutes" id="edit-open-duration" class="form-control" min="1" step="1" required>
                 </div>
-                <div class="grid gap-2">
-                    <label class="font-semibold text-gray-700">Close Timer Starts</label>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Close Timer Starts</label>
                     <input type="datetime-local" name="close_start_time" id="edit-close-start" class="form-control">
                 </div>
-                <div class="grid gap-2">
-                    <label class="font-semibold text-gray-700">Close Duration (Minutes)</label>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Close Duration (Minutes)</label>
                     <input type="number" name="close_duration_minutes" id="edit-close-duration" class="form-control" min="1" step="1" required>
                 </div>
             </div>
 
-            <div class="pt-2 flex justify-center">
-                <button type="submit" class="bg-[#365cff] text-white font-semibold py-2 px-8 rounded-full hover:bg-[#2447d6] shadow-md transition-all">
-                    Update Market
+            <div class="notify-footer" style="justify-content:flex-end;gap:.75rem;">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="toggleMarketModal(false)">Cancel</button>
+                <button type="submit" class="btn btn-primary-gradient rounded-pill px-4">
+                    <i class="fas fa-floppy-disk me-2"></i>Update
                 </button>
             </div>
         </form>
@@ -257,7 +262,8 @@
 function toggleMarketModal(show) {
     const modal = document.getElementById('marketEditModal');
     if (!modal) return;
-    modal.classList.toggle('hidden', !show);
+    modal.style.display = show ? 'flex' : 'none';
+    modal.setAttribute('aria-hidden', show ? 'false' : 'true');
 }
 
 function openMarketEdit(btn) {
