@@ -8,6 +8,7 @@ from pathlib import Path
 import os
 import logging.handlers
 from dotenv import load_dotenv
+from email.utils import parseaddr, formataddr
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -307,7 +308,7 @@ if EMAIL_PROVIDER == "gmail":
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "").strip()
     # IMPORTANT: Use a 16-character Gmail App Password (Google Account → Security → App Passwords).
     # Do NOT use your normal Gmail password.
-    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "").strip()
+    EMAIL_HOST_PASSWORD = (os.getenv("EMAIL_HOST_PASSWORD", "") or "").strip().replace(" ", "")
 else:
     EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
@@ -329,7 +330,17 @@ if EMAIL_PROVIDER == "gmail" and EMAIL_HOST_USER:
         "DEFAULT_FROM_EMAIL",
         f"ChangeLifeWithNumbers <{EMAIL_HOST_USER}>",
     )
+
+    _from_name, _from_addr = parseaddr(DEFAULT_FROM_EMAIL)
+    if _from_addr and _from_addr.lower() != EMAIL_HOST_USER.lower():
+        DEFAULT_FROM_EMAIL = formataddr((_from_name or "ChangeLifeWithNumbers", EMAIL_HOST_USER))
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)
+
+# --- EmailJS (optional fallback for hosts that block SMTP) ---
+EMAILJS_SERVICE_ID = (os.getenv("EMAILJS_SERVICE_ID", "") or "").strip()
+EMAILJS_TEMPLATE_ID = (os.getenv("EMAILJS_TEMPLATE_ID", "") or "").strip()
+EMAILJS_PUBLIC_KEY = (os.getenv("EMAILJS_PUBLIC_KEY", "") or "").strip()
+EMAILJS_PRIVATE_KEY = (os.getenv("EMAILJS_PRIVATE_KEY", "") or "").strip()
 
 # In local development, default to console backend if SMTP isn't configured.
 # This prevents signup/OTP from crashing when no mail server is reachable.

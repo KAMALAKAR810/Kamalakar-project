@@ -740,12 +740,49 @@ def _send_email_otp(profile: Profile = None, email: str = None):
                 fail_silently=False,
                 html_message=html_message,
             )
+            return ttl
         except Exception:
             logger.exception("Email OTP SMTP send failed")
+
+            service_id = (getattr(settings, "EMAILJS_SERVICE_ID", "") or "").strip()
+            template_id = (getattr(settings, "EMAILJS_TEMPLATE_ID", "") or "").strip()
+            public_key = (getattr(settings, "EMAILJS_PUBLIC_KEY", "") or "").strip()
+            private_key = (getattr(settings, "EMAILJS_PRIVATE_KEY", "") or "").strip()
+
+            if service_id and template_id and public_key:
+                payload = {
+                    "service_id": service_id,
+                    "template_id": template_id,
+                    "user_id": public_key,
+                    "template_params": {
+                        "to_email": target_email,
+                        "otp": otp,
+                        "ttl_seconds": ttl,
+                        "subject": subject,
+                    },
+                }
+                if private_key:
+                    payload["accessToken"] = private_key
+
+                try:
+                    resp = requests.post(
+                        "https://api.emailjs.com/api/v1.0/email/send",
+                        json=payload,
+                        timeout=8,
+                    )
+                    if 200 <= resp.status_code < 300:
+                        return ttl
+                    logger.error(
+                        "EmailJS OTP send failed: status=%s body=%s",
+                        resp.status_code,
+                        (resp.text or "")[:200],
+                    )
+                except Exception:
+                    logger.exception("EmailJS OTP send failed")
+
             raise ValidationError(
                 "OTP email could not be delivered. Configure Gmail SMTP (EMAIL_HOST_USER + EMAIL_HOST_PASSWORD) and ensure your hosting allows SMTP on port 587."
             )
-        return ttl
     except ValidationError:
         if profile:
             EmailOTP.objects.filter(profile=profile).delete()
