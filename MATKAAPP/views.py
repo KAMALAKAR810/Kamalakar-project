@@ -35,6 +35,28 @@ from .models import Bet, Transaction, Market, Wallet, Profile, EmailOTP, Message
 logger = logging.getLogger(__name__)
 DEVICE_ID_COOKIE_NAME = "clwn_device_id"
 
+def _run_30_day_cleanup(actor_user):
+    cutoff_date = timezone.now() - timedelta(days=30)
+
+    with db_transaction.atomic():
+        deleted = {}
+        deleted["market_history"] = MarketHistory.objects.filter(archived_at__lt=cutoff_date).delete()[0]
+        deleted["messages"] = Message.objects.filter(created_at__lt=cutoff_date).delete()[0]
+        deleted["bets"] = Bet.objects.filter(created_at__lt=cutoff_date).delete()[0]
+        deleted["deposit_requests"] = DepositRequest.objects.filter(created_at__lt=cutoff_date).delete()[0]
+        deleted["withdrawal_requests"] = WithdrawalRequest.objects.filter(created_at__lt=cutoff_date).delete()[0]
+        deleted["notifications"] = Notification.objects.filter(created_at__lt=cutoff_date).delete()[0]
+        deleted["transactions"] = Transaction.objects.filter(created_at__lt=cutoff_date).delete()[0]
+        deleted["activities"] = UserActivity.objects.filter(created_at__lt=cutoff_date).delete()[0]
+
+        UserActivity.objects.create(
+            user=actor_user,
+            activity_type="CLEANUP",
+            description=f"Admin performed 30-day data cleanup (deleted data before {cutoff_date.strftime('%Y-%m-%d %H:%M')}).",
+        )
+
+    return cutoff_date, deleted
+
 
 @login_required
 def admin_2fa_view(request):
@@ -1019,6 +1041,7 @@ def verify_email_otp_view(request):
                     send_telegram_message(
                         f"🎉 <b>New User Registered</b>\n"
                         f"👤 Username: <b>{user.username}</b>\n"
+                        f"👤 User: <b>{request.user.userid}</b>\n"
                         f"📛 Name: {reg_data['name']}\n"
                         f"📧 Email: {reg_data['email']}\n"
                         f"📱 Mobile: {reg_data['mobile']}\n"
@@ -1946,35 +1969,7 @@ def export_user_data(request):
 def admin_summary(request):
     """Admin dashboard overview with 30-day cleanup."""
     if request.method == 'POST' and request.POST.get('action') == 'cleanup_30days':
-        # ... (cleanup logic remains same)
-        cutoff_date = timezone.now() - timedelta(days=30)
-        
-        with db_transaction.atomic():
-            # 1. Archive & Delete MarketHistory older than 30 days
-            MarketHistory.objects.filter(archived_at__lt=cutoff_date).delete()
-            
-            # 2. Delete Admin Chat (Messages) older than 30 days
-            Message.objects.filter(created_at__lt=cutoff_date).delete()
-            
-            # 3. Delete User Bets older than 30 days
-            Bet.objects.filter(created_at__lt=cutoff_date).delete()
-            
-            # 4. Delete Payment Approval History (DepositRequest) older than 30 days
-            DepositRequest.objects.filter(created_at__lt=cutoff_date).delete()
-            
-            # 5. Delete Withdrawal Requests older than 30 days
-            WithdrawalRequest.objects.filter(created_at__lt=cutoff_date).delete()
-            
-            # 6. Delete Notifications older than 30 days
-            Notification.objects.filter(created_at__lt=cutoff_date).delete()
-            
-            # Log this cleanup activity
-            UserActivity.objects.create(
-                user=request.user,
-                activity_type='CLEANUP',
-                description=f"Admin performed 30-day data cleanup for data before {cutoff_date.strftime('%Y-%m-%d %H:%M')}"
-            )
-            
+        cutoff_date, deleted = _run_30_day_cleanup(request.user)
         messages.success(request, f"Successfully cleaned up all data older than 30 days (before {cutoff_date.strftime('%d %b %Y')}).")
         return redirect('admin_summary')
 
@@ -2031,22 +2026,7 @@ def admin_summary(request):
 def admin_dashboard_enhanced(request):
     """Enhanced admin dashboard with Tailwind CSS styling."""
     if request.method == 'POST' and request.POST.get('action') == 'cleanup_30days':
-        cutoff_date = timezone.now() - timedelta(days=30)
-        
-        with db_transaction.atomic():
-            MarketHistory.objects.filter(archived_at__lt=cutoff_date).delete()
-            Message.objects.filter(created_at__lt=cutoff_date).delete()
-            Bet.objects.filter(created_at__lt=cutoff_date).delete()
-            DepositRequest.objects.filter(created_at__lt=cutoff_date).delete()
-            WithdrawalRequest.objects.filter(created_at__lt=cutoff_date).delete()
-            Notification.objects.filter(created_at__lt=cutoff_date).delete()
-            
-            UserActivity.objects.create(
-                user=request.user,
-                activity_type='CLEANUP',
-                description=f"Admin performed 30-day data cleanup"
-            )
-            
+        _run_30_day_cleanup(request.user)
         messages.success(request, "Successfully cleaned up all data older than 30 days.")
         return redirect('admin_dashboard_enhanced')
 
@@ -2323,6 +2303,7 @@ def chat_view(request, user_id=None):
                 send_telegram_message(
                     f"💬 <b>New Chat Message</b>\n"
                     f"👤 From: <b>{request.user.username}</b>\n"
+                    f"👤 User: <b>{request.user.userid}</b>\n"
                     f"📝 Message: {msg_preview}\n"
                     f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}\n"
                     f"🔗 Reply at: /admin-chat-user/{request.user.id}/"
@@ -2423,6 +2404,7 @@ def payment_page(request):
         send_telegram_message(
             f"💰 <b>New Deposit Request</b>\n"
             f"👤 User: <b>{request.user.username}</b>\n"
+            f"👤 User: <b>{request.user.userid}</b>\n"
             f"💵 Amount: <b>₹{amount}</b>\n"
             f"🔖 UTR: <code>{utr_number}</code>\n"
             f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}"
