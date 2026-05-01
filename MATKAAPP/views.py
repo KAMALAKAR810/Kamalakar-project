@@ -731,36 +731,6 @@ def _send_email_otp(profile: Profile = None, email: str = None):
             from_addr = "no-reply@changelifewithnumbers.local"
         from_email = f"{from_name} <{from_addr}>" if from_name else from_addr
 
-        def _send_via_sendgrid_api() -> bool:
-            api_key = (os.getenv("SENDGRID_API_KEY") or "").strip()
-            if not api_key:
-                return False
-
-            sg_from = (os.getenv("SENDGRID_FROM_EMAIL") or "").strip()
-            sg_name, sg_addr = parseaddr(sg_from or from_email)
-            if not sg_addr or "@" not in sg_addr:
-                return False
-
-            payload = {
-                "personalizations": [{"to": [{"email": target_email}]}],
-                "from": {"email": sg_addr, **({"name": sg_name} if sg_name else {})},
-                "subject": subject,
-                "content": [
-                    {"type": "text/plain", "value": text_message},
-                    {"type": "text/html", "value": html_message},
-                ],
-            }
-            resp = requests.post(
-                "https://api.sendgrid.com/v3/mail/send",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=12,
-            )
-            return 200 <= resp.status_code < 300
-
         try:
             send_mail(
                 subject=subject,
@@ -771,11 +741,10 @@ def _send_email_otp(profile: Profile = None, email: str = None):
                 html_message=html_message,
             )
         except Exception:
-            logger.exception("Email OTP SMTP send failed; trying SendGrid API fallback")
-            if not _send_via_sendgrid_api():
-                raise ValidationError(
-                    "OTP email could not be delivered. Configure SMTP email settings or set SENDGRID_API_KEY + SENDGRID_FROM_EMAIL."
-                )
+            logger.exception("Email OTP SMTP send failed")
+            raise ValidationError(
+                "OTP email could not be delivered. Configure Gmail SMTP (EMAIL_HOST_USER + EMAIL_HOST_PASSWORD) and ensure your hosting allows SMTP on port 587."
+            )
         return ttl
     except ValidationError:
         if profile:

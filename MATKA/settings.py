@@ -295,7 +295,6 @@ CSRF_FAILURE_VIEW = "MATKAAPP.views.csrf_failure"
 # --- Email (provider-agnostic; free-tier hosting friendly) ---
 # Supports:
 # - EMAIL_PROVIDER=gmail    -> smtp.gmail.com + Gmail App Password
-# - EMAIL_PROVIDER=sendgrid -> smtp.sendgrid.net + SENDGRID_API_KEY
 # - EMAIL_PROVIDER=smtp     -> fully custom SMTP via EMAIL_HOST/EMAIL_PORT/etc
 EMAIL_PROVIDER = (os.getenv("EMAIL_PROVIDER", "gmail") or "gmail").strip().lower()
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
@@ -309,14 +308,6 @@ if EMAIL_PROVIDER == "gmail":
     # IMPORTANT: Use a 16-character Gmail App Password (Google Account → Security → App Passwords).
     # Do NOT use your normal Gmail password.
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "").strip()
-elif EMAIL_PROVIDER == "sendgrid":
-    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.sendgrid.net")
-    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
-    # SendGrid SMTP requires username "apikey" and password as the API key.
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "apikey")
-    EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY", os.getenv("EMAIL_HOST_PASSWORD", ""))
 else:
     EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
