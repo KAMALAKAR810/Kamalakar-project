@@ -50,7 +50,7 @@
                         <td class="fw-medium" data-label="Mobile">{{ profile.mobile }}</td>
                         <td class="small text-muted" data-label="Joined Date">{{ profile.created_at|date:"d M Y, H:i" }}</td>
                         <td data-label="Verified">
-                            {% if profile.is_mobile_verified %}
+                            {% if profile.is_email_verified %}
                                 <span class="badge-status badge-success">
                                     <i class="fas fa-check-circle me-1"></i> Verified
                                 </span>

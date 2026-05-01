@@ -73,7 +73,7 @@
                 <div class="check-row">
                     <input type="checkbox" id="terms_agree" name="terms_agree" required>
                     <label for="terms_agree">
-                        I agree to the Terms and Conditions.
+                        I agree to the <a href="#" class="policy-link" onclick="openTermsModal(event)">Terms and Conditions</a>.
                     </label>
                 </div>
 
@@ -88,6 +88,61 @@
         </div>
     </div>
 </section>
+
+<div class="policy-modal" id="terms-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="policy-box">
+        <div class="policy-head">
+            <div class="policy-brand">
+                <img src="{% static 'logo.jpeg' %}" alt="Change Life With Numbers">
+                <div style="min-width:0;">
+                    <div class="policy-title">Change Life With Numbers</div>
+                    <div class="auth-subtitle" style="margin:0;">— with Numbers —</div>
+                </div>
+            </div>
+            <button type="button" class="policy-close" onclick="closeTermsModal()" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="policy-body">
+            <h2>Terms &amp; Conditions</h2>
+            <p><strong>Primary Branding</strong></p>
+            <p>Main Heading: <strong>Change Life With Numbers</strong></p>
+            <p>Tagline: <strong>— with Numbers —</strong></p>
+
+            <h3>Core Platform Rules</h3>
+            <ul>
+                <li><strong>Eligibility:</strong> Users must be at least 18 years old and are responsible for financial risks.</li>
+                <li><strong>Account Policy:</strong> Only one account per user is permitted; multiple accounts lead to a permanent ban.</li>
+                <li><strong>Nature of Service:</strong> The platform provides Matka (number prediction) games under private control.</li>
+            </ul>
+
+            <h3>Financial &amp; Payment Terms</h3>
+            <ul>
+                <li><strong>Payment Method:</strong> Only official QR codes are accepted for payments.</li>
+                <li><strong>Deposit Requirements:</strong> Users must submit valid transaction details and screenshots for manual approval.</li>
+                <li><strong>Withdrawal Policy:</strong> Withdrawals are manually processed and require prior betting activity; direct withdrawals after deposit are prohibited.</li>
+                <li><strong>Refunds:</strong> All transactions are final and non-refundable.</li>
+            </ul>
+
+            <h3>Authority &amp; Compliance</h3>
+            <ul>
+                <li><strong>Admin Power:</strong> Admin decisions are final regarding bet cancellations, account blocks, and balance adjustments.</li>
+                <li><strong>Verification:</strong> The platform may request KYC (identity or payment) verification at any time.</li>
+                <li><strong>Fraud:</strong> Fraudulent activity results in immediate suspension and seizure of funds.</li>
+                <li><strong>Communication:</strong> Official support is only available via the website and WhatsApp.</li>
+            </ul>
+
+            <h3>Legal Disclaimers</h3>
+            <ul>
+                <li><strong>Liability:</strong> The platform is not responsible for user losses, system errors, or mistakes.</li>
+                <li><strong>Updates:</strong> Terms may be updated at any time without notice, and continued use constitutes acceptance.</li>
+                <li><strong>Final Disclaimer:</strong> The platform is provided "as-is," and users bear all legal and financial consequences.</li>
+            </ul>
+        </div>
+    </div>
+</div>
 
 <script>
     function bindToggle(triggerId, inputId) {
@@ -114,5 +169,35 @@
 
     bindToggle('togglePassword', 'reg-password');
     bindToggle('togglePasswordConfirm', 'reg-password-confirm');
+
+    function openTermsModal(event) {
+        if (event) event.preventDefault();
+        const modal = document.getElementById('terms-modal');
+        if (!modal) return;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeTermsModal() {
+        const modal = document.getElementById('terms-modal');
+        if (!modal) return;
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    window.openTermsModal = openTermsModal;
+    window.closeTermsModal = closeTermsModal;
+
+    document.addEventListener('click', function (e) {
+        const modal = document.getElementById('terms-modal');
+        if (!modal || !modal.classList.contains('open')) return;
+        if (e.target === modal) closeTermsModal();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        const modal = document.getElementById('terms-modal');
+        if (modal && modal.classList.contains('open')) closeTermsModal();
+    });
 </script>
 {% endblock %}

@@ -1553,6 +1553,9 @@
                 <a href="{% url 'admin_user_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_management' %}active{% endif %}">
                     <i class="fas fa-users"></i><span>User Management</span>
                 </a>
+                <a href="{% url 'admin_wallet_overview' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_wallet_overview' %}active{% endif %}">
+                    <i class="fas fa-coins"></i><span>User Wallets</span>
+                </a>
                 <a href="{% url 'admin_withdrawal_management' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_withdrawal_management' %}active{% endif %}">
                     <i class="fas fa-wallet"></i><span>Withdrawals</span>
                 </a>
@@ -1805,6 +1808,58 @@
                 item.remove();
             }, 4200);
         }
+
+        function exportCurrentPage() {
+            const table = document.querySelector('main.admin-content table');
+            if (!table) {
+                showToast('No table found to export on this page.', 'warning', 'Export');
+                return;
+            }
+
+            const rows = Array.from(table.querySelectorAll('tr')).filter(function (tr) {
+                if (!tr) return false;
+                const style = window.getComputedStyle(tr);
+                return style.display !== 'none' && style.visibility !== 'hidden';
+            });
+
+            if (!rows.length) {
+                showToast('No rows found to export.', 'warning', 'Export');
+                return;
+            }
+
+            const csvLines = rows.map(function (row) {
+                const cells = Array.from(row.querySelectorAll('th,td'));
+                return cells.map(function (cell) {
+                    const text = (cell.innerText || '').replace(/\r?\n/g, ' ').trim();
+                    const escaped = '"' + text.replace(/"/g, '""') + '"';
+                    return escaped;
+                }).join(',');
+            });
+
+            const csv = '\ufeff' + csvLines.join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const now = new Date();
+            const stamp = [
+                now.getFullYear(),
+                String(now.getMonth() + 1).padStart(2, '0'),
+                String(now.getDate()).padStart(2, '0'),
+                String(now.getHours()).padStart(2, '0'),
+                String(now.getMinutes()).padStart(2, '0'),
+            ].join('');
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'export_' + stamp + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('Downloaded current page table as CSV.', 'success', 'Export');
+        }
+
+        window.exportCurrentPage = exportCurrentPage;
 
         function openModalNotification(options) {
             const modal = document.getElementById('modal-notification');

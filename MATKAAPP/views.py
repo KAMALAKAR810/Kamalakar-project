@@ -19,6 +19,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 # local variable 'transaction' used inside place_bet and the Transaction model.
 from django.db import transaction as db_transaction
 from django.db.models import Sum, Q, Count, Max
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -2202,6 +2203,48 @@ def admin_user_management(request):
 
 
 @user_passes_test(lambda u: u.is_superuser)
+def admin_wallet_overview(request):
+    q = (request.GET.get("q") or "").strip()
+    user_id = (request.GET.get("user_id") or "").strip()
+
+    users = (
+        User.objects.filter(is_superuser=False)
+        .select_related("profile")
+        .annotate(balance=Coalesce("wallet__balance", Decimal("0.00")))
+        .order_by("username")
+    )
+
+    if q:
+        users = users.filter(
+            Q(username__icontains=q)
+            | Q(email__icontains=q)
+            | Q(profile__email__icontains=q)
+            | Q(profile__user_code__icontains=q)
+        )
+
+    selected_user = None
+    txns = []
+    since = timezone.now() - timedelta(days=30)
+    if user_id.isdigit():
+        selected_user = get_object_or_404(User, id=int(user_id), is_superuser=False)
+        wallet, _ = Wallet.objects.get_or_create(user=selected_user)
+        txns = Transaction.objects.filter(wallet=wallet, created_at__gte=since).order_by("-created_at")
+
+    return render(
+        request,
+        "admin/admin_wallet_overview.html",
+        {
+            "page_title": "Wallet Overview",
+            "users": users,
+            "q": q,
+            "selected_user": selected_user,
+            "txns": txns,
+            "since": since,
+        },
+    )
+
+
+@user_passes_test(lambda u: u.is_superuser)
 def admin_chat_list(request):
     """Page 2: WhatsApp style chat list with search and date info."""
     search_query = request.GET.get('search', '').strip()
@@ -2338,8 +2381,8 @@ def payment_page(request):
                 messages.error(request, "Invalid amount format.")
                 return redirect('payment')
 
-            if amount < 500:
-                messages.error(request, "Minimum deposit amount is ₹500.")
+            if amount < 100:
+                messages.error(request, "Minimum deposit amount is ₹100.")
                 return redirect('payment')
             
             # Get UPI config
@@ -2362,8 +2405,8 @@ def payment_page(request):
         if not utr_number or len(utr_number) < 10:
             return JsonResponse({'status': 'error', 'message': 'Please enter a valid 12-digit UTR.'})
             
-        if amount < 500:
-            return JsonResponse({'status': 'error', 'message': 'Minimum amount is ₹500.'})
+        if amount < 100:
+            return JsonResponse({'status': 'error', 'message': 'Minimum amount is ₹100.'})
             
         # Check if UTR already exists
         if DepositRequest.objects.filter(utr_number=utr_number).exists():
@@ -2570,6 +2613,52 @@ def manage_markets(request):
     Task 16: Manage markets with date-time picker.
     """
     if request.method == "POST":
+        action = (request.POST.get("action") or "").strip().lower()
+        if action in {"update_market", "delete_market"}:
+            market_id = request.POST.get("market_id")
+            if not market_id or not str(market_id).isdigit():
+                messages.error(request, "Invalid market id.")
+                return redirect("manage_markets")
+
+            market = get_object_or_404(Market, id=int(market_id))
+
+            if action == "delete_market":
+                market_name = market.name
+                market.delete()
+                messages.success(request, f"Market '{market_name}' deleted successfully.")
+                return redirect("manage_markets")
+
+            name = (request.POST.get("name") or "").strip()
+            coll_date = request.POST.get("collection_date")
+            ost = request.POST.get("open_start_time")
+            open_duration = request.POST.get("open_duration_minutes")
+            cst = request.POST.get("close_start_time")
+            close_duration = request.POST.get("close_duration_minutes")
+
+            if not name:
+                messages.error(request, "Market name is required.")
+                return redirect("manage_markets")
+
+            try:
+                collection_date = _parse_datetime_local(coll_date) or timezone.localtime()
+                open_start_time = _parse_datetime_local(ost) or timezone.localtime()
+                close_start_time = _parse_datetime_local(cst) or open_start_time
+                open_duration_minutes = _parse_positive_minutes(open_duration, "Open")
+                close_duration_minutes = _parse_positive_minutes(close_duration, "Close")
+            except ValidationError as exc:
+                messages.error(request, exc.messages[0])
+                return redirect("manage_markets")
+
+            with db_transaction.atomic():
+                market.name = name
+                market.collection_date = collection_date
+                market.configure_session_timer("OPEN", open_start_time, open_duration_minutes)
+                market.configure_session_timer("CLOSE", close_start_time, close_duration_minutes)
+                market.save()
+
+            messages.success(request, f"Market '{market.name}' updated successfully.")
+            return redirect("manage_markets")
+
         name = request.POST.get('name')
         coll_date = request.POST.get('collection_date')
         ost = request.POST.get('open_start_time')

@@ -16,23 +16,41 @@
 {% endif %}
 
 <div class="home-shell">
-<section class="hero-section text-center py-5">
-    <h1 class="display-4 fw-black text-primary mb-3">Predict. Win. <span class="text-secondary">Prosper.</span></h1>
-    <p class="text-muted lead mb-4">
-        Welcome to <strong>ChangeLifeWithNumbers</strong>, the most secure and
-        trusted platform for your number game predictions. Start your journey today!
-    </p>
-    <div class="cta-buttons d-flex justify-content-center gap-3">
-        {% if not user.is_authenticated %}
-            <a href="{% url 'register' %}" class="btn btn-gold btn-lg">Create Free Account</a>
-        {% else %}
-            <a href="#site-info" class="btn btn-gold btn-lg">Site Info</a>
-        {% endif %}
-        <a href="{{ support_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-lg">
-            <i class="fab fa-whatsapp me-2"></i> Contact Support
-        </a>
+<div class="home-hero-card">
+    <section class="hero-section text-center py-5">
+        <h1 class="display-4 fw-black text-primary mb-3">Predict. Win. <span class="text-secondary">Prosper.</span></h1>
+        <p class="text-muted lead mb-4">
+            Welcome to <strong>ChangeLifeWithNumbers</strong>, the most secure and
+            trusted platform for your number game predictions. Start your journey today!
+        </p>
+        <div class="cta-buttons d-flex justify-content-center gap-3">
+            {% if not user.is_authenticated %}
+                <a href="{% url 'register' %}" class="btn btn-gold btn-lg">Create Free Account</a>
+            {% else %}
+                <a href="#site-info" class="btn btn-gold btn-lg">Site Info</a>
+            {% endif %}
+            <a href="{{ support_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-lg">
+                <i class="fab fa-whatsapp me-2"></i> Contact Support
+            </a>
+        </div>
+    </section>
+</div>
+
+{% if user.is_authenticated and not user.is_superuser %}
+    <div class="user-dash-card">
+        <div class="user-dash-avatar">
+            {% if user.profile.profile_pic and user.profile.profile_pic.name != 'profile_pics/default.png' %}
+                <img src="{{ user.profile.profile_pic.url }}" alt="{{ user.username }}">
+            {% else %}
+                {{ user.username|slice:":1"|upper }}
+            {% endif %}
+        </div>
+        <div class="user-dash-meta">
+            <div class="user-dash-name">{{ user.username }}</div>
+            <div class="user-dash-sub">ID: {{ user.profile.user_code|default:"N/A" }}</div>
+        </div>
     </div>
-</section>
+{% endif %}
 
 <section id="site-info" class="home-info">
     <div class="home-info-grid">
@@ -50,7 +68,7 @@
         <div class="home-card">
             <h3>⚠️ General Instructions</h3>
             <ul class="home-list">
-                <li><strong>Minimum Deposit:</strong> ₹500</li>
+                <li><strong>Minimum Deposit:</strong> ₹100</li>
                 <li><strong>Minimum Withdrawal:</strong> ₹500</li>
                 <li>Markets close 10 minutes before result announcement (Open Time)</li>
                 <li>Bets can be modified up to 3 times only after placing</li>

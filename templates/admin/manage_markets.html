@@ -74,7 +74,13 @@
                         </thead>
                         <tbody>
                             {% for market in markets %}
-                            <tr data-market-id="{{ market.id }}">
+                            <tr data-market-id="{{ market.id }}"
+                                data-name="{{ market.name }}"
+                                data-collection="{{ market.collection_date|date:'Y-m-d\\TH:i' }}"
+                                data-open-start="{{ market.open_start_time|date:'Y-m-d\\TH:i' }}"
+                                data-open-duration="{{ market.open_duration_minutes|default:'' }}"
+                                data-close-start="{{ market.close_start_time|date:'Y-m-d\\TH:i' }}"
+                                data-close-duration="{{ market.close_duration_minutes|default:'' }}">
                                 <td class="px-4">
                                     <strong class="text-primary fs-6">{{ market.name }}</strong>
                                 </td>
@@ -110,10 +116,21 @@
                                     </div>
                                 </td>
                                 <td class="px-4 text-end">
-                                    <button onclick="confirmReset('{{ market.id }}', '{{ market.name }}')"
-                                            class="btn btn-sm btn-outline-danger px-3 rounded-pill shadow-sm">
-                                        <i class="fas fa-undo-alt me-1"></i> RESTART TIMER
-                                    </button>
+                                    <div class="d-inline-flex gap-2">
+                                        <button type="button" onclick="openMarketEdit(this)"
+                                                class="btn btn-sm btn-outline-primary px-3 rounded-pill shadow-sm">
+                                            <i class="fas fa-pen-to-square me-1"></i> Edit
+                                        </button>
+                                        <form method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_market">
+                                            <input type="hidden" name="market_id" value="{{ market.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill shadow-sm"
+                                                    onclick="return confirm('Delete market {{ market.name }}?')">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
@@ -129,6 +146,60 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="marketEditModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800">Update Market</h3>
+            <button type="button" onclick="toggleMarketModal(false)" class="text-gray-400 hover:text-gray-600 transition" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <form method="POST" class="p-6 grid gap-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_market">
+            <input type="hidden" name="market_id" id="edit-market-id">
+
+            <div class="grid gap-2">
+                <label class="font-semibold text-gray-700">Market Name</label>
+                <input type="text" name="name" id="edit-name" class="form-control" required>
+            </div>
+
+            <div class="grid gap-2">
+                <label class="font-semibold text-gray-700">Collection Date</label>
+                <input type="datetime-local" name="collection_date" id="edit-collection" class="form-control" required>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid gap-2">
+                    <label class="font-semibold text-gray-700">Open Timer Starts</label>
+                    <input type="datetime-local" name="open_start_time" id="edit-open-start" class="form-control">
+                </div>
+                <div class="grid gap-2">
+                    <label class="font-semibold text-gray-700">Open Duration (Minutes)</label>
+                    <input type="number" name="open_duration_minutes" id="edit-open-duration" class="form-control" min="1" step="1" required>
+                </div>
+                <div class="grid gap-2">
+                    <label class="font-semibold text-gray-700">Close Timer Starts</label>
+                    <input type="datetime-local" name="close_start_time" id="edit-close-start" class="form-control">
+                </div>
+                <div class="grid gap-2">
+                    <label class="font-semibold text-gray-700">Close Duration (Minutes)</label>
+                    <input type="number" name="close_duration_minutes" id="edit-close-duration" class="form-control" min="1" step="1" required>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-center">
+                <button type="submit" class="bg-[#365cff] text-white font-semibold py-2 px-8 rounded-full hover:bg-[#2447d6] shadow-md transition-all">
+                    Update Market
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -183,10 +254,26 @@
     setInterval(syncFromServer, 10000);
 })();
 
-function confirmReset(id, name) {
-    if (confirm('Restart timer for ' + name + '?\nThis archives the current state and restarts the countdown from now.')) {
-        window.location.href = '/admin-reset-market/' + id + '/';
-    }
+function toggleMarketModal(show) {
+    const modal = document.getElementById('marketEditModal');
+    if (!modal) return;
+    modal.classList.toggle('hidden', !show);
 }
+
+function openMarketEdit(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+    document.getElementById('edit-market-id').value = row.dataset.marketId || '';
+    document.getElementById('edit-name').value = row.dataset.name || '';
+    document.getElementById('edit-collection').value = row.dataset.collection || '';
+    document.getElementById('edit-open-start').value = row.dataset.openStart || '';
+    document.getElementById('edit-open-duration').value = row.dataset.openDuration || '';
+    document.getElementById('edit-close-start').value = row.dataset.closeStart || '';
+    document.getElementById('edit-close-duration').value = row.dataset.closeDuration || '';
+    toggleMarketModal(true);
+}
+
+window.openMarketEdit = openMarketEdit;
+window.toggleMarketModal = toggleMarketModal;
 </script>
 {% endblock %}

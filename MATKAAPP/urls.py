@@ -43,6 +43,7 @@ urlpatterns = [
     path("chat/", views.chat_view, name="chat"),
     path("admin-chat-user/<int:user_id>/", views.chat_view, name="admin_chat_user"),
     path("admin-user-management/", views.admin_user_management, name="admin_user_management"),
+    path("admin-wallet-overview/", views.admin_wallet_overview, name="admin_wallet_overview"),
     path("admin-chat-list/", views.admin_chat_list, name="admin_chat_list"),
     path("api/send-welcome/<int:user_id>/", views.send_welcome_msg, name="send_welcome_msg"),
 

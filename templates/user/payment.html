@@ -16,7 +16,7 @@
     </div>
     <div class="payment-form-group">
         <label>Amount to Pay (₹)</label>
-        <input type="number" id="pay-amount" placeholder="Enter amount e.g. 1000" min="500">
+        <input type="number" id="pay-amount" placeholder="Enter amount e.g. 1000" min="100">
     </div>
 
     <form id="amount-form" method="POST" action="{% url 'payment' %}">
@@ -31,12 +31,12 @@
 <script>
     document.getElementById('amount-form').onsubmit = function(e) {
         const amt = document.getElementById('pay-amount').value;
-        if (!amt || amt < 500) {
+        if (!amt || amt < 100) {
             e.preventDefault();
             if (window.pushToast) {
-                window.pushToast("Please enter a valid amount (Min ₹500)", "error");
+                window.pushToast("Please enter a valid amount (Min ₹100)", "error");
             } else {
-                alert("Please enter a valid amount (Min ₹500)");
+                alert("Please enter a valid amount (Min ₹100)");
             }
             return false;
         }

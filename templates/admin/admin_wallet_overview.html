@@ -1,0 +1,127 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<div class="page-shell slide-in">
+    <div class="page-toolbar mb-4">
+        <div class="page-toolbar-main">
+            <h2 class="page-title mb-1">
+                <i class="fas fa-coins"></i> User Wallets
+            </h2>
+            <p class="page-sub">Search users and review wallet balances. Open history to see last 30 days transactions.</p>
+        </div>
+        <div class="page-toolbar-actions">
+            <button onclick="exportCurrentPage()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+        </div>
+    </div>
+
+    <div class="professional-card mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-sm-8 col-md-6">
+                <label class="form-label">Search (Username / Email / User ID)</label>
+                <input type="text" name="q" value="{{ q|default:'' }}" class="form-control" placeholder="Search user...">
+            </div>
+            <div class="col-sm-4 col-md-3">
+                <button type="submit" class="btn btn-primary-gradient w-100">
+                    <i class="fas fa-magnifying-glass me-1"></i> Search
+                </button>
+            </div>
+            <div class="col-sm-4 col-md-3">
+                <a href="{% url 'admin_wallet_overview' %}" class="btn btn-outline-secondary w-100">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="professional-card border-0 mb-4" style="padding:0;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="professional-table responsive-admin-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-3">Username</th>
+                        <th class="py-3">Email</th>
+                        <th class="py-3">User ID</th>
+                        <th class="py-3 text-center">Balance</th>
+                        <th class="px-4 py-3 text-end">History</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                        <tr>
+                            <td class="px-4 fw-bold text-dark" data-label="Username">{{ u.username }}</td>
+                            <td class="text-muted" data-label="Email">{{ u.profile.email|default:u.email|default:"—" }}</td>
+                            <td data-label="User ID">
+                                <span class="badge bg-light text-dark border px-2 py-1">{{ u.profile.user_code|default:"—" }}</span>
+                            </td>
+                            <td class="text-center fw-bold" data-label="Balance">₹{{ u.balance }}</td>
+                            <td class="px-4 text-end" data-label="History">
+                                <a class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                   href="{% url 'admin_wallet_overview' %}?q={{ q|urlencode }}&user_id={{ u.id }}">
+                                    <i class="fas fa-clock-rotate-left me-1"></i> History
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-user-slash fa-3x mb-3 d-block opacity-25"></i>
+                                No users found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if selected_user %}
+        <div class="professional-card border-0" style="padding:0;overflow:hidden;">
+            <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--panel-border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+                <div>
+                    <h5 style="margin:0;font-weight:900;color:var(--primary);">
+                        Wallet History (Last 30 Days) — {{ selected_user.username }}
+                    </h5>
+                    <div class="text-muted small">From {{ since|date:"d M Y" }} to today</div>
+                </div>
+                <a class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                   href="{% url 'admin_wallet_overview' %}?q={{ q|urlencode }}">
+                    Close History
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="professional-table responsive-admin-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3">Date</th>
+                            <th class="py-3">Type</th>
+                            <th class="py-3">Description</th>
+                            <th class="px-4 py-3 text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in txns %}
+                            <tr>
+                                <td class="px-4 small text-muted" data-label="Date">{{ t.created_at|date:"d M Y, H:i" }}</td>
+                                <td data-label="Type">
+                                    <span class="badge bg-light text-dark border px-2 py-1">{{ t.txn_type }}</span>
+                                </td>
+                                <td class="text-dark" data-label="Description">{{ t.description|default:"—" }}</td>
+                                <td class="px-4 text-end fw-bold" data-label="Amount">₹{{ t.amount }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="fas fa-receipt fa-3x mb-3 d-block opacity-25"></i>
+                                    No transactions in the last 30 days.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

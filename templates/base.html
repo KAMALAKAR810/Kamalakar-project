@@ -130,6 +130,9 @@
                         <div class="alert-content">
                             <div class="alert-msg">{{ message }}</div>
                         </div>
+                        <button type="button" class="alert-close" aria-label="Close" onclick="this.closest('.alert-toast').remove()">
+                            <i class="fas fa-xmark"></i>
+                        </button>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -225,13 +228,20 @@
             <div class="alert-content">
                 <div class="alert-msg"></div>
             </div>
+            <button type="button" class="alert-close" aria-label="Close">
+                <i class="fas fa-xmark"></i>
+            </button>
         `;
         toast.querySelector('.alert-msg').textContent = message || '';
+        const closeBtn = toast.querySelector('.alert-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => toast.remove());
+        }
         overlay.appendChild(toast);
         setTimeout(() => {
             toast.classList.add('toast-hide');
             setTimeout(() => toast.remove(), 350);
-        }, 4500);
+        }, 4000);
     }
 
     window.pushToast = pushToast;
@@ -255,7 +265,7 @@
             setTimeout(() => {
                 toast.classList.add('toast-hide');
                 setTimeout(() => toast.remove(), 350);
-            }, 4500);
+            }, 4000);
         });
     })();
 </script>
