@@ -294,19 +294,21 @@ CSRF_FAILURE_VIEW = "MATKAAPP.views.csrf_failure"
 
 # --- Email (provider-agnostic; free-tier hosting friendly) ---
 # Supports:
-# - EMAIL_PROVIDER=gmail    -> smtp.gmail.com + app password
+# - EMAIL_PROVIDER=gmail    -> smtp.gmail.com + Gmail App Password
 # - EMAIL_PROVIDER=sendgrid -> smtp.sendgrid.net + SENDGRID_API_KEY
 # - EMAIL_PROVIDER=smtp     -> fully custom SMTP via EMAIL_HOST/EMAIL_PORT/etc
-EMAIL_PROVIDER = (os.getenv("EMAIL_PROVIDER", "smtp") or "smtp").strip().lower()
+EMAIL_PROVIDER = (os.getenv("EMAIL_PROVIDER", "gmail") or "gmail").strip().lower()
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 
 if EMAIL_PROVIDER == "gmail":
     EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False") == "True"
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "").strip()
+    # IMPORTANT: Use a 16-character Gmail App Password (Google Account → Security → App Passwords).
+    # Do NOT use your normal Gmail password.
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "").strip()
 elif EMAIL_PROVIDER == "sendgrid":
     EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.sendgrid.net")
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))

@@ -659,6 +659,7 @@ def _send_email_otp(profile: Profile = None, email: str = None):
     """
     from django.core.mail import send_mail
     from django.conf import settings
+    from email.utils import parseaddr
 
     if not profile and not email:
         raise ValueError("Either profile or email must be provided to send OTP.")
@@ -668,6 +669,9 @@ def _send_email_otp(profile: Profile = None, email: str = None):
     otp = _generate_otp_6()
     now = timezone.now()
     expires_at = now + timedelta(seconds=ttl)
+
+    if not target_email:
+        raise ValidationError("Email is required for OTP verification.")
 
     if profile:
         EmailOTP.objects.update_or_create(
@@ -680,9 +684,9 @@ def _send_email_otp(profile: Profile = None, email: str = None):
             },
         )
     else:
-        # For pending registration, store by email
         EmailOTP.objects.update_or_create(
             email=target_email,
+            profile__isnull=True,
             defaults={
                 "otp_hash": make_password(otp),
                 "expires_at": expires_at,
@@ -712,26 +716,80 @@ def _send_email_otp(profile: Profile = None, email: str = None):
         </div>
         """
         
-        from_email = (
-            getattr(settings, "DEFAULT_FROM_EMAIL", "") 
-            or getattr(settings, "EMAIL_HOST_USER", "") 
-            or "no-reply@changelifewithnumbers.local"
-        )
-        send_mail(
-            subject="Your Verification Code - Changelifewithnumbers",
-            message=f"Your email verification code is: {otp}. It expires in {ttl} seconds.",
-            from_email=from_email,
-            recipient_list=[target_email],
-            fail_silently=False,
-            html_message=html_message
-        )
+        subject = "Your Verification Code - Changelifewithnumbers"
+        text_message = f"Your email verification code is: {otp}. It expires in {ttl} seconds."
+
+        raw_from = (
+            getattr(settings, "DEFAULT_FROM_EMAIL", "")
+            or getattr(settings, "EMAIL_HOST_USER", "")
+            or ""
+        ).strip()
+        from_name, from_addr = parseaddr(raw_from)
+        if not from_addr:
+            from_addr = (getattr(settings, "EMAIL_HOST_USER", "") or "").strip()
+        if not from_addr or "@" not in from_addr:
+            from_addr = "no-reply@changelifewithnumbers.local"
+        from_email = f"{from_name} <{from_addr}>" if from_name else from_addr
+
+        def _send_via_sendgrid_api() -> bool:
+            api_key = (os.getenv("SENDGRID_API_KEY") or "").strip()
+            if not api_key:
+                return False
+
+            sg_from = (os.getenv("SENDGRID_FROM_EMAIL") or "").strip()
+            sg_name, sg_addr = parseaddr(sg_from or from_email)
+            if not sg_addr or "@" not in sg_addr:
+                return False
+
+            payload = {
+                "personalizations": [{"to": [{"email": target_email}]}],
+                "from": {"email": sg_addr, **({"name": sg_name} if sg_name else {})},
+                "subject": subject,
+                "content": [
+                    {"type": "text/plain", "value": text_message},
+                    {"type": "text/html", "value": html_message},
+                ],
+            }
+            resp = requests.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=12,
+            )
+            return 200 <= resp.status_code < 300
+
+        try:
+            send_mail(
+                subject=subject,
+                message=text_message,
+                from_email=from_email,
+                recipient_list=[target_email],
+                fail_silently=False,
+                html_message=html_message,
+            )
+        except Exception:
+            logger.exception("Email OTP SMTP send failed; trying SendGrid API fallback")
+            if not _send_via_sendgrid_api():
+                raise ValidationError(
+                    "OTP email could not be delivered. Configure SMTP email settings or set SENDGRID_API_KEY + SENDGRID_FROM_EMAIL."
+                )
         return ttl
-    except Exception as e:
+    except ValidationError:
+        if profile:
+            EmailOTP.objects.filter(profile=profile).delete()
+        else:
+            EmailOTP.objects.filter(email=target_email, profile__isnull=True).delete()
+        raise
+    except Exception:
+        if profile:
+            EmailOTP.objects.filter(profile=profile).delete()
+        else:
+            EmailOTP.objects.filter(email=target_email, profile__isnull=True).delete()
         logger.exception("Email OTP send failed")
-        # Surface a clean user-facing error.
-        raise ValidationError(
-            f"Unable to send verification email. Please try again in a moment."
-        )
+        raise ValidationError("Unable to send verification email. Please try again in a moment.")
 
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def register_view(request):
@@ -970,7 +1028,7 @@ def verify_email_otp_view(request):
                         )
                     
                     # Cleanup
-                    EmailOTP.objects.filter(email=email).delete()
+                    EmailOTP.objects.filter(email=email, profile__isnull=True).delete()
                     request.session.pop("pending_registration_data", None)
             except Exception as e:
                 messages.error(request, f"Error creating account: {str(e)}")
