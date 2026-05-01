@@ -43,6 +43,14 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">User ID</label>
+                    <input type="text" name="user_id" class="form-control" value="{{ selected_user_id }}" placeholder="Search user id">
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile" class="form-control" value="{{ selected_mobile }}" placeholder="Search mobile">
+                </div>
                 <div class="col-sm-6 col-md-3" style="display:flex;align-items:flex-end;gap:.5rem;">
                     <button type="submit" class="btn btn-primary-gradient btn-sm w-100">
                         <i class="fas fa-file-invoice me-1"></i> Generate
@@ -63,6 +71,7 @@
                     <tr>
                         <th class="px-4">User ID</th>
                         <th>Username</th>
+                        <th>Mobile</th>
                         <th>Total Betted</th>
                         <th>Total Won</th>
                         <th>Balance</th>
@@ -75,6 +84,7 @@
                         <tr>
                             <td class="px-4 fw-bold text-primary" data-label="User ID">{{ data.user_code }}</td>
                             <td data-label="Username">{{ data.user.username }}</td>
+                            <td class="small text-muted" data-label="Mobile">{{ data.mobile }}</td>
                             <td class="fw-bold" data-label="Total Betted">₹{{ data.total_betted }}</td>
                             <td class="fw-bold text-success" data-label="Total Won">₹{{ data.total_won }}</td>
                             <td class="fw-bold" data-label="Balance">₹{{ data.balance }}</td>
@@ -94,7 +104,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="fas fa-chart-pie" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
                                 <strong>No Data Available</strong>
                                 <p class="small mb-0">No data found for the selected criteria.</p>
@@ -107,8 +117,4 @@
     </div>
 
 </div>
-
-<script>
-function exportCurrentPage() { alert("Exporting to CSV…"); }
-</script>
 {% endblock %}

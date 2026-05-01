@@ -18,6 +18,27 @@
         </div>
     </div>
 
+    <div class="professional-card mb-4">
+        <form method="GET">
+            <div class="row" style="gap:.75rem 0;">
+                <div class="col-sm-6 col-md-4">
+                    <label class="form-label">User ID</label>
+                    <input type="text" name="user_id" class="form-control" value="{{ selected_user_id }}" placeholder="Search user id">
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile" class="form-control" value="{{ selected_mobile }}" placeholder="Search mobile number">
+                </div>
+                <div class="col-sm-12 col-md-4" style="display:flex;align-items:flex-end;gap:.5rem;">
+                    <button type="submit" class="btn btn-primary-gradient btn-sm w-100">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <a href="{% url 'admin_user_activity' %}" class="btn btn-outline-secondary btn-sm w-100">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <div class="professional-card" style="padding:0;overflow:hidden;">
         <div class="table-responsive">
             <table class="table professional-table align-middle mb-0">
@@ -25,6 +46,7 @@
                     <tr>
                         <th class="px-4">User</th>
                         <th class="text-center">User ID</th>
+                        <th>Mobile</th>
                         <th>Activity Type</th>
                         <th>Description</th>
                         <th class="px-4 text-end">Date &amp; Time</th>
@@ -46,6 +68,7 @@
                                 {{ act.user.profile.user_code }}
                             </span>
                         </td>
+                        <td class="small text-muted">{{ act.user.profile.mobile }}</td>
                         <td>
                             <span class="badge-status {% if act.activity_type == 'BET_DELETE' %}badge-status-danger{% elif act.activity_type == 'CLEANUP' %}badge-status-pending{% else %}badge-status-success{% endif %}">
                                 {{ act.activity_type }}
@@ -56,7 +79,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             <i class="fas fa-history" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
                             <strong>No Activity Logs</strong>
                             <p class="small mb-0">No system activities have been recorded yet.</p>
@@ -69,8 +92,4 @@
     </div>
 
 </div>
-
-<script>
-function exportCurrentPage() { alert("Exporting to CSV…"); }
-</script>
 {% endblock %}

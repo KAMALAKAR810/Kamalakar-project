@@ -69,6 +69,14 @@
                         <option value="CLOSE" {% if selected_session == 'CLOSE' %}selected{% endif %}>CLOSE</option>
                     </select>
                 </div>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">User ID</label>
+                    <input type="text" name="user_id" class="form-control" value="{{ selected_user_id }}" placeholder="Search user id" onchange="this.form.submit()">
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile" class="form-control" value="{{ selected_mobile }}" placeholder="Search mobile" onchange="this.form.submit()">
+                </div>
                 <div class="col-sm-6 col-md-2" style="display:flex;align-items:flex-end;">
                     <a href="{% url 'winners_list' %}" class="btn btn-outline-secondary w-100">RESET</a>
                 </div>
@@ -84,6 +92,8 @@
                     <tr>
                         <th class="px-4">Date &amp; Time</th>
                         <th>User</th>
+                        <th>User ID</th>
+                        <th>Mobile</th>
                         <th>Game Type</th>
                         <th>Result</th>
                         <th>Bet Amt</th>
@@ -96,8 +106,9 @@
                         <td class="px-4 small text-muted">{{ w.created_at|date:"d M, H:i" }}</td>
                         <td>
                             <div class="fw-bold">{{ w.user.username }}</div>
-                            <div class="small text-muted font-monospace">{{ w.user.profile.user_code }}</div>
                         </td>
+                        <td class="fw-bold text-primary">{{ w.user.profile.user_code }}</td>
+                        <td class="small text-muted">{{ w.user.profile.mobile }}</td>
                         <td>
                             <span class="badge badge-success">{{ w.game_type }}</span>
                         </td>
@@ -119,7 +130,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="fas fa-trophy" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
                             <strong>No Winners Found</strong>
                             <p class="small mb-0">No winning records match your current filters.</p>

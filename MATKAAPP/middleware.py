@@ -117,9 +117,9 @@ class ContentSecurityPolicyMiddleware:
             "frame-ancestors 'self'",
             "form-action 'self'",
             "img-src 'self' data: https:",
-            "font-src 'self' https://cdnjs.cloudflare.com data:",
-            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
-            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
+            "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:",
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com",
+            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://cdn.tailwindcss.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
             "frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
             "connect-src 'self' https:",
         ]

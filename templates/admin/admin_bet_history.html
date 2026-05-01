@@ -54,6 +54,14 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">User ID</label>
+                    <input type="text" name="user_id" class="form-control" value="{{ selected_user_id }}" placeholder="Search user id">
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile" class="form-control" value="{{ selected_mobile }}" placeholder="Search mobile">
+                </div>
                 <div class="col-sm-6 col-md-2" style="display:flex;align-items:flex-end;gap:.5rem;">
                     <button type="submit" class="btn btn-primary btn-sm w-100">
                         <i class="fas fa-filter me-1"></i> Filter
@@ -72,6 +80,7 @@
                     <tr>
                         <th class="px-4">User ID</th>
                         <th>Username</th>
+                        <th>Mobile</th>
                         <th>Market</th>
                         <th>Date/Time</th>
                         <th>Section</th>
@@ -94,6 +103,7 @@
                                 <span class="fw-bold">{{ bet.user.username }}</span>
                             </div>
                         </td>
+                        <td class="small text-muted">{{ bet.user.profile.mobile }}</td>
                         <td>
                             <span class="badge" style="background:rgba(14,165,233,.12);color:#0ea5e9;border:1px solid rgba(14,165,233,.25);border-radius:999px;padding:.35rem .75rem;">
                                 {{ bet.market.name }}
@@ -120,7 +130,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="9" class="text-center py-5 text-muted">
                             <i class="fas fa-search" style="font-size:3rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
                             <strong>No bet history found</strong>
                             <p class="small mb-0">Try adjusting your filters or check back later</p>

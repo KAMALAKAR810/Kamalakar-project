@@ -19,6 +19,27 @@
         </div>
     </div>
 
+    <div class="professional-card mb-4">
+        <form method="GET">
+            <div class="row" style="gap:.75rem 0;">
+                <div class="col-sm-6 col-md-4">
+                    <label class="form-label">User ID</label>
+                    <input type="text" name="user_id" class="form-control" value="{{ selected_user_id }}" placeholder="Search user id">
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <label class="form-label">Mobile</label>
+                    <input type="text" name="mobile" class="form-control" value="{{ selected_mobile }}" placeholder="Search mobile number">
+                </div>
+                <div class="col-sm-12 col-md-4" style="display:flex;align-items:flex-end;gap:.5rem;">
+                    <button type="submit" class="btn btn-primary-gradient btn-sm w-100">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <a href="{% url 'admin_user_management' %}" class="btn btn-outline-secondary btn-sm w-100">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <div class="professional-card border-0">
         <div class="table-responsive">
             <table class="professional-table responsive-admin-table user-admin-table align-middle mb-0">
@@ -27,6 +48,7 @@
                         <th class="px-4 py-3">Profile</th>
                         <th class="py-3">Full Name</th>
                         <th class="py-3">Username</th>
+                        <th class="py-3">User ID</th>
                         <th class="py-3">Mobile</th>
                         <th class="py-3">Joined Date</th>
                         <th class="py-3">Verified</th>
@@ -47,6 +69,7 @@
                         </td>
                         <td class="fw-bold text-dark" data-label="Full Name">{{ profile.user.first_name|default:profile.user.username }}</td>
                         <td data-label="Username"><span class="badge bg-light text-dark border px-2 py-1">{{ profile.user.username }}</span></td>
+                        <td class="fw-bold text-primary" data-label="User ID">{{ profile.user_code }}</td>
                         <td class="fw-medium" data-label="Mobile">{{ profile.mobile }}</td>
                         <td class="small text-muted" data-label="Joined Date">{{ profile.created_at|date:"d M Y, H:i" }}</td>
                         <td data-label="Verified">
@@ -73,7 +96,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="fas fa-user-slash fa-3x mb-3 d-block opacity-25"></i>
                             No users found in the system.
                         </td>
@@ -110,9 +133,5 @@
         });
     }
 
-    function exportCurrentPage() {
-        // Basic CSV export logic can be added here
-        alert("Exporting to CSV...");
-    }
 </script>
 {% endblock %}

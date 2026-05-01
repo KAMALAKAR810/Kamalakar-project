@@ -24,7 +24,7 @@ def process_html_file(file_path):
     content = re.sub(css_link_regex, '', content, flags=re.DOTALL | re.IGNORECASE)
 
     # 5. Add/Ensure the new responsive CSS link in base.html and admin_base.html
-    new_css_link = '<link rel="stylesheet" href="{% static 'style.css' %}">'
+    new_css_link = "<link rel=\"stylesheet\" href=\"{% static 'style.css' %}\">"
     
     target_files = ['base.html', 'admin_base.html']
 

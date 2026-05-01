@@ -23,6 +23,7 @@ from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.html import escape as dj_escape
 from django.views.decorators.csrf import csrf_exempt
 import requests
 from django.conf import settings
@@ -56,6 +57,19 @@ def _run_30_day_cleanup(actor_user):
         )
 
     return cutoff_date, deleted
+
+
+def _tg(text):
+    return dj_escape(str(text or ""))
+
+
+def _telegram_user_block(user: User):
+    try:
+        profile = user.profile
+        user_code = profile.user_code or "N/A"
+    except Exception:
+        user_code = "N/A"
+    return f"👤 Username: <b>{_tg(user.username)}</b>\n🆔 User ID: <code>{_tg(user_code)}</code>\n"
 
 
 @login_required
@@ -220,10 +234,10 @@ def wallet_view(request):
         # Notify admin on Telegram (outside atomic block — non-critical)
         send_telegram_message(
             f"🏧 <b>New Withdrawal Request</b>\n"
-            f"👤 User: <b>{request.user.username}</b>\n"
+            f"{_telegram_user_block(request.user)}"
             f"💵 Amount: <b>₹{amount}</b>\n"
             f"🏦 UPI/Account: <code>{upi_id or mobile_number or bank_account or 'N/A'}</code>\n"
-            f"👨‍💼 Name: {bank_holder_name}\n"
+            f"👨‍💼 Name: {_tg(bank_holder_name)}\n"
             f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}"
         )
 
@@ -1040,11 +1054,10 @@ def verify_email_otp_view(request):
                     # Notify admin on Telegram
                     send_telegram_message(
                         f"🎉 <b>New User Registered</b>\n"
-                        f"👤 Username: <b>{user.username}</b>\n"
-                        f"👤 User: <b>{request.user.userid}</b>\n"
-                        f"📛 Name: {reg_data['name']}\n"
-                        f"📧 Email: {reg_data['email']}\n"
-                        f"📱 Mobile: {reg_data['mobile']}\n"
+                        f"{_telegram_user_block(user)}"
+                        f"📛 Name: {_tg(reg_data.get('name'))}\n"
+                        f"📧 Email: {_tg(reg_data.get('email'))}\n"
+                        f"📱 Mobile: {_tg(reg_data.get('mobile'))}\n"
                         f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}"
                     )
 
@@ -1511,6 +1524,8 @@ def admin_bet_history(request):
     market_filter = request.GET.get('market')
     user_filter = request.GET.get('user')
     session_filter = request.GET.get('session')
+    user_code_filter = (request.GET.get('user_id') or '').strip()
+    mobile_filter = (request.GET.get('mobile') or '').strip()
 
     bets = Bet.objects.select_related('user', 'user__profile', 'market').all().order_by('-created_at')
 
@@ -1522,6 +1537,10 @@ def admin_bet_history(request):
         bets = bets.filter(user_id=user_filter)
     if session_filter and session_filter != '':
         bets = bets.filter(session=session_filter)
+    if user_code_filter:
+        bets = bets.filter(user__profile__user_code__icontains=user_code_filter)
+    if mobile_filter:
+        bets = bets.filter(user__profile__mobile__icontains=mobile_filter)
 
     markets = Market.objects.all()
     all_users = User.objects.exclude(is_superuser=True).select_related('profile')
@@ -1534,6 +1553,8 @@ def admin_bet_history(request):
         'selected_market': market_filter,
         'selected_user': user_filter,
         'selected_session': session_filter,
+        'selected_user_id': user_code_filter,
+        'selected_mobile': mobile_filter,
     })
 
 
@@ -1755,6 +1776,8 @@ def winners_list(request):
     market_id = request.GET.get('market', 'ALL')
     session = request.GET.get('session', 'ALL')
     date_filter = request.GET.get('date', '')
+    user_code_filter = (request.GET.get('user_id') or '').strip()
+    mobile_filter = (request.GET.get('mobile') or '').strip()
     
     winners = Bet.objects.filter(status='WIN').select_related('user', 'user__profile', 'market')
     
@@ -1766,6 +1789,10 @@ def winners_list(request):
         winners = winners.filter(session=session)
     if date_filter:
         winners = winners.filter(created_at__date=date_filter)
+    if user_code_filter:
+        winners = winners.filter(user__profile__user_code__icontains=user_code_filter)
+    if mobile_filter:
+        winners = winners.filter(user__profile__mobile__icontains=mobile_filter)
         
     # Order by winning amount descending
     winners = winners.order_by('-created_at')
@@ -1786,7 +1813,9 @@ def winners_list(request):
         'selected_game_type': game_type,
         'selected_market_id': market_id,
         'selected_session': session,
-        'selected_date': date_filter
+        'selected_date': date_filter,
+        'selected_user_id': user_code_filter,
+        'selected_mobile': mobile_filter,
     })
 
 
@@ -1852,6 +1881,8 @@ def admin_report(request):
     date_str = request.GET.get('date', timezone.now().date().isoformat())
     market_id = request.GET.get('market')
     user_id = request.GET.get('user')
+    user_code_filter = (request.GET.get('user_id') or '').strip()
+    mobile_filter = (request.GET.get('mobile') or '').strip()
     
     if date_str and date_str != '':
         bets = Bet.objects.filter(created_at__date=date_str).select_related('user', 'market', 'user__wallet')
@@ -1863,6 +1894,10 @@ def admin_report(request):
         bets = bets.filter(market_id=market_id)
     if user_id and user_id != '' and user_id != 'None':
         bets = bets.filter(user_id=user_id)
+    if user_code_filter:
+        bets = bets.filter(user__profile__user_code__icontains=user_code_filter)
+    if mobile_filter:
+        bets = bets.filter(user__profile__mobile__icontains=mobile_filter)
         
     # Group by user directly using Django aggregation to avoid duplicates
     user_stats = bets.values('user_id').annotate(
@@ -1888,6 +1923,7 @@ def admin_report(request):
         report_data.append({
             'user': user_obj,
             'user_code': user_code,
+            'mobile': getattr(prof, "mobile", ""),
             'total_betted': total_betted,
             'total_won': total_won,
             'net_pl': net_pl,
@@ -1904,6 +1940,8 @@ def admin_report(request):
         'selected_date': date_str,
         'selected_market': market_id,
         'selected_user': user_id,
+        'selected_user_id': user_code_filter,
+        'selected_mobile': mobile_filter,
     })
 
 
@@ -2122,7 +2160,14 @@ def delete_bet(request, bet_id):
 @user_passes_test(lambda u: u.is_superuser)
 def admin_user_activity(request):
     """Admin view to monitor all user activities including bet deletions."""
+    user_code_filter = (request.GET.get('user_id') or '').strip()
+    mobile_filter = (request.GET.get('mobile') or '').strip()
+
     activities = UserActivity.objects.select_related('user', 'user__profile').all().order_by('-created_at')
+    if user_code_filter:
+        activities = activities.filter(user__profile__user_code__icontains=user_code_filter)
+    if mobile_filter:
+        activities = activities.filter(user__profile__mobile__icontains=mobile_filter)
     
     # Process pending refunds for deleted bets (Task 4)
     # This logic checks for deleted bets that are older than 10 mins and not yet refunded.
@@ -2166,19 +2211,30 @@ def admin_user_activity(request):
 
     return render(request, 'admin/admin_user_activity.html', {
         'activities': activities,
-        'page_title': 'User Activity Logs'
+        'page_title': 'User Activity Logs',
+        'selected_user_id': user_code_filter,
+        'selected_mobile': mobile_filter,
     })
 
 
 @user_passes_test(lambda u: u.is_superuser)
 def admin_user_management(request):
     """Page 1: Message new users and see verification status."""
+    user_code_filter = (request.GET.get('user_id') or '').strip()
+    mobile_filter = (request.GET.get('mobile') or '').strip()
+
     profiles = Profile.objects.select_related('user').all().order_by('-created_at')
+    if user_code_filter:
+        profiles = profiles.filter(user_code__icontains=user_code_filter)
+    if mobile_filter:
+        profiles = profiles.filter(mobile__icontains=mobile_filter)
     # Mark all as seen when admin visits this page
     Profile.objects.filter(is_new=True).update(is_new=False)
     return render(request, 'admin/admin_user_management.html', {
         'profiles': profiles,
-        'page_title': 'User Management'
+        'page_title': 'User Management',
+        'selected_user_id': user_code_filter,
+        'selected_mobile': mobile_filter,
     })
 
 
@@ -2302,9 +2358,8 @@ def chat_view(request, user_id=None):
                 msg_preview = (content[:100] + "…") if content and len(content) > 100 else (content or "📷 Image")
                 send_telegram_message(
                     f"💬 <b>New Chat Message</b>\n"
-                    f"👤 From: <b>{request.user.username}</b>\n"
-                    f"👤 User: <b>{request.user.userid}</b>\n"
-                    f"📝 Message: {msg_preview}\n"
+                    f"{_telegram_user_block(request.user)}"
+                    f"📝 Message: {_tg(msg_preview)}\n"
                     f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}\n"
                     f"🔗 Reply at: /admin-chat-user/{request.user.id}/"
                 )
@@ -2403,10 +2458,9 @@ def payment_page(request):
         # Notify admin on Telegram
         send_telegram_message(
             f"💰 <b>New Deposit Request</b>\n"
-            f"👤 User: <b>{request.user.username}</b>\n"
-            f"👤 User: <b>{request.user.userid}</b>\n"
+            f"{_telegram_user_block(request.user)}"
             f"💵 Amount: <b>₹{amount}</b>\n"
-            f"🔖 UTR: <code>{utr_number}</code>\n"
+            f"🔖 UTR: <code>{_tg(utr_number)}</code>\n"
             f"⏰ Time: {timezone.localtime().strftime('%d %b %Y, %I:%M %p')}"
         )
 
@@ -2539,19 +2593,9 @@ def admin_payment_management(request):
 @user_passes_test(lambda u: u.is_superuser)
 def reset_market(request, market_id):
     """
-    Task: Reset a market, archive its results and timing into MarketHistory.
+    Task: Reset a market.
     """
     market = get_object_or_404(Market, id=market_id)
-    
-    # Archive current data
-    MarketHistory.objects.create(
-        market=market,
-        collection_date=market.collection_date,
-        open_patti=market.open_patti,
-        open_single=market.open_single,
-        close_patti=market.close_patti,
-        close_single=market.close_single
-    )
     
     now = timezone.localtime()
 

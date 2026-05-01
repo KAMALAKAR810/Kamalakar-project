@@ -330,6 +330,70 @@
     function showLoading(show) {
         // Simple loading toggle
     }
+
+    (function () {
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        }, { capture: true });
+
+        document.addEventListener('keydown', function (e) {
+            const key = String(e.key || '').toLowerCase();
+            const isF12 = key === 'f12';
+            const isDevtoolsCombo = (e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c');
+            const isViewSource = (e.ctrlKey || e.metaKey) && key === 'u';
+            if (isF12 || isDevtoolsCombo || isViewSource) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
+
+        function ensureDeterrentStyles() {
+            if (document.getElementById('clwn-deterrent-style')) return;
+            const style = document.createElement('style');
+            style.id = 'clwn-deterrent-style';
+            style.textContent = "body.clwn-blur header,body.clwn-blur nav,body.clwn-blur main,body.clwn-blur footer{filter:blur(8px);}#clwn-watermark{position:fixed;inset:0;pointer-events:none;z-index:9998;opacity:.14;mix-blend-mode:multiply;}";
+            document.head.appendChild(style);
+        }
+
+        function setBlur(on) {
+            if (!document.body) return;
+            document.body.classList.toggle('clwn-blur', !!on);
+        }
+
+        function ensureWatermark() {
+            if (!document.body || document.getElementById('clwn-watermark')) return;
+            if (document.body.dataset.authenticated !== '1') return;
+
+            const username = document.body.dataset.username || '';
+            const userid = document.body.dataset.userid || '';
+            const stamp = new Date().toLocaleString();
+            const text = `ChangeLifeWithNumbers • ${username} • ${userid} • ${stamp}`;
+
+            const wm = document.createElement('div');
+            wm.id = 'clwn-watermark';
+            wm.setAttribute('aria-hidden', 'true');
+
+            const layer = document.createElement('div');
+            layer.style.cssText = "position:absolute;inset:-40%;transform:rotate(-20deg);display:flex;flex-wrap:wrap;gap:80px;align-content:flex-start;";
+            for (let i = 0; i < 90; i++) {
+                const tile = document.createElement('div');
+                tile.style.cssText = "font:600 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#0f172a;white-space:nowrap;";
+                tile.textContent = text;
+                layer.appendChild(tile);
+            }
+            wm.appendChild(layer);
+            document.body.appendChild(wm);
+        }
+
+        ensureDeterrentStyles();
+        ensureWatermark();
+        window.addEventListener('blur', function () { setBlur(true); });
+        window.addEventListener('focus', function () { setBlur(false); });
+        document.addEventListener('visibilitychange', function () {
+            setBlur(document.visibilityState !== 'visible');
+        });
+    })();
 </script>
 {% block extra_js %}{% endblock %}
 </body>
