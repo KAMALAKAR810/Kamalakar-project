@@ -27,6 +27,9 @@
                         <input class="control" type="password" name="password" id="login-password" placeholder="Enter password" required autocomplete="current-password">
                         <i class="fas fa-eye toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Show password"></i>
                     </div>
+                    <div class="hint" style="margin-top:0.45rem;">
+                        <a href="{% url 'password_reset' %}" class="home-link">Forgot password?</a>
+                    </div>
                 </div>
 
                 <button type="submit" class="auth-btn">Sign In</button>

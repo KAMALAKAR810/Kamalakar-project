@@ -269,10 +269,29 @@ def admin_withdrawal_management(request):
         new_status = request.POST.get('status')
         
         try:
-            withdrawal = WithdrawalRequest.objects.get(id=req_id)
-            old_status = withdrawal.status
-            withdrawal.status = new_status
-            withdrawal.save()
+            with db_transaction.atomic():
+                withdrawal = WithdrawalRequest.objects.select_for_update().select_related("user").get(id=req_id)
+                old_status = withdrawal.status
+                withdrawal.status = new_status
+                withdrawal.save(update_fields=["status"])
+
+                if old_status == "PENDING" and new_status == "REJECTED":
+                    wallet, _ = Wallet.objects.select_for_update().get_or_create(user=withdrawal.user)
+                    refund_desc = f"Refund: Withdrawal Rejected #{withdrawal.id}"
+                    already_refunded = Transaction.objects.filter(
+                        wallet=wallet,
+                        txn_type="DEPOSIT",
+                        description=refund_desc,
+                    ).exists()
+                    if not already_refunded:
+                        wallet.balance += Decimal(str(withdrawal.amount))
+                        wallet.save(update_fields=["balance"])
+                        Transaction.objects.create(
+                            wallet=wallet,
+                            amount=Decimal(str(withdrawal.amount)),
+                            txn_type="DEPOSIT",
+                            description=refund_desc,
+                        )
             
             # Notification (Task 14)
             create_notification(
@@ -2121,8 +2140,46 @@ def admin_dashboard_enhanced(request):
         total_amount=Sum('amount'),
         count=Count('id')
     ).order_by('-total_amount')
-    
-    recent_txns = Transaction.objects.select_related('wallet__user').order_by('-created_at')[:10]
+
+    game_type_columns = [
+        {"code": "SINGLE", "label": "Single"},
+        {"code": "JODI", "label": "Jodi"},
+        {"code": "SINGLE_PATTI", "label": "Single Patti"},
+        {"code": "DOUBLE_PATTI", "label": "Double Patti"},
+        {"code": "TRIPLE_PATTI", "label": "Triple Patti"},
+    ]
+
+    breakdown_map = {}
+    breakdown_qs = selected_bets.values("market__name", "session", "game_type").annotate(
+        total_amount=Sum("amount"),
+        bet_count=Count("id"),
+    ).order_by("market__name", "session", "game_type")
+
+    for row in breakdown_qs:
+        market_name = row.get("market__name") or ""
+        session = row.get("session") or ""
+        game_type = row.get("game_type") or ""
+        key = (market_name, session)
+        if key not in breakdown_map:
+            breakdown_map[key] = {
+                "market": market_name,
+                "session": session,
+                "total_bets": 0,
+                "total_amount": Decimal("0.00"),
+                "amounts": {col["code"]: Decimal("0.00") for col in game_type_columns},
+            }
+        breakdown_map[key]["total_bets"] += int(row.get("bet_count") or 0)
+        breakdown_map[key]["total_amount"] += Decimal(str(row.get("total_amount") or 0))
+        if game_type in breakdown_map[key]["amounts"]:
+            breakdown_map[key]["amounts"][game_type] += Decimal(str(row.get("total_amount") or 0))
+
+    market_breakdown_rows = list(breakdown_map.values())
+
+    winners = (
+        selected_bets.select_related("user", "user__profile", "market")
+        .filter(status="WIN")
+        .order_by("-win_amount", "-amount", "-created_at")
+    )
     markets = Market.objects.all()
 
     return render(request, "admin/dashboard_content.html", {
@@ -2135,7 +2192,9 @@ def admin_dashboard_enhanced(request):
         "pending_withdrawals": pending_withdrawals,
         "pending_deposits": pending_deposits,
         "market_summary": market_summary,
-        "recent_txns": recent_txns,
+        "game_type_columns": game_type_columns,
+        "market_breakdown_rows": market_breakdown_rows,
+        "winner_bets": winners,
         "markets": markets,
     })
 

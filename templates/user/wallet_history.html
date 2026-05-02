@@ -6,6 +6,15 @@
     <h2 class="page-title">Wallet & Transaction History</h2>
     <p class="page-sub">Track your wallet updates and withdrawal status</p>
 
+    <div class="d-flex" style="justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportWalletTable()">
+            <i class="fas fa-file-export me-1"></i> Export
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
+    </div>
+
     <div class="wallet-tabs">
         <div class="tab-btn active" onclick="showTab('transactions', this)">Wallet Updates</div>
         <div class="tab-btn" onclick="showTab('withdrawals', this)">Withdrawals</div>
@@ -92,6 +101,49 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         btn.classList.add('active');
+    }
+
+    function exportWalletTable() {
+        const active = document.querySelector('.tab-content.active');
+        const table = active ? active.querySelector('table') : null;
+        if (!table) return;
+
+        const rows = Array.from(table.querySelectorAll('tr')).filter(function (tr) {
+            if (!tr) return false;
+            const style = window.getComputedStyle(tr);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+        });
+        if (!rows.length) return;
+
+        const csvLines = rows.map(function (row) {
+            const cells = Array.from(row.querySelectorAll('th,td'));
+            return cells.map(function (cell) {
+                const text = (cell.innerText || '').replace(/\r?\n/g, ' ').trim();
+                return '"' + text.replace(/"/g, '""') + '"';
+            }).join(',');
+        });
+
+        const csv = '\ufeff' + csvLines.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const now = new Date();
+        const stamp = [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, '0'),
+            String(now.getDate()).padStart(2, '0'),
+            String(now.getHours()).padStart(2, '0'),
+            String(now.getMinutes()).padStart(2, '0'),
+        ].join('');
+
+        const prefix = active && active.id === 'withdrawals' ? 'withdrawals' : 'wallet_history';
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = prefix + '_' + stamp + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     }
 </script>
 {% endblock %}

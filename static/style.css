@@ -390,3 +390,21 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
 .bet-history-table td:nth-child(5) { white-space: nowrap; }
 .bet-history-table td:nth-child(6) { white-space: nowrap; }
 .bet-history-table td:nth-child(9) { white-space: nowrap; }
+
+.support-fab { position: fixed; right: 16px; bottom: 16px; z-index: 2200; display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem; }
+.support-fab-btn { width: 52px; height: 52px; border-radius: 999px; background: var(--primary); color: var(--white); box-shadow: var(--shadow-lg); display: inline-flex; align-items: center; justify-content: center; }
+.support-fab-btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
+.support-fab-menu { display: none; flex-direction: column; gap: 0.5rem; }
+.support-fab.open .support-fab-menu { display: flex; }
+.support-fab-item { padding: 0.65rem 0.95rem; border-radius: 999px; background: var(--white); border: 1px solid var(--border); font-weight: 900; box-shadow: var(--shadow-md); }
+.support-fab-item.is-whatsapp { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.25); color: #047857; }
+.support-fab-item.is-chat { background: rgba(0,102,204,0.10); border-color: rgba(0,102,204,0.20); color: var(--primary); }
+
+@page { size: A4; margin: 12mm; }
+@media print {
+  .header, .nav-bar, .footer, #admin-alerts-container, .support-fab { display: none !important; }
+  body { background: #ffffff !important; }
+  .container { max-width: 100% !important; padding: 0 !important; }
+  .page-shell { padding: 0 !important; }
+  .card, .data-panel { box-shadow: none !important; }
+}

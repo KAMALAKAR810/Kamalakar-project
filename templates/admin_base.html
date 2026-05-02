@@ -1546,6 +1546,25 @@
         .notify-modal.is-error .notify-btn { background: #dc2626; }
         .notify-modal.is-warning .notify-icon { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.30); color: var(--warning); }
         .notify-modal.is-warning .notify-btn { background: #d97706; }
+
+        @page { size: A4; margin: 12mm; }
+        @media print {
+            .admin-sidebar,
+            .admin-header,
+            .sidebar-overlay,
+            #sidebar-overlay,
+            #profile-menu,
+            #menu-toggle,
+            .mobile-toggle,
+            .nav-icon-btn,
+            .profile-menu-wrap,
+            .page-toolbar-actions {
+                display: none !important;
+            }
+            body { background: #ffffff !important; }
+            .admin-main { margin: 0 !important; }
+            .admin-content { padding: 0 !important; }
+        }
     </style>
     {% block extra_head %}{% endblock %}
     

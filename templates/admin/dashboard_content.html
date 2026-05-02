@@ -179,171 +179,103 @@
     </div>
 </div>
 
-<!-- Charts and Tables Row -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Revenue Chart -->
-    <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-bold text-dark-800">
-                <i class="fas fa-chart-area text-blue-500 mr-2"></i>
-                Revenue Overview
-            </h3>
-            <select class="border border-dark-200 rounded-lg px-3 py-1.5 text-sm text-dark-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>Last 7 Days</option>
-                <option>Last 30 Days</option>
-                <option>Last 90 Days</option>
-            </select>
-        </div>
-        <div class="h-72">
-            <canvas id="revenueChart"></canvas>
+<!-- Market-wise Bets Summary -->
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100 mb-8 animate-on-scroll">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <h3 class="text-lg font-bold text-dark-800">
+            <i class="fas fa-layer-group text-indigo-500 mr-2"></i>
+            Market Summary ({{ selected_date }})
+        </h3>
+        <div class="flex gap-2 flex-wrap">
+            <button type="button" onclick="exportTableToCsv('market-breakdown-table','market_summary')" class="px-3 py-2 rounded-xl border border-dark-200 bg-white hover:bg-dark-50 text-sm font-semibold">
+                <i class="fas fa-file-export mr-2"></i>Export Summary
+            </button>
+            <button type="button" onclick="exportTableToCsv('winners-table','winners')" class="px-3 py-2 rounded-xl border border-dark-200 bg-white hover:bg-dark-50 text-sm font-semibold">
+                <i class="fas fa-file-export mr-2"></i>Export Winners
+            </button>
         </div>
     </div>
 
-    <!-- Market Performance -->
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
-        <h3 class="text-lg font-bold text-dark-800 mb-6">
-            <i class="fas fa-chart-pie text-purple-500 mr-2"></i>
-            Market Distribution
-        </h3>
-        <div class="h-48 flex items-center justify-center mb-4">
-            <canvas id="marketChart"></canvas>
-        </div>
-        <div class="space-y-3">
-            {% for item in market_summary %}
-            <div class="flex items-center justify-between py-2 border-b border-dark-100 last:border-0">
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 rounded-full {% cycle 'bg-blue-500' 'bg-purple-500' 'bg-pink-500' 'bg-orange-500' %}"></div>
-                    <span class="text-sm font-medium text-dark-700">{{ item.market__name }}</span>
-                </div>
-                <span class="text-sm font-bold text-dark-800">₹{{ item.total_amount }}</span>
-            </div>
-            {% empty %}
-            <div class="text-center text-dark-400 py-4">No market data available</div>
-            {% endfor %}
-        </div>
+    <div class="overflow-x-auto">
+        <table id="market-breakdown-table" class="w-full">
+            <thead>
+                <tr class="border-b border-dark-200">
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Market</th>
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Session</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Total Bets</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Total Amount</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Single</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Jodi</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Single Patti</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Double Patti</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Triple Patti</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in market_breakdown_rows %}
+                <tr class="border-b border-dark-100 last:border-0">
+                    <td class="py-3 px-4 font-semibold text-dark-800">{{ row.market }}</td>
+                    <td class="py-3 px-4 text-sm text-dark-700">{{ row.session }}</td>
+                    <td class="py-3 px-4 text-right font-bold text-dark-800">{{ row.total_bets }}</td>
+                    <td class="py-3 px-4 text-right font-bold text-dark-800">₹{{ row.total_amount }}</td>
+                    <td class="py-3 px-4 text-right text-sm text-dark-700">₹{{ row.amounts.SINGLE|default:"0" }}</td>
+                    <td class="py-3 px-4 text-right text-sm text-dark-700">₹{{ row.amounts.JODI|default:"0" }}</td>
+                    <td class="py-3 px-4 text-right text-sm text-dark-700">₹{{ row.amounts.SINGLE_PATTI|default:"0" }}</td>
+                    <td class="py-3 px-4 text-right text-sm text-dark-700">₹{{ row.amounts.DOUBLE_PATTI|default:"0" }}</td>
+                    <td class="py-3 px-4 text-right text-sm text-dark-700">₹{{ row.amounts.TRIPLE_PATTI|default:"0" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-8 text-dark-400">No bets found for this date.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Quick Actions & Recent Transactions -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Quick Actions -->
-    <div class="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
-        <h3 class="text-lg font-bold text-dark-800 mb-6">
-            <i class="fas fa-rocket text-green-500 mr-2"></i>
-            Quick Actions
+<!-- Winners List (Highest Winning Amount First) -->
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100 mb-8 animate-on-scroll">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-dark-800">
+            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+            Winners ({{ selected_date }})
         </h3>
-        <div class="grid grid-cols-2 gap-4">
-            <a href="{% url 'declare_result' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
-                        hover:border-blue-500 hover:bg-blue-50 transition-all text-center">
-                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-100 group-hover:bg-blue-500 
-                            flex items-center justify-center transition-colors">
-                    <i class="fas fa-bullhorn text-blue-600 group-hover:text-white text-lg"></i>
-                </div>
-                <span class="text-sm font-medium text-dark-700 group-hover:text-blue-700">Declare Result</span>
-            </a>
-            
-            <a href="{% url 'admin_withdrawal_management' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
-                        hover:border-red-500 hover:bg-red-50 transition-all text-center relative">
-                {% if pending_withdrawals %}
-                <span class="absolute top-2 right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full 
-                            flex items-center justify-center">{{ pending_withdrawals }}</span>
-                {% endif %}
-                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-red-100 group-hover:bg-red-500 
-                            flex items-center justify-center transition-colors">
-                    <i class="fas fa-money-bill-wave text-red-600 group-hover:text-white text-lg"></i>
-                </div>
-                <span class="text-sm font-medium text-dark-700 group-hover:text-red-700">Withdrawals</span>
-            </a>
-            
-            <a href="{% url 'admin_user_management' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
-                        hover:border-purple-500 hover:bg-purple-50 transition-all text-center">
-                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-purple-100 group-hover:bg-purple-500 
-                            flex items-center justify-center transition-colors">
-                    <i class="fas fa-user-plus text-purple-600 group-hover:text-white text-lg"></i>
-                </div>
-                <span class="text-sm font-medium text-dark-700 group-hover:text-purple-700">New Users</span>
-            </a>
-            
-            <a href="{% url 'admin_security_settings' %}" class="group p-4 rounded-xl border-2 border-dashed border-dark-200 
-                        hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center">
-                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-emerald-100 group-hover:bg-emerald-500 
-                            flex items-center justify-center transition-colors">
-                    <i class="fas fa-shield-alt text-emerald-600 group-hover:text-white text-lg"></i>
-                </div>
-                <span class="text-sm font-medium text-dark-700 group-hover:text-emerald-700">Security</span>
-            </a>
-        </div>
+        <span class="text-xs font-medium text-dark-500 bg-dark-50 px-3 py-1 rounded-full border border-dark-100">
+            Sorted by winning amount (desc)
+        </span>
     </div>
-
-    <!-- Recent Transactions -->
-    <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-dark-100 animate-on-scroll">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-bold text-dark-800">
-                <i class="fas fa-exchange-alt text-orange-500 mr-2"></i>
-                Recent Transactions
-            </h3>
-            <a href="{% url 'admin_report' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium 
-                        flex items-center gap-1 group">
-                View All <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-            </a>
-        </div>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-dark-200">
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">User</th>
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Type</th>
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Amount</th>
-                        <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Status</th>
-                        <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for txn in recent_txns %}
-                    <tr class="table-row-hover border-b border-dark-100 last:border-0 transition-colors">
-                        <td class="py-3 px-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-dark-100 flex items-center justify-center 
-                                            text-dark-600 text-sm font-bold">
-                                    {{ txn.wallet.user.username|slice:":1"|upper }}
-                                </div>
-                                <span class="font-medium text-dark-800">{{ txn.wallet.user.username }}</span>
-                            </div>
-                        </td>
-                        <td class="py-3 px-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                {% if txn.txn_type == 'WIN' %}bg-green-100 text-green-700
-                                {% elif txn.txn_type == 'BET' %}bg-blue-100 text-blue-700
-                                {% elif txn.txn_type == 'DEPOSIT' %}bg-yellow-100 text-yellow-700
-                                {% else %}bg-red-100 text-red-700{% endif %}">
-                                {{ txn.txn_type }}
-                            </span>
-                        </td>
-                        <td class="py-3 px-4">
-                            <span class="font-bold text-dark-800">₹{{ txn.amount }}</span>
-                        </td>
-                        <td class="py-3 px-4">
-                            <span class="inline-flex items-center gap-1 text-sm text-green-600">
-                                <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                                Completed
-                            </span>
-                        </td>
-                        <td class="py-3 px-4 text-right text-sm text-dark-500">
-                            {{ txn.created_at|date:"H:i" }}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-8 text-dark-400">
-                            <i class="fas fa-inbox text-3xl mb-2"></i>
-                            <p>No transactions recorded today</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="overflow-x-auto">
+        <table id="winners-table" class="w-full">
+            <thead>
+                <tr class="border-b border-dark-200">
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">User</th>
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">User ID</th>
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Market</th>
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Session</th>
+                    <th class="text-left py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Game</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Bet</th>
+                    <th class="text-right py-3 px-4 text-xs font-semibold text-dark-500 uppercase tracking-wider">Win</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bet in winner_bets %}
+                <tr class="border-b border-dark-100 last:border-0">
+                    <td class="py-3 px-4 font-semibold text-dark-800">{{ bet.user.username }}</td>
+                    <td class="py-3 px-4 text-sm text-dark-700">{{ bet.user.profile.user_code }}</td>
+                    <td class="py-3 px-4 text-sm text-dark-700">{{ bet.market.name }}</td>
+                    <td class="py-3 px-4 text-sm text-dark-700">{{ bet.session }}</td>
+                    <td class="py-3 px-4 text-sm text-dark-700">{{ bet.game_type }}</td>
+                    <td class="py-3 px-4 text-right font-bold text-dark-800">₹{{ bet.amount }}</td>
+                    <td class="py-3 px-4 text-right font-black text-green-700">₹{{ bet.win_amount }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-dark-400">No winners for this date.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -458,92 +390,49 @@
     </div>
 </div>
 
-<!-- Chart.js Scripts -->
 <script>
-    // Revenue Chart
-    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-    const revenueGradient = revenueCtx.createLinearGradient(0, 0, 0, 300);
-    revenueGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-    revenueGradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
-
-    new Chart(revenueCtx, {
-        type: 'line',
-        data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [{
-                label: 'Revenue',
-                data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
-                borderColor: '#3b82f6',
-                backgroundColor: revenueGradient,
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 7
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#e2e8f0'
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return '₹' + value.toLocaleString();
-                        }
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
+    function exportTableToCsv(tableId, filenamePrefix) {
+        const table = document.getElementById(tableId);
+        if (!table) {
+            if (window.showToast) window.showToast('No table found to export.', 'warning', 'Export');
+            return;
         }
-    });
-
-    // Market Distribution Chart
-    const marketCtx = document.getElementById('marketChart').getContext('2d');
-    new Chart(marketCtx, {
-        type: 'doughnut',
-        data: {
-            labels: [{% for item in market_summary %}'{{ item.market__name }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
-            datasets: [{
-                data: [{% for item in market_summary %}{{ item.total_amount }}{% if not forloop.last %}, {% endif %}{% endfor %}],
-                backgroundColor: [
-                    '#3b82f6',
-                    '#8b5cf6',
-                    '#ec4899',
-                    '#f97316',
-                    '#10b981'
-                ],
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
+        const rows = Array.from(table.querySelectorAll('tr')).filter(function (tr) {
+            if (!tr) return false;
+            const style = window.getComputedStyle(tr);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+        });
+        if (!rows.length) {
+            if (window.showToast) window.showToast('No rows found to export.', 'warning', 'Export');
+            return;
         }
-    });
+        const csvLines = rows.map(function (row) {
+            const cells = Array.from(row.querySelectorAll('th,td'));
+            return cells.map(function (cell) {
+                const text = (cell.innerText || '').replace(/\r?\n/g, ' ').trim();
+                return '"' + text.replace(/"/g, '""') + '"';
+            }).join(',');
+        });
+        const csv = '\ufeff' + csvLines.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const now = new Date();
+        const stamp = [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, '0'),
+            String(now.getDate()).padStart(2, '0'),
+            String(now.getHours()).padStart(2, '0'),
+            String(now.getMinutes()).padStart(2, '0'),
+        ].join('');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (filenamePrefix || 'export') + '_' + stamp + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        if (window.showToast) window.showToast('Downloaded CSV.', 'success', 'Export');
+    }
 </script>
 
 <script>

@@ -184,6 +184,18 @@
     </footer>
 {% endif %}
 
+{% if request.session.captcha_verified or not request.resolver_match or request.resolver_match.url_name != 'landing' %}
+    <div class="support-fab" id="support-fab">
+        <button type="button" class="support-fab-btn" id="support-fab-btn" aria-label="Support">
+            <i class="fas fa-headset"></i>
+        </button>
+        <div class="support-fab-menu" id="support-fab-menu" aria-hidden="true">
+            <a class="support-fab-item is-whatsapp" href="{{ support_whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="support-fab-item is-chat" href="{% if user.is_authenticated %}{% url 'chat' %}{% else %}{% url 'login' %}{% endif %}">Chat</a>
+        </div>
+    </div>
+{% endif %}
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
@@ -347,6 +359,52 @@
                 return false;
             }
         }, true);
+    })();
+
+    (function () {
+        const fab = document.getElementById('support-fab');
+        const btn = document.getElementById('support-fab-btn');
+        const menu = document.getElementById('support-fab-menu');
+        if (!fab || !btn || !menu) return;
+
+        function setOpen(open) {
+            fab.classList.toggle('open', !!open);
+            menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setOpen(!fab.classList.contains('open'));
+        });
+
+        document.addEventListener('click', function () { setOpen(false); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') setOpen(false);
+        });
+    })();
+
+    (function () {
+        const marketSelect = document.getElementById('market-select');
+        const sessionSelect = document.getElementById('session-select');
+        if (!marketSelect || !sessionSelect) return;
+
+        const betInputs = document.querySelectorAll('.bet-input-field');
+        if (!betInputs || !betInputs.length) return;
+
+        function updateFreeze() {
+            let hasAmount = false;
+            betInputs.forEach(function (input) {
+                const v = parseInt(input.value, 10) || 0;
+                if (v > 0) hasAmount = true;
+            });
+            marketSelect.disabled = hasAmount;
+            sessionSelect.disabled = hasAmount;
+        }
+
+        betInputs.forEach(function (input) {
+            input.addEventListener('input', updateFreeze);
+        });
+        updateFreeze();
     })();
 </script>
 {% block extra_js %}{% endblock %}
