@@ -355,7 +355,7 @@ EMAIL_OTP_RESEND_COOLDOWN_SECONDS = int(
 )
 
 # Logging configuration
-ENABLE_FILE_LOGGING = os.getenv("ENABLE_FILE_LOGGING", "False") == "True"
+ENABLE_FILE_LOGGING = False
 
 log_handlers = {
     "console": {

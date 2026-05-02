@@ -215,7 +215,7 @@ class OneSessionPerUserMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser:
             session_key = request.session.session_key
             if session_key:
                 try:
