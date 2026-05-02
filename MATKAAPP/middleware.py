@@ -68,6 +68,9 @@ class GatekeeperMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if getattr(request, "user", None) and request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+            return self.get_response(request)
+
         exact_exempt_paths = {
             reverse('landing'),
             reverse('login'),
@@ -79,6 +82,10 @@ class GatekeeperMiddleware:
             '/static/',
             '/media/',
             '/.well-known/',
+            '/secure-admin-5266/',
+            '/admin-',
+            '/admin-summary/',
+            '/admin-dashboard/',
         )
 
         is_exempt = (
