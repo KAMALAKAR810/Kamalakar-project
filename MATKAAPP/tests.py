@@ -33,10 +33,16 @@ class GatekeeperSmokeTests(BaseGateTestCase):
     def test_verified_session_can_load_public_pages(self):
         self.mark_gate_verified()
 
-        for route_name in ("user_home", "login", "register", "display"):
+        for route_name in ("user_home", "login", "register", "display", "password_reset"):
             with self.subTest(route_name=route_name):
                 response = self.get(route_name)
                 self.assertEqual(response.status_code, 200)
+
+    def test_password_reset_is_exempt_from_gate(self):
+        response = self.get("password_reset")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "auth/password_reset.html")
 
 
 class AdminHomepageRoutingTests(BaseGateTestCase):

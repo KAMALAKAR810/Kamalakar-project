@@ -47,7 +47,7 @@ class SecurityHeadersMiddleware:
         )
 
         # Tighten caching for auth endpoints (helps avoid auth leaks)
-        _no_cache_prefixes = ("/login", "/register", "/verify-email", "/logout", "/admin-2fa")
+        _no_cache_prefixes = ("/login", "/register", "/verify-email", "/logout", "/admin-2fa", "/password-reset", "/reset/")
         if any(request.path.startswith(p) for p in _no_cache_prefixes):
             response.setdefault("Cache-Control", "no-store")
             response.setdefault("Pragma", "no-cache")
@@ -82,6 +82,8 @@ class GatekeeperMiddleware:
             '/static/',
             '/media/',
             '/.well-known/',
+            '/password-reset',
+            '/reset/',
             '/secure-admin-5266/',
             '/admin-',
             '/admin-summary/',
