@@ -372,6 +372,8 @@ if ENABLE_FILE_LOGGING:
         "filename": os.path.join(BASE_DIR, "debug.log"),
         "maxBytes": 5 * 1024 * 1024,   # 5 MB
         "backupCount": 3,
+        "encoding": "utf-8",
+        "delay": True,
         "formatter": "verbose",
     }
 
@@ -409,6 +411,16 @@ LOGGING = {
             "propagate": False,
         },
         "django.security": {
+            "handlers": active_handlers,
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "axes": {
+            "handlers": active_handlers,
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "axes.watch_login": {
             "handlers": active_handlers,
             "level": "WARNING",
             "propagate": False,
