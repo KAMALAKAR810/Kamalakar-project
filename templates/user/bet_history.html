@@ -83,7 +83,7 @@
                     </td>
                     <td>
                         {% if not bet.is_deleted and bet.status == 'PENDING' %}
-                            <button onclick="deleteBet({{ bet.id }})" class="btn btn-danger btn-sm p-1 px-2">
+                            <button type="button" class="btn btn-danger btn-sm p-1 px-2 delete-bet-btn" data-bet-id="{{ bet.id }}">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         {% endif %}
@@ -138,5 +138,13 @@ function deleteBet(betId) {
         showModal("Error", "An unexpected error occurred.", "error");
     });
 }
+
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.delete-bet-btn');
+    if (!btn) return;
+    const betId = parseInt(btn.getAttribute('data-bet-id') || '0', 10);
+    if (!betId) return;
+    deleteBet(betId);
+});
 </script>
 {% endblock %}

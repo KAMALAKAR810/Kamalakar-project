@@ -435,28 +435,20 @@
     }
 </script>
 
+{{ admin_market_timings|json_script:"admin-market-timings" }}
+
 <script>
 /**
  * Market Countdown and Real-time Results Logic for Admin Dashboard
  */
 
-// Initial market timing data from Django
-let marketTimings = [
-    {% for market in markets %}
-    {
-        id: {{ market.id }},
-        name: "{{ market.name }}",
-        open: {
-            endTime: "{% if market.open_end_time %}{{ market.open_end_time|date:'c' }}{% endif %}",
-            declared: {% if market.open_single %}true{% else %}false{% endif %}
-        },
-        close: {
-            endTime: "{% if market.close_end_time %}{{ market.close_end_time|date:'c' }}{% endif %}",
-            declared: {% if market.close_single %}true{% else %}false{% endif %}
-        }
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-];
+let marketTimings = [];
+try {
+    const timingsEl = document.getElementById('admin-market-timings');
+    marketTimings = timingsEl ? JSON.parse(timingsEl.textContent || '[]') : [];
+} catch (e) {
+    marketTimings = [];
+}
 
 /**
  * Calculates time difference between now and endTime

@@ -2089,7 +2089,7 @@ def admin_summary(request):
     # Recent Transactions (Last 10)
     recent_txns = (
         Transaction.objects.select_related('wallet__user')
-        .filter(created_at__date=selected_date)
+        .filter(created_at__date=today)
         .order_by('-created_at')[:10]
     )
 
@@ -2181,6 +2181,14 @@ def admin_dashboard_enhanced(request):
         .order_by("-win_amount", "-amount", "-created_at")
     )
     markets = Market.objects.all()
+    admin_market_timings = []
+    for market in markets:
+        admin_market_timings.append({
+            "id": market.id,
+            "name": market.name,
+            "open": {"endTime": market.open_end_time, "declared": bool(market.open_single)},
+            "close": {"endTime": market.close_end_time, "declared": bool(market.close_single)},
+        })
 
     return render(request, "admin/dashboard_content.html", {
         "page_title": "Admin Dashboard",
@@ -2196,6 +2204,7 @@ def admin_dashboard_enhanced(request):
         "market_breakdown_rows": market_breakdown_rows,
         "winner_bets": winners,
         "markets": markets,
+        "admin_market_timings": admin_market_timings,
     })
 
 
