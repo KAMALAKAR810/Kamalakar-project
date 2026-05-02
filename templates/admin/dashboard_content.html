@@ -16,12 +16,34 @@
                 <h2 class="text-2xl font-bold mb-2">Welcome back, {{ user.username }}!</h2>
                 <p class="text-white/80 text-base">Here's what's happening with your platform today.</p>
             </div>
-            <div class="flex gap-3">
-                <a href="{% url 'declare_result' %}" class="px-4 py-2 bg-white text-blue-600 rounded-xl 
-                    font-semibold hover:bg-blue-50 transition-colors shadow-lg inline-flex items-center gap-2">
-                    <i class="fas fa-bolt"></i>
-                    Quick Action
-                </a>
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
+                <form method="GET" class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-white/80 mb-1">Date</label>
+                        <input type="date" name="date" value="{{ selected_date }}" class="px-3 py-2 rounded-xl text-slate-900 bg-white/95 border border-white/20 focus:outline-none">
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="px-4 py-2 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-colors shadow-lg inline-flex items-center gap-2">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <a href="{% url 'admin_dashboard_enhanced' %}" class="px-4 py-2 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/15 transition-colors border border-white/20 inline-flex items-center gap-2">
+                            <i class="fas fa-rotate-left"></i> Reset
+                        </a>
+                    </div>
+                </form>
+                <div class="flex gap-2">
+                    <button type="button" onclick="exportCurrentPage()" class="px-4 py-2 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-colors shadow-lg inline-flex items-center gap-2">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
+                    <button type="button" onclick="window.print()" class="px-4 py-2 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/15 transition-colors border border-white/20 inline-flex items-center gap-2">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <a href="{% url 'declare_result' %}" class="px-4 py-2 bg-white text-blue-600 rounded-xl 
+                        font-semibold hover:bg-blue-50 transition-colors shadow-lg inline-flex items-center gap-2">
+                        <i class="fas fa-bolt"></i>
+                        Quick Action
+                    </a>
+                </div>
             </div>
         </div>
     </div>

@@ -406,6 +406,15 @@ def _parse_datetime_local(value):
     return timezone.localtime(dt)
 
 
+def _duration_minutes_between(start, end, label):
+    if not start or not end:
+        raise ValidationError(f"{label} start and end time are required.")
+    if end <= start:
+        raise ValidationError(f"{label} end time must be after start time.")
+    seconds = (end - start).total_seconds()
+    return int((seconds + 59) // 60)
+
+
 def _client_ip(request):
     forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
     if forwarded:
@@ -1335,7 +1344,26 @@ def place_bet(request):
                 "message": "Betting is locked. Market closed or within 10-minute lockout."
             })
 
-        total_amount = sum(int(amt) for amt in bets_data.values())
+        MIN_BET_AMOUNT = 10
+        normalized_bets = {}
+        for number, amount in (bets_data or {}).items():
+            try:
+                amt_int = int(amount)
+            except Exception:
+                return JsonResponse({"status": "error", "message": "Invalid bet amount."})
+
+            if amt_int <= 0:
+                continue
+
+            if amt_int < MIN_BET_AMOUNT:
+                return JsonResponse({"status": "error", "message": f"Minimum bet amount is ₹{MIN_BET_AMOUNT}."})
+
+            normalized_bets[str(number)] = amt_int
+
+        if not normalized_bets:
+            return JsonResponse({"status": "error", "message": "No valid bets provided."})
+
+        total_amount = sum(normalized_bets.values())
 
         wallet = request.user.wallet
         if wallet.balance < total_amount:
@@ -1364,18 +1392,17 @@ def place_bet(request):
         except Profile.DoesNotExist:
             uid_display = str(request.user.id)
             
-        for number, amount in bets_data.items():
-            if int(amount) > 0:
-                Bet.objects.create(
-                    user=request.user,
-                    user_id_str=uid_display,
-                    game_type=game_type,
-                    market=market,
-                    session=session,
-                    number=number,
-                    amount=int(amount),
-                    status='PENDING'
-                )
+        for number, amount in normalized_bets.items():
+            Bet.objects.create(
+                user=request.user,
+                user_id_str=uid_display,
+                game_type=game_type,
+                market=market,
+                session=session,
+                number=number,
+                amount=amount,
+                status='PENDING'
+            )
 
         # Task 4: Stay on the same page instead of redirecting to history
         return JsonResponse({"status": "success", "message": "Bets placed successfully!"})
@@ -2041,7 +2068,11 @@ def admin_summary(request):
     ).order_by('-total_amount')
     
     # Recent Transactions (Last 10)
-    recent_txns = Transaction.objects.select_related('wallet__user').order_by('-created_at')[:10]
+    recent_txns = (
+        Transaction.objects.select_related('wallet__user')
+        .filter(created_at__date=selected_date)
+        .order_by('-created_at')[:10]
+    )
 
     return render(request, "admin/admin_summary.html", {
         "page_title": "Admin Dashboard",
@@ -2070,16 +2101,23 @@ def admin_dashboard_enhanced(request):
 
     total_users = User.objects.exclude(is_superuser=True).count()
     
-    today = timezone.now().date()
-    today_bets = Bet.objects.filter(created_at__date=today, is_deleted=False)
-    today_collection = today_bets.aggregate(Sum('amount'))['amount__sum'] or 0
-    today_payouts = today_bets.aggregate(Sum('win_amount'))['win_amount__sum'] or 0
+    selected_date = timezone.localdate()
+    date_str = (request.GET.get("date") or "").strip()
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except Exception:
+            selected_date = timezone.localdate()
+
+    selected_bets = Bet.objects.filter(created_at__date=selected_date, is_deleted=False)
+    today_collection = selected_bets.aggregate(Sum('amount'))['amount__sum'] or 0
+    today_payouts = selected_bets.aggregate(Sum('win_amount'))['win_amount__sum'] or 0
     today_profit = today_collection - today_payouts
     
     pending_withdrawals = WithdrawalRequest.objects.filter(status='PENDING').count()
     pending_deposits = DepositRequest.objects.filter(status='PENDING').count()
     
-    market_summary = today_bets.values('market__name', 'game_type').annotate(
+    market_summary = selected_bets.values('market__name', 'game_type').annotate(
         total_amount=Sum('amount'),
         count=Count('id')
     ).order_by('-total_amount')
@@ -2090,6 +2128,7 @@ def admin_dashboard_enhanced(request):
     return render(request, "admin/dashboard_content.html", {
         "page_title": "Admin Dashboard",
         "total_users": total_users,
+        "selected_date": selected_date.strftime("%Y-%m-%d"),
         "today_collection": today_collection,
         "today_payouts": today_payouts,
         "today_profit": today_profit,
@@ -2163,7 +2202,12 @@ def admin_user_activity(request):
     user_code_filter = (request.GET.get('user_id') or '').strip()
     mobile_filter = (request.GET.get('mobile') or '').strip()
 
-    activities = UserActivity.objects.select_related('user', 'user__profile').all().order_by('-created_at')
+    activities = (
+        UserActivity.objects.select_related('user', 'user__profile')
+        .filter(user__is_superuser=False, user__is_staff=False)
+        .exclude(activity_type='CLEANUP')
+        .order_by('-created_at')
+    )
     if user_code_filter:
         activities = activities.filter(user__profile__user_code__icontains=user_code_filter)
     if mobile_filter:
@@ -2223,7 +2267,12 @@ def admin_user_management(request):
     user_code_filter = (request.GET.get('user_id') or '').strip()
     mobile_filter = (request.GET.get('mobile') or '').strip()
 
-    profiles = Profile.objects.select_related('user').all().order_by('-created_at')
+    profiles = (
+        Profile.objects.select_related('user')
+        .annotate(wallet_balance=Coalesce("user__wallet__balance", Decimal("0.00")))
+        .all()
+        .order_by('-created_at')
+    )
     if user_code_filter:
         profiles = profiles.filter(user_code__icontains=user_code_filter)
     if mobile_filter:
@@ -2657,9 +2706,9 @@ def manage_markets(request):
             name = (request.POST.get("name") or "").strip()
             coll_date = request.POST.get("collection_date")
             ost = request.POST.get("open_start_time")
-            open_duration = request.POST.get("open_duration_minutes")
+            oet = request.POST.get("open_end_time")
             cst = request.POST.get("close_start_time")
-            close_duration = request.POST.get("close_duration_minutes")
+            cet = request.POST.get("close_end_time")
 
             if not name:
                 messages.error(request, "Market name is required.")
@@ -2668,9 +2717,11 @@ def manage_markets(request):
             try:
                 collection_date = _parse_datetime_local(coll_date) or timezone.localtime()
                 open_start_time = _parse_datetime_local(ost) or timezone.localtime()
+                open_end_time = _parse_datetime_local(oet)
                 close_start_time = _parse_datetime_local(cst) or open_start_time
-                open_duration_minutes = _parse_positive_minutes(open_duration, "Open")
-                close_duration_minutes = _parse_positive_minutes(close_duration, "Close")
+                close_end_time = _parse_datetime_local(cet)
+                open_duration_minutes = _duration_minutes_between(open_start_time, open_end_time, "Open")
+                close_duration_minutes = _duration_minutes_between(close_start_time, close_end_time, "Close")
             except ValidationError as exc:
                 messages.error(request, exc.messages[0])
                 return redirect("manage_markets")
@@ -2688,16 +2739,18 @@ def manage_markets(request):
         name = request.POST.get('name')
         coll_date = request.POST.get('collection_date')
         ost = request.POST.get('open_start_time')
-        open_duration = request.POST.get('open_duration_minutes')
+        oet = request.POST.get("open_end_time")
         cst = request.POST.get('close_start_time')
-        close_duration = request.POST.get('close_duration_minutes')
+        cet = request.POST.get("close_end_time")
 
         try:
             collection_date = _parse_datetime_local(coll_date) or timezone.localtime()
             open_start_time = _parse_datetime_local(ost) or timezone.localtime()
+            open_end_time = _parse_datetime_local(oet)
             close_start_time = _parse_datetime_local(cst) or open_start_time
-            open_duration_minutes = _parse_positive_minutes(open_duration, "Open")
-            close_duration_minutes = _parse_positive_minutes(close_duration, "Close")
+            close_end_time = _parse_datetime_local(cet)
+            open_duration_minutes = _duration_minutes_between(open_start_time, open_end_time, "Open")
+            close_duration_minutes = _duration_minutes_between(close_start_time, close_end_time, "Close")
 
             market = Market(name=name, collection_date=collection_date)
             market.configure_session_timer("OPEN", open_start_time, open_duration_minutes)

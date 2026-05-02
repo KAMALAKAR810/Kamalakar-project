@@ -19,9 +19,6 @@
                     <button type="button" onclick="window.print()" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
                         <i class="fas fa-print me-2"></i>PRINT
                     </button>
-                    <a href="{% url 'market_history' %}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
-                        <i class="fas fa-history me-2"></i>VIEW HISTORY
-                    </a>
                 </div>
             </div>
 
@@ -41,22 +38,20 @@
                     </div>
                     <div class="row g-4 mb-5">
                         <div class="col-sm-6">
-                            <label class="form-label">Open Timer Starts</label>
-                            <input type="datetime-local" name="open_start_time" class="form-control">
-                            <div class="form-text">Leave blank to start immediately on save.</div>
+                            <label class="form-label">Open Start Date &amp; Time</label>
+                            <input type="datetime-local" name="open_start_time" class="form-control" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Open Duration (Minutes)</label>
-                            <input type="number" name="open_duration_minutes" class="form-control" min="1" step="1" placeholder="60" required>
+                            <label class="form-label">Open End Date &amp; Time</label>
+                            <input type="datetime-local" name="open_end_time" class="form-control" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Close Timer Starts</label>
-                            <input type="datetime-local" name="close_start_time" class="form-control">
-                            <div class="form-text">Leave blank to start immediately on save.</div>
+                            <label class="form-label">Close Start Date &amp; Time</label>
+                            <input type="datetime-local" name="close_start_time" class="form-control" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Close Duration (Minutes)</label>
-                            <input type="number" name="close_duration_minutes" class="form-control" min="1" step="1" placeholder="120" required>
+                            <label class="form-label">Close End Date &amp; Time</label>
+                            <input type="datetime-local" name="close_end_time" class="form-control" required>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary-gradient btn-lg w-100 py-3">
@@ -86,9 +81,9 @@
                                 data-name="{{ market.name }}"
                                 data-collection="{{ market.collection_date|date:'Y-m-d\\TH:i' }}"
                                 data-open-start="{{ market.open_start_time|date:'Y-m-d\\TH:i' }}"
-                                data-open-duration="{{ market.open_duration_minutes|default:'' }}"
+                                data-open-end="{{ market.open_end_time|date:'Y-m-d\\TH:i' }}"
                                 data-close-start="{{ market.close_start_time|date:'Y-m-d\\TH:i' }}"
-                                data-close-duration="{{ market.close_duration_minutes|default:'' }}">
+                                data-close-end="{{ market.close_end_time|date:'Y-m-d\\TH:i' }}">
                                 <td class="px-4">
                                     <strong class="text-primary fs-6">{{ market.name }}</strong>
                                 </td>
@@ -105,7 +100,6 @@
                                         </div>
                                         <div class="small text-muted">
                                             {{ market.open_start_time|date:"d M H:i" }} → {{ market.open_end_time|date:"H:i" }}
-                                            <span class="badge bg-secondary ms-1">{{ market.open_duration_minutes|default:"-" }} min</span>
                                         </div>
                                     </div>
                                 </td>
@@ -119,7 +113,6 @@
                                         </div>
                                         <div class="small text-muted">
                                             {{ market.close_start_time|date:"d M H:i" }} → {{ market.close_end_time|date:"H:i" }}
-                                            <span class="badge bg-secondary ms-1">{{ market.close_duration_minutes|default:"-" }} min</span>
                                         </div>
                                     </div>
                                 </td>
@@ -181,20 +174,20 @@
                     <input type="datetime-local" name="collection_date" id="edit-collection" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Open Timer Starts</label>
-                    <input type="datetime-local" name="open_start_time" id="edit-open-start" class="form-control">
+                    <label class="form-label fw-bold">Open Start Date &amp; Time</label>
+                    <input type="datetime-local" name="open_start_time" id="edit-open-start" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Open Duration (Minutes)</label>
-                    <input type="number" name="open_duration_minutes" id="edit-open-duration" class="form-control" min="1" step="1" required>
+                    <label class="form-label fw-bold">Open End Date &amp; Time</label>
+                    <input type="datetime-local" name="open_end_time" id="edit-open-end" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Close Timer Starts</label>
-                    <input type="datetime-local" name="close_start_time" id="edit-close-start" class="form-control">
+                    <label class="form-label fw-bold">Close Start Date &amp; Time</label>
+                    <input type="datetime-local" name="close_start_time" id="edit-close-start" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Close Duration (Minutes)</label>
-                    <input type="number" name="close_duration_minutes" id="edit-close-duration" class="form-control" min="1" step="1" required>
+                    <label class="form-label fw-bold">Close End Date &amp; Time</label>
+                    <input type="datetime-local" name="close_end_time" id="edit-close-end" class="form-control" required>
                 </div>
             </div>
 
@@ -273,9 +266,9 @@ function openMarketEdit(btn) {
     document.getElementById('edit-name').value = row.dataset.name || '';
     document.getElementById('edit-collection').value = row.dataset.collection || '';
     document.getElementById('edit-open-start').value = row.dataset.openStart || '';
-    document.getElementById('edit-open-duration').value = row.dataset.openDuration || '';
+    document.getElementById('edit-open-end').value = row.dataset.openEnd || '';
     document.getElementById('edit-close-start').value = row.dataset.closeStart || '';
-    document.getElementById('edit-close-duration').value = row.dataset.closeDuration || '';
+    document.getElementById('edit-close-end').value = row.dataset.closeEnd || '';
     toggleMarketModal(true);
 }
 

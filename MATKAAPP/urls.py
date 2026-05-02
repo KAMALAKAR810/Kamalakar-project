@@ -65,7 +65,6 @@ urlpatterns = [
     path("admin-dashboard/", views.admin_dashboard_enhanced, name="admin_dashboard_enhanced"),
     path("admin-manage-markets/", views.manage_markets, name="manage_markets"),
     path("admin-reset-market/<int:market_id>/", views.reset_market, name="reset_market"),
-    path("admin-market-history/", views.market_history_view, name="market_history"),
     path("admin-market-bets/", views.market_bets, name="market_bets"),
     path("admin-bets/", views.admin_bet_history, name="admin_bet_history"),
     path("admin-jodi-winners/", views.jodi_winners_view, name="jodi_winners"),

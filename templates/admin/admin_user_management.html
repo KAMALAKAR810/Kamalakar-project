@@ -46,10 +46,10 @@
                 <thead>
                     <tr>
                         <th class="px-4 py-3">Profile</th>
-                        <th class="py-3">Full Name</th>
                         <th class="py-3">Username</th>
                         <th class="py-3">User ID</th>
                         <th class="py-3">Mobile</th>
+                        <th class="py-3">Wallet Balance</th>
                         <th class="py-3">Joined Date</th>
                         <th class="py-3">Verified</th>
                         <th class="px-4 py-3 text-end">Actions</th>
@@ -67,10 +67,10 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td class="fw-bold text-dark" data-label="Full Name">{{ profile.user.first_name|default:profile.user.username }}</td>
                         <td data-label="Username"><span class="badge bg-light text-dark border px-2 py-1">{{ profile.user.username }}</span></td>
                         <td class="fw-bold text-primary" data-label="User ID">{{ profile.user_code }}</td>
                         <td class="fw-medium" data-label="Mobile">{{ profile.mobile }}</td>
+                        <td class="fw-bold" data-label="Wallet Balance">₹{{ profile.wallet_balance }}</td>
                         <td class="small text-muted" data-label="Joined Date">{{ profile.created_at|date:"d M Y, H:i" }}</td>
                         <td data-label="Verified">
                             {% if profile.is_email_verified %}

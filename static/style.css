@@ -379,3 +379,14 @@ button { width: auto; cursor: pointer; border: none; font-weight: 700; transitio
   .withdraw-head { grid-template-columns: 1fr; }
   .balance-card { min-width: 0; }
 }
+
+.bet-history-wrap { overflow-x: auto; }
+.bet-history-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+.bet-history-table th, .bet-history-table td { padding: 0.75rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.bet-history-table th { font-size: 0.8rem; letter-spacing: 0.03em; text-transform: uppercase; color: var(--gray); white-space: nowrap; }
+.bet-history-table td { font-size: 0.92rem; }
+.bet-history-table td:nth-child(2) { white-space: nowrap; }
+.bet-history-table td:nth-child(4) { white-space: nowrap; }
+.bet-history-table td:nth-child(5) { white-space: nowrap; }
+.bet-history-table td:nth-child(6) { white-space: nowrap; }
+.bet-history-table td:nth-child(9) { white-space: nowrap; }
